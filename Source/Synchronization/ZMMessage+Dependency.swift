@@ -31,7 +31,7 @@ extension ZMOTRMessage {
         // we need to refetch the conversation before recreating the message payload.
         // Otherwise we end up in an endless loop receiving missing clients error
         if conversation.needsToBeUpdatedFromBackend {
-            return self.conversation
+            return conversation
         }
         
         if (conversation.conversationType == .OneOnOne || conversation.conversationType == .Connection)
@@ -74,7 +74,7 @@ extension ZMMessage {
         guard let conversation = self.conversation else { return nil }
         
         if conversation.remoteIdentifier == nil {
-            return self.conversation
+            return conversation
         }
         
         // Messages should time out within 1 minute. But image messages never time out. In case there is a bug
@@ -95,6 +95,7 @@ extension ZMMessage {
         // we don't want following messages to block this one, only previous ones.
         // so we iterate backwards and we ignore everything until we find this one
         var selfMessageFound = false
+
         conversation.messages
             .enumerateObjectsWithOptions(NSEnumerationOptions.Reverse) { (obj, _, stop) in
                 guard let previousMessage = obj as? ZMMessage else { return }
@@ -136,6 +137,6 @@ extension ZMAssetClientMessage {
     
     override var shouldBlockFurtherMessages : Bool {
         // only block until preview is uploaded
-        return self.needsToUploadPreview && self.deliveryState == .Pending && !self.isExpired
+        return self.uploadState == .UploadingPlaceholder && self.deliveryState == .Pending && !self.isExpired
     }
 }
