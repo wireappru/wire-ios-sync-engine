@@ -45,7 +45,7 @@ static NSString * const PushNotificationTypeNotice = @"notice";
 - (void)saveEventsAndSendNotificationForPayload:(NSDictionary *)payload fetchCompletionHandler:(ZMPushResultHandler)completionHandler source:(ZMPushNotficationType)source;
 {
     ZMLogDebug(@"----> Received push notification payload: %@, source: %lu", payload, (unsigned long)source);
-    ZMBackgroundActivity *activity = [ZMBackgroundActivity beginBackgroundActivityWithName:@"send notification for payload"];
+    ZMBackgroundActivity *activity = [[BackgroundActivityFactory sharedInstance] backgroundActivityWithName:@"send notification for payload"];
     [self.syncMOC performGroupedBlock:^{
         
         EventsWithIdentifier *eventsWithID = [self eventsFromPushChannelData:payload];
@@ -120,6 +120,10 @@ static NSString * const PushNotificationTypeNotice = @"notice";
 
 - (void)forwardEvents:(NSArray *)events
 {
+    if (events.count == 0) {
+        return;
+    }
+    
     NSArray *nonFlowEvents = [events filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(ZMUpdateEvent *event, NSDictionary<NSString *,id> * _Nullable ZM_UNUSED bindings) {
         return !event.isFlowEvent;
     }]];

@@ -184,6 +184,7 @@ ZM_EMPTY_ASSERTING_INIT()
                                    self.pingBackRequestStrategy,
                                    self.pushNoticeFetchStrategy,
                                    self.fileUploadRequestStrategy,
+                                   self.missingUpdateEventsTranscoder,
                                    self.linkPreviewAssetDownloadRequestStrategy,
                                    self.linkPreviewAssetUploadRequestStrategy
                                    ];
@@ -222,7 +223,7 @@ ZM_EMPTY_ASSERTING_INIT()
     self.clientMessageTranscoder = [[ZMClientMessageTranscoder alloc ] initWithManagedObjectContext:self.syncMOC localNotificationDispatcher:localNotificationsDispatcher clientRegistrationStatus:clientRegistrationStatus];
     self.knockTranscoder = [[ZMKnockTranscoder alloc] initWithManagedObjectContext:self.syncMOC];
     self.registrationTranscoder = [[ZMRegistrationTranscoder alloc] initWithManagedObjectContext:self.syncMOC authenticationStatus:authenticationStatus];
-    self.missingUpdateEventsTranscoder = [[ZMMissingUpdateEventsTranscoder alloc] initWithSyncStrategy:self];
+    self.missingUpdateEventsTranscoder = [[ZMMissingUpdateEventsTranscoder alloc] initWithSyncStrategy:self apnsPingBackStatus:backgroundAPNSPingBackStatus];
     self.lastUpdateEventIDTranscoder = [[ZMLastUpdateEventIDTranscoder alloc] initWithManagedObjectContext:self.syncMOC objectDirectory:self];
     self.flowTranscoder = [[ZMFlowSync alloc] initWithMediaManager:mediaManager onDemandFlowManager:onDemandFlowManager syncManagedObjectContext:self.syncMOC uiManagedObjectContext:uiMOC];
     self.addressBookTranscoder = [[ZMAddressBookTranscoder alloc] initWithManagedObjectContext:self.syncMOC];
@@ -248,7 +249,7 @@ ZM_EMPTY_ASSERTING_INIT()
 - (void)appDidEnterBackground:(NSNotification *)note
 {
     NOT_USED(note);
-    ZMBackgroundActivity *activity = [ZMBackgroundActivity beginBackgroundActivityWithName:@"enter background"];
+    ZMBackgroundActivity *activity = [[BackgroundActivityFactory sharedInstance] backgroundActivityWithName:@"enter background"];
     [self.syncMOC performGroupedBlock:^{
         [self.stateMachine enterBackground];
         [ZMOperationLoop notifyNewRequestsAvailable:self];
@@ -260,7 +261,7 @@ ZM_EMPTY_ASSERTING_INIT()
 - (void)appWillEnterForeground:(NSNotification *)note
 {
     NOT_USED(note);
-    ZMBackgroundActivity *activity = [ZMBackgroundActivity beginBackgroundActivityWithName:@"enter foreground"];
+    ZMBackgroundActivity *activity = [[BackgroundActivityFactory sharedInstance] backgroundActivityWithName:@"enter foreground"];
     [self.syncMOC performGroupedBlock:^{
         [self.stateMachine enterForeground];
         [ZMOperationLoop notifyNewRequestsAvailable:self];
