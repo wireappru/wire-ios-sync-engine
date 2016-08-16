@@ -730,11 +730,11 @@ _Pragma("clang diagnostic pop")
             
             isVoiceChannelFull = [NSError fullVoiceChannelErrorFromResponse:response] != nil;
             
-            dispatch_async(dispatch_get_main_queue(), ^{
+            [self.managedObjectContext.zm_userInterfaceContext performGroupedBlock:^{
                 [[NSNotificationCenter defaultCenter] postNotificationName:ZMConversationVoiceChannelJoinFailedNotification
                                                                     object:conversation.objectID
                                                                   userInfo:@{@"error": callbackError}];
-            });
+            }];
         }
         // the BE refused the request
         if (!conversation.callDeviceIsActive) {
@@ -761,7 +761,7 @@ _Pragma("clang diagnostic pop")
     BOOL isInterruptedCall = [self.gsmCallHandler isInterruptedCallConversation:conversation];
     
     NSMutableDictionary *selfStateDict = [NSMutableDictionary dictionary];
-    selfStateDict[StateKey] = newState;
+    selfStateDict[StateKey] = [newState copy];
     if (conversation.callDeviceIsActive ) {
         BOOL isInitiatingCall = conversation.callParticipants.count == 0;
         BOOL isVideoCall = (conversation.isVideoCall && isInitiatingCall) || conversation.isSendingVideo;
