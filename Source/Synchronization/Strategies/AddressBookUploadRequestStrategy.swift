@@ -18,8 +18,6 @@
 
 import Foundation
 
-// TODO MARCO: add tracking
-
 /// BE onboarding endpoint
 private let onboardingEndpoint = "/onboarding/v3"
 
@@ -49,7 +47,7 @@ private let addressBookLastUploadedIndex = "ZMAddressBookTranscoderLastIndexUplo
     private var requestSync : ZMSingleRequestSync!
     
     /// Encoded address book chunk
-    private var encodedAddressBookChunk : EncodedAddressBookChunk? = nil
+    private var encodedAddressBookChunkToUpload : EncodedAddressBookChunk? = nil
     
     /// Is the payload being generated? This is an async operation
     private var isGeneratingPayload : Bool = false
@@ -76,7 +74,7 @@ private let addressBookLastUploadedIndex = "ZMAddressBookTranscoderLastIndexUplo
         self.clientRegistrationStatus = clientRegistrationStatus
         self.managedObjectContext = managedObjectContext
         self.addressBookGenerator = addressBookGenerator
-        self.tracker = tracker ?? AddressBookTracker(analytics: managedObjectContext.analytics)
+        self.tracker = tracker ?? AddressBookAnalytics(analytics: managedObjectContext.analytics)
         super.init()
         self.requestSync = ZMSingleRequestSync(singleRequestTranscoder: self, managedObjectContext: managedObjectContext)
     }
@@ -92,7 +90,7 @@ extension AddressBookUploadRequestStrategy : RequestStrategy, ZMSingleRequestTra
         }
         
         // already encoded? just send it
-        if self.encodedAddressBookChunk != nil {
+        if self.encodedAddressBookChunkToUpload != nil {
             return self.requestSync.nextRequest()
         }
         
@@ -101,7 +99,7 @@ extension AddressBookUploadRequestStrategy : RequestStrategy, ZMSingleRequestTra
     }
     
     func requestForSingleRequestSync(sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
-        guard sync == self.requestSync, let encodedChunk = self.encodedAddressBookChunk else {
+        guard sync == self.requestSync, let encodedChunk = self.encodedAddressBookChunkToUpload else {
             return nil
         }
         let contactCards = encodedChunk.otherContactsHashes
@@ -113,16 +111,30 @@ extension AddressBookUploadRequestStrategy : RequestStrategy, ZMSingleRequestTra
                 ]
         }
         let payload = ["cards" : contactCards]
+        self.tracker.tagAddressBookUploadStarted(encodedChunk.numberOfTotalContacts)
         return ZMTransportRequest(path: onboardingEndpoint, method: .MethodPOST, payload: payload, shouldCompress: true)
     }
     
     func didReceiveResponse(response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {
         if response.result == .Success {
-            // TODO MARCO: suggested users
-            self.managedObjectContext.suggestedUsersForUser = NSOrderedSet()
+            
+            if let payload = response.payload as? [String: AnyObject],
+                let results = payload["results"] as? [[String: AnyObject]]
+            {
+                let suggestedIds = results.flatMap { $0["id"] as? String }
+                // XXX: this will always overwrite previous ones, effectively linking the suggestion to
+                // the batch size, i.e. only AB with less contacts than the batch size will have reliable
+                // suggestions. On the other hand, appending instead of replacing could cause infinite 
+                // growth. For the moment, we will live with having suggestions only from the last batch
+                self.managedObjectContext.suggestedUsersForUser = NSOrderedSet(array: suggestedIds)
+            }
+            
             self.managedObjectContext.commonConnectionsForUsers = [:]
             self.addressBookNeedsToBeUploaded = false
-            self.encodedAddressBookChunk = nil
+            self.encodedAddressBookChunkToUpload = nil
+            
+            // tracking
+            self.tracker.tagAddressBookUploadSuccess()
         }
     }
     
@@ -148,15 +160,54 @@ extension AddressBookUploadRequestStrategy : RequestStrategy, ZMSingleRequestTra
             }
             strongSelf.isGeneratingPayload = false
             if let encodedChunk = encodedChunk {
-                let lastIndex = encodedChunk.includedContacts.endIndex
-                let isEndOfCards = lastIndex >= encodedChunk.numberOfTotalContacts - 1
-                // is this the last card? if it is, reset to 0 so it will restart
-                strongSelf.lastUploadedCardIndex = isEndOfCards ? 0 : lastIndex
-                strongSelf.encodedAddressBookChunk = encodedChunk
-                strongSelf.requestSync.readyForNextRequest()
-                ZMOperationLoop.notifyNewRequestsAvailable(strongSelf)
+                strongSelf.checkIfShouldUpload(encodedChunk)
             }
         }
+    }
+    
+    private func checkIfShouldUpload(encodedChunk: EncodedAddressBookChunk) {
+        
+        if !encodedChunk.isEmpty {
+            // not empty? we are uploading it!
+            self.startUpload(encodedChunk)
+        }
+        
+        // reached the end, I had 1000 contacts and I was trying to encode 1001st ?
+        let shouldEncodeFirstChunkInstead = encodedChunk.isEmpty && !encodedChunk.isFirst
+        
+        if shouldEncodeFirstChunkInstead {
+            self.lastUploadedCardIndex = 0
+            self.generateAddressBookPayloadIfNeeded()
+        } else if encodedChunk.isLast {
+            self.lastUploadedCardIndex = 0
+        } else {
+            self.lastUploadedCardIndex = encodedChunk.includedContacts.endIndex
+        }
+    }
+    
+    /// Start uploading a given chunk
+    private func startUpload(encodedChunk: EncodedAddressBookChunk) {
+        self.encodedAddressBookChunkToUpload = encodedChunk
+        self.requestSync.readyForNextRequest()
+        ZMOperationLoop.notifyNewRequestsAvailable(self)
+    }
+}
+
+extension EncodedAddressBookChunk {
+    
+    /// Whether this is the last chunk and no following chunk needs to be uploaded after this one
+    var isLast : Bool {
+        return UInt(self.otherContactsHashes.count) < maxEntriesInAddressBookChunk
+    }
+    
+    /// Whether this is the first chunk
+    var isFirst : Bool {
+        return self.includedContacts.startIndex == 0
+    }
+    
+    /// Whether the chunk is empty
+    var isEmpty : Bool {
+        return self.otherContactsHashes.isEmpty
     }
 }
 
