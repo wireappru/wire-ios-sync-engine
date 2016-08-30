@@ -91,8 +91,8 @@
     }];
 
     WaitForAllGroupsToBeEmpty(0.5);
-    XCTAssertEqual(firstMessage.deliveryState, ZMDeliveryStateDelivered);
-    XCTAssertEqual(secondMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(firstMessage.deliveryState, ZMDeliveryStateSent);
+    XCTAssertEqual(secondMessage.deliveryState, ZMDeliveryStateSent);
 
     NSUInteger otrResponseCount = 0;
     NSString *otrConversationPath = [NSString stringWithFormat:@"/conversations/%@/otr/messages", self.groupConversation.identifier];
@@ -146,6 +146,7 @@
 {
     // given
     XCTAssertTrue([self logInAndWaitForSyncToBeCompleteWithTimeout:0.6]);
+    WaitForAllGroupsToBeEmpty(0.5);
 
     __block NSUInteger count = 0;
     dispatch_block_t insertMessage  = ^{
@@ -424,8 +425,8 @@
     
     
     //then
-    XCTAssertEqual(imageMessage.deliveryState, ZMDeliveryStateDelivered);
-    XCTAssertEqual(textMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(imageMessage.deliveryState, ZMDeliveryStateSent);
+    XCTAssertEqual(textMessage.deliveryState, ZMDeliveryStateSent);
 }
 
 - (void)testThatNextMessageIsSentAfterPreviousMessageInConversationIsDelivered
@@ -536,8 +537,8 @@
     WaitForAllGroupsToBeEmpty(0.5f);
     
     //then
-    XCTAssertEqual(secondMessage.deliveryState, ZMDeliveryStateDelivered);
-    XCTAssertEqual(message.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(secondMessage.deliveryState, ZMDeliveryStateSent);
+    XCTAssertEqual(message.deliveryState, ZMDeliveryStateSent);
 }
 
 - (void)testThatItSendsMessagesFromDifferentConversationsInParallel
@@ -617,7 +618,7 @@
                               [self.groupConversation insertImageEventsFromUser:self.user2];
                           } verify:^(ZMConversation *conversation) {
                               ZMImageMessage *msg = conversation.messages.lastObject;
-                              XCTAssertEqual(msg.deliveryState, ZMDeliveryStateDelivered);
+                              XCTAssertEqual(msg.deliveryState, ZMDeliveryStateSent);
                               XCTAssertEqual(msg.mediumData.length, (NSUInteger) 0);
                               XCTAssertEqual(msg.previewData.length, (NSUInteger) 2338);
                           }];
@@ -633,7 +634,7 @@
                               ZMImageMessage *msg = conversation.messages.lastObject;
                               [msg requestImageDownload];
                               WaitForAllGroupsToBeEmpty(0.5);
-                              XCTAssertEqual(msg.deliveryState, ZMDeliveryStateDelivered);
+                              XCTAssertEqual(msg.deliveryState, ZMDeliveryStateSent);
                               XCTAssertEqual(msg.mediumData.length, (NSUInteger) 317748u);
                               XCTAssertEqual(msg.previewData.length, (NSUInteger) 2338);
                           }];
@@ -655,7 +656,7 @@
                                          [msg requestImageDownload];
                                          WaitForAllGroupsToBeEmpty(0.5);
                                          XCTAssertEqual(observer.notifications.count, 1u);
-                                         XCTAssertEqual(msg.deliveryState, ZMDeliveryStateDelivered);
+                                         XCTAssertEqual(msg.deliveryState, ZMDeliveryStateSent);
                                          XCTAssertEqual(msg.mediumData.length, 317748u);
                                          XCTAssertEqual(msg.previewData.length, 2338u);
                                      }];
@@ -705,7 +706,7 @@
         XCTAssertEqual(conversation.messages.count, 3u);
         
         msg = conversation.messages.lastObject;
-        XCTAssertEqual(msg.deliveryState, ZMDeliveryStateDelivered);
+        XCTAssertEqual(msg.deliveryState, ZMDeliveryStateSent);
         XCTAssertEqual(msg.mediumData.length, (NSUInteger) 0);
         XCTAssertEqual(msg.previewData.length, (NSUInteger) 2338);
     }
@@ -730,7 +731,7 @@
         ConversationChangeInfo *note = observer.notifications.firstObject;
         XCTAssertTrue(note.lastModifiedDateChanged);
         XCTAssertEqual(conversation.messages.count, 3u); // including "new conversation" and "you started using this device" message
-        XCTAssertEqual(msg.deliveryState, ZMDeliveryStateDelivered);
+        XCTAssertEqual(msg.deliveryState, ZMDeliveryStateSent);
         XCTAssertEqual(msg.mediumData.length, (NSUInteger) 0);
         XCTAssertEqual(msg.previewData.length, (NSUInteger) 2338);
     }
@@ -773,7 +774,7 @@
     
     void (^checkImageMessage)(ZMConversation*, ZMTFailureRecorder *) = ^(ZMConversation* conv, ZMTFailureRecorder *recorder){
         ZMImageMessage *msg = conv.messages.lastObject;
-        FHAssertEqual(recorder, msg.deliveryState, ZMDeliveryStateDelivered);
+        FHAssertEqual(recorder, msg.deliveryState, ZMDeliveryStateSent);
         FHAssertEqual(recorder, msg.mediumData.length, (NSUInteger) 0);
         FHAssertEqual(recorder, msg.previewData.length, (NSUInteger) 2338);
     };
@@ -1379,7 +1380,7 @@
     
     
     //then
-    XCTAssertEqual(message.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(message.deliveryState, ZMDeliveryStateSent);
     
     // finally
     [ZMMessage resetDefaultExpirationTime];
@@ -1480,7 +1481,7 @@
     
     // then
     XCTAssertTrue([self waitOnMainLoopUntilBlock:^BOOL{
-        return message.deliveryState == ZMDeliveryStateDelivered;
+        return message.deliveryState == ZMDeliveryStateSent;
     } timeout:0.5]);
     
     // finally

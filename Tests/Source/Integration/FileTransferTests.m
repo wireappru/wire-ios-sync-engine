@@ -74,7 +74,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     
     NSArray <ZMTransportRequest *> *requests = [self filterOutRequestsForLastRead:self.mockTransportSession.receivedRequests];
@@ -122,7 +122,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     
     NSArray <ZMTransportRequest *> *requests = [self filterOutRequestsForLastRead:self.mockTransportSession.receivedRequests];
@@ -183,7 +183,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
 }
 
@@ -214,9 +214,9 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
-    XCTAssertEqual(textMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(textMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(conversation.messages.count, 3lu);
 }
 
@@ -484,10 +484,10 @@
     
     // when
     // register other users client
-    __unused CBCryptoBox *user1Box = [self setupOTREnvironmentForUser:self.user1
-                                                         isSelfClient:NO
-                                                         numberOfKeys:1
-                                         establishSessionWithSelfUser:NO];
+    __unused EncryptionContext *user1Box = [self setupOTREnvironmentForUser:self.user1
+                                                               isSelfClient:NO
+                                                               numberOfKeys:1
+                                               establishSessionWithSelfUser:NO];
     __block ZMMessage *fileMessage;
     
     [self.mockTransportSession resetReceivedRequests];
@@ -498,7 +498,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
 
     NSArray <ZMTransportRequest *> *requests = [self filterOutRequestsForLastRead:self.mockTransportSession.receivedRequests];
     
@@ -555,7 +555,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     
     NSArray <ZMTransportRequest *> *requests = [self filterOutRequestsForLastRead:self.mockTransportSession.receivedRequests];
@@ -624,7 +624,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     XCTAssertEqualObjects(fileMessage.fileMessageData.filename.stringByDeletingPathExtension, @"video");
     XCTAssertEqualObjects(fileMessage.fileMessageData.filename.pathExtension, @"mp4");
@@ -681,7 +681,7 @@
     
     //then
     XCTAssertEqual(assetUploadCounter, 2lu);
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     XCTAssertEqualObjects(fileMessage.fileMessageData.filename.stringByDeletingPathExtension, @"video");
     XCTAssertEqualObjects(fileMessage.fileMessageData.filename.pathExtension, @"mp4");
@@ -1148,9 +1148,10 @@
     
     // when
     // register other users client
-    [self.mockTransportSession performRemoteChanges:^(MockTransportSession<MockTransportSessionObjectCreation> *session) {
-        [session registerClientForUser:self.user1 label:@"desktop" type:@"permanent"];
-    }];
+    __unused EncryptionContext *user1Box = [self setupOTREnvironmentForUser:self.user1
+                                                               isSelfClient:NO
+                                                               numberOfKeys:1
+                                               establishSessionWithSelfUser:NO];
     WaitForAllGroupsToBeEmpty(0.5);
     
     __block ZMMessage *fileMessage;
@@ -1163,7 +1164,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     
     NSArray <ZMTransportRequest *> *requests = [self filterOutRequestsForLastRead:self.mockTransportSession.receivedRequests];
@@ -1219,7 +1220,7 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     //then
-    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateDelivered);
+    XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     
     NSArray <ZMTransportRequest *> *requests = [self filterOutRequestsForLastRead:self.mockTransportSession.receivedRequests];
@@ -1328,13 +1329,16 @@
     
     NSUUID *nonce = NSUUID.createUUID;
     ZMGenericMessage *original = [ZMGenericMessage genericMessageWithAssetSize:256
-                                                                 mimeType:@"text/plain"
-                                                                     name:self.name
-                                                                messageID:nonce.transportString];
+                                                                      mimeType:@"text/plain"
+                                                                          name:self.name
+                                                                     messageID:nonce.transportString];
     
-    NSError *error;
-    CBCryptoBox *box = self.userSession.syncManagedObjectContext.zm_cryptKeyStore.box;
-    CBPreKey *prekey = [box lastPreKey:&error];
+    EncryptionContext *box = self.userSession.syncManagedObjectContext.zm_cryptKeyStore.encryptionContext;
+    __block NSError *error;
+    __block NSString *prekey;
+    [box perform:^(EncryptionSessionsDirectory * _Nonnull sessionsDirectory) {
+        prekey = [sessionsDirectory generateLastPrekeyAndReturnError:&error];
+    }];
     XCTAssertNil(error);
     
     // when
@@ -1575,9 +1579,12 @@
                                             fromUser:(MockUser *)user
                                       inConversation:(MockConversation *)conversation
 {
-    NSError *error;
-    CBCryptoBox *box = self.userSession.syncManagedObjectContext.zm_cryptKeyStore.box;
-    CBPreKey *prekey = [box lastPreKey:&error];
+    EncryptionContext *box = self.userSession.syncManagedObjectContext.zm_cryptKeyStore.encryptionContext;
+    __block NSError *error;
+    __block NSString *prekey;
+    [box perform:^(EncryptionSessionsDirectory * _Nonnull sessionsDirectory) {
+        prekey = [sessionsDirectory generateLastPrekeyAndReturnError:&error];
+    }];
     XCTAssertNil(error);
     
     // when
