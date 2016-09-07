@@ -147,11 +147,11 @@ ZM_EMPTY_ASSERTING_INIT()
         // The app should allow not having a shared container in cases 1 and 2; in case 3 the app should crash
         
         ZMDeploymentEnvironmentType deploymentEnvironment = [[ZMDeploymentEnvironment alloc] init].environmentType;
-        if (deploymentEnvironment == ZMDeploymentEnvironmentTypeAppStore || deploymentEnvironment == ZMDeploymentEnvironmentTypeInternal) {
+        if (!TARGET_IPHONE_SIMULATOR && (deploymentEnvironment == ZMDeploymentEnvironmentTypeAppStore || deploymentEnvironment == ZMDeploymentEnvironmentTypeInternal)) {
             RequireString(nil != sharedContainerURL, "Unable to create shared container url using app group identifier: %s", appGroupIdentifier.UTF8String);
         }
         else {
-            sharedContainerURL = [NSManagedObjectContext applicationSupportDirectoryStoreURL];
+            sharedContainerURL = [NSURL fileURLWithPath:NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES).firstObject];
             ZMLogError(@"ERROR: self.databaseDirectoryURL == nil and deploymentEnvironment = %d", deploymentEnvironment);
             ZMLogError(@"================================WARNING================================");
             ZMLogError(@"Wire is going to use APPLICATION SUPPORT directory to host the database");
