@@ -37,7 +37,7 @@ class AddressBookUploadRequestStrategyTest : MessagingTest {
         self.trackerFake = AddressBookTrackerFake()
         
         let ab = self.addressBook // I don't want to capture self in closure later
-        ab.contactHashes = [
+        ab?.contactHashes = [
             ["1"], ["2a", "2b"], ["3"], ["4"]
         ]
         self.sut = zmessaging.AddressBookUploadRequestStrategy(authenticationStatus: self.authenticationStatus,
@@ -88,7 +88,7 @@ extension AddressBookUploadRequestStrategyTest {
         if let request = request {
             XCTAssertEqual(request.path, "/onboarding/v3")
             XCTAssertEqual(request.method, ZMTransportRequestMethod.MethodPOST)
-            let expectedCards = self.addressBook.contactHashes.enumerate().map { (index, hashes) in ContactCard(id: "\(index)", hashes: hashes)}
+            let expectedCards = self.addressBook.contactHashes.enumerated().map { (index, hashes) in ContactCard(id: "\(index)", hashes: hashes)}
             
             if let parsedCards = request.payload.parsedCards {
                 XCTAssertEqual(parsedCards, expectedCards)
@@ -152,7 +152,7 @@ extension AddressBookUploadRequestStrategyTest {
         // when
         var requests : [ZMTransportRequest?] = []
         (0..<10).forEach { _ in
-            NSThread.sleepForTimeInterval(0.05)
+            Thread.sleep(forTimeInterval: 0.05)
             requests.append(sut.nextRequest())
         }
         XCTAssertTrue(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
@@ -521,7 +521,7 @@ extension AddressBookUploadRequestStrategyTest {
     }
     
     /// Verify that a card matches the expected values: card ID and contact hash
-    func checkCard(card: [String:AnyObject]?, expectedIndex: Int) -> Bool {
+    func checkCard(_ card: [String:AnyObject]?, expectedIndex: Int) -> Bool {
         let cardId = card?["card_id"] as? String
         let expectedId = "\(expectedIndex)"
         guard let cardHashes = card?["contact"] as? [String] else {
@@ -553,7 +553,7 @@ class AddressBookFake : zmessaging.AddressBookAccessor {
         return AnyGenerator([].generate()).lazy
     }
     
-    func encodeWithCompletionHandler(groupQueue: ZMSGroupQueue, startingContactIndex: UInt, maxNumberOfContacts: UInt, completion: (zmessaging.EncodedAddressBookChunk?) -> ()) {
+    func encodeWithCompletionHandler(_ groupQueue: ZMSGroupQueue, startingContactIndex: UInt, maxNumberOfContacts: UInt, completion: (zmessaging.EncodedAddressBookChunk?) -> ()) {
         guard self.contactHashes.count > 0 else {
             groupQueue.performGroupedBlock({ 
                 completion(nil)
@@ -561,7 +561,7 @@ class AddressBookFake : zmessaging.AddressBookAccessor {
             return
         }
         let range = startingContactIndex..<(min(UInt(self.contactHashes.count), startingContactIndex+maxNumberOfContacts))
-        let contactsInRange = Array(self.contactHashes[Int(range.startIndex)..<Int(range.endIndex)])
+        let contactsInRange = Array(self.contactHashes[Int(range.lowerBound)..<Int(range.upperBound)])
         let chunk = zmessaging.EncodedAddressBookChunk(numberOfTotalContacts: self.numberOfContacts,
                                                        otherContactsHashes: contactsInRange,
                                                        includedContacts: range)
@@ -571,13 +571,13 @@ class AddressBookFake : zmessaging.AddressBookAccessor {
     }
     
     /// Replace the content with a given number of random hashes
-    func fillWithContacts(number: UInt) {
+    func fillWithContacts(_ number: UInt) {
         contactHashes = (0..<number).map {
             self.hashesForCard($0)
         }
     }
     
-    private func hashesForCard(number: UInt) -> [String] {
+    fileprivate func hashesForCard(_ number: UInt) -> [String] {
         return ["hash-\(number)_0", "hash-\(number)_1"]
     }
 }
@@ -591,8 +591,8 @@ extension ZMAddressBookContact {
     }
 }
 
-private enum TestErrors : ErrorType {
-    case FailedToParse
+private enum TestErrors : Error {
+    case failedToParse
 }
 
 private struct ContactCard: Equatable {
@@ -607,7 +607,7 @@ private func ==(lhs: ContactCard, rhs: ContactCard) -> Bool {
 extension ZMTransportData {
 
     /// Parse addressbook upload payload as contact cards
-    private var parsedCards : [ContactCard]? {
+    fileprivate var parsedCards : [ContactCard]? {
 
         guard let dict = self as? [String:AnyObject],
             let cards = dict["cards"] as? [[String:AnyObject]]
@@ -617,7 +617,7 @@ extension ZMTransportData {
 
         do {
             return try cards.map { card in
-                guard let id = card["card_id"] as? String, hashes = card["contact"] as? [String] else {
+                guard let id = card["card_id"] as? String, let hashes = card["contact"] as? [String] else {
                     throw TestErrors.FailedToParse
                 }
                 return ContactCard(id: id, hashes: hashes)
@@ -639,7 +639,7 @@ final class AddressBookTrackerFake : zmessaging.AddressBookTracker {
         self.taggedEndEventCount += 1
     }
     
-    func tagAddressBookUploadStarted(entireABsize: UInt) {
+    func tagAddressBookUploadStarted(_ entireABsize: UInt) {
         self.taggedStartEventParameters.append(entireABsize)
     }
 }

@@ -21,12 +21,12 @@ import Foundation
 
 
 public enum ZMLocalNotificationContentType : Equatable {
-    case Undefined, Image, Video, Audio, Location, FileUpload, Knock
-    case System(ZMSystemMessageType)
-    case Text(String)
+    case undefined, image, video, audio, location, fileUpload, knock
+    case system(ZMSystemMessageType)
+    case text(String)
     
-    static func typeForMessage(message: ZMConversationMessage) -> ZMLocalNotificationContentType {
-        if let text = message.textMessageData?.messageText where !text.isEmpty {
+    static func typeForMessage(_ message: ZMConversationMessage) -> ZMLocalNotificationContentType {
+        if let text = message.textMessageData?.messageText , !text.isEmpty {
             return .Text(text)
         }
         if message.knockMessageData != nil {
@@ -55,19 +55,19 @@ public enum ZMLocalNotificationContentType : Equatable {
     
     var localizationString : String? {
         switch self {
-        case .Text:
+        case .text:
             return ZMPushStringMessageAdd
-        case .Image:
+        case .image:
             return ZMPushStringImageAdd
-        case .Video:
+        case .video:
             return ZMPushStringVideoAdd
-        case .Audio:
+        case .audio:
             return ZMPushStringAudioAdd
-        case .Location:
+        case .location:
             return ZMPushStringLocationAdd
-        case .FileUpload:
+        case .fileUpload:
             return ZMPushStringFileAdd
-        case .Knock:
+        case .knock:
             return ZMPushStringKnock
         default:
             return nil
@@ -77,11 +77,11 @@ public enum ZMLocalNotificationContentType : Equatable {
 
 public func ==(rhs: ZMLocalNotificationContentType, lhs: ZMLocalNotificationContentType) -> Bool {
     switch (rhs, lhs) {
-    case (.Text(let left), .Text(let right)):
+    case (.text(let left), .text(let right)):
         return left == right
     case (.System(let lType), .System(let rType)):
         return lType == rType
-    case (.Image, .Image), (.Video, .Video), (.Audio, .Audio), (.Location, .Location), (.FileUpload, .FileUpload), (.Knock, .Knock):
+    case (.image, .image), (.video, .video), (.audio, .audio), (.location, .location), (.fileUpload, .fileUpload), (.knock, .knock):
         return true
     default:
         return false

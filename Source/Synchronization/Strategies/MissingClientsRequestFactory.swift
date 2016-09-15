@@ -19,14 +19,14 @@
 import Foundation
 
 
-public class MissingClientsRequestFactory {
+open class MissingClientsRequestFactory {
     
     let pageSize : Int
     public init(pageSize: Int = 128) {
         self.pageSize = pageSize
     }
     
-    public func fetchMissingClientKeysRequest(missingClients: Set<UserClient>) -> ZMUpstreamRequest! {
+    open func fetchMissingClientKeysRequest(_ missingClients: Set<UserClient>) -> ZMUpstreamRequest! {
         let map = MissingClientsMap(Array(missingClients), pageSize: pageSize)
         let request = ZMTransportRequest(path: "/users/prekeys", method: ZMTransportRequestMethod.MethodPOST, payload: map.payload)
         return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientMissingKey), transportRequest: request, userInfo: map.userInfo)

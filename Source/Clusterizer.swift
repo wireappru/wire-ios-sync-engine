@@ -18,6 +18,26 @@
 
 
 import Foundation
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l >= r
+  default:
+    return !(lhs < rhs)
+  }
+}
+
 
 public struct ClusterRange<T> {
     let start, end: T
@@ -32,12 +52,12 @@ public struct ClusterRange<T> {
 protocol ClusterizerType {
     associatedtype ClusterType: Comparable
     var ranges:  [ClusterRange<ClusterType>] { get }
-    func clusterize(value: ClusterType) -> String
+    func clusterize(_ value: ClusterType) -> String
 }
 
 extension ClusterizerType {
-    func clusterize(value: ClusterType) -> String {
-        guard value >= ranges.first?.start else { return String(value) }
+    func clusterize(_ value: ClusterType) -> String {
+        guard value >= ranges.first?.start else { return String(describing: value) }
         for range in ranges where range.start <= value && value <= range.end {
             return range.stringValue
         }

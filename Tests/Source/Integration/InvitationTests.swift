@@ -140,15 +140,15 @@ extension InvitationsTests {
 // MARK: - Helpers
 @objc class SearchResultOberserverMock : NSObject, ZMSearchResultObserver {
     
-    private typealias ObserverCallback = (result: ZMSearchResult?, searchToken: ZMSearchToken?)->(Void)
+    fileprivate typealias ObserverCallback = (_ result: ZMSearchResult?, _ searchToken: ZMSearchToken?)->(Void)
     
-    private let callback: ObserverCallback
+    fileprivate let callback: ObserverCallback
     
-    private init(callback: ObserverCallback) {
+    fileprivate init(callback: ObserverCallback) {
         self.callback = callback
     }
     
-    func didReceiveSearchResult(result: ZMSearchResult!, forToken searchToken: ZMSearchToken!) {
+    func didReceiveSearchResult(_ result: ZMSearchResult!, forToken searchToken: ZMSearchToken!) {
         self.callback(result: result, searchToken: searchToken)
     }
     

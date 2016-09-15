@@ -21,12 +21,12 @@ import Foundation
 import ZMCDataModel
 
 @objc
-public class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextChangeTracker {
+open class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextChangeTracker {
 
     let lastReadKey = "lastReadServerTimeStamp"
     let clearedKey = "clearedTimeStamp"
     
-    public func objectsDidChange(objects: Set<NSObject>) {
+    open func objectsDidChange(_ objects: Set<NSObject>) {
         var didUpdateConversation = false
         objects.forEach{
             if let conv = $0 as? ZMConversation {
@@ -50,12 +50,12 @@ public class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextChangeT
         }
     }
     
-    public func fetchRequestForTrackedObjects() -> NSFetchRequest? {
+    open func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
         let request = NSFetchRequest(entityName: ZMConversation.entityName())
         return request
     }
 
-    public func addTrackedObjects(objects: Set<NSObject>) {
+    open func addTrackedObjects(_ objects: Set<NSObject>) {
         objectsDidChange(objects)
     }
 }

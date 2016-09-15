@@ -21,18 +21,18 @@ import Foundation
 import zimages
 import ZMTransport
 
-@objc public class AssetDownloadRequestStrategyNotification: NSObject {
-    public static let downloadFinishedNotificationName = "AssetDownloadRequestStrategyDownloadFinishedNotificationName"
-    public static let downloadStartTimestampKey = "requestStartTimestamp"
-    public static let downloadFailedNotificationName = "AssetDownloadRequestStrategyDownloadFailedNotificationName"
+@objc open class AssetDownloadRequestStrategyNotification: NSObject {
+    open static let downloadFinishedNotificationName = "AssetDownloadRequestStrategyDownloadFinishedNotificationName"
+    open static let downloadStartTimestampKey = "requestStartTimestamp"
+    open static let downloadFailedNotificationName = "AssetDownloadRequestStrategyDownloadFailedNotificationName"
 }
 
 @objc final public class AssetDownloadRequestStrategy: NSObject, RequestStrategy, ZMDownstreamTranscoder, ZMContextChangeTrackerSource {
     
-    private var assetDownstreamObjectSync: ZMDownstreamObjectSync!
-    private let managedObjectContext: NSManagedObjectContext
-    private let authStatus: AuthenticationStatusProvider
-    private weak var taskCancellationProvider: ZMRequestCancellation?
+    fileprivate var assetDownstreamObjectSync: ZMDownstreamObjectSync!
+    fileprivate let managedObjectContext: NSManagedObjectContext
+    fileprivate let authStatus: AuthenticationStatusProvider
+    fileprivate weak var taskCancellationProvider: ZMRequestCancellation?
     
     public init(authStatus: AuthenticationStatusProvider, taskCancellationProvider: ZMRequestCancellation, managedObjectContext: NSManagedObjectContext) {
         self.managedObjectContext = managedObjectContext
@@ -53,14 +53,14 @@ import ZMTransport
     }
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
     func registerForCancellationNotification() {
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AssetDownloadRequestStrategy.cancelOngoingRequestForAssetClientMessage(_:)), name: ZMAssetClientMessageDidCancelFileDownloadNotificationName, object: nil)
+        NotificationCenter.defaultCenter().addObserver(self, selector: #selector(AssetDownloadRequestStrategy.cancelOngoingRequestForAssetClientMessage(_:)), name: ZMAssetClientMessageDidCancelFileDownloadNotificationName, object: nil)
     }
     
-    func cancelOngoingRequestForAssetClientMessage(note: NSNotification) {
+    func cancelOngoingRequestForAssetClientMessage(_ note: Notification) {
         guard let objectID = note.object as? NSManagedObjectID else { return }
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let message = self?.managedObjectContext.objectRegisteredForID(objectID) as? ZMAssetClientMessage else { return }
@@ -71,16 +71,16 @@ import ZMTransport
     }
 
     func nextRequest() -> ZMTransportRequest? {
-        guard self.authStatus.currentPhase == .Authenticated else {
-            return .None
+        guard self.authStatus.currentPhase == .authenticated else {
+            return .none
         }
         
         return self.assetDownstreamObjectSync.nextRequest()
     }
     
-    private func handleResponse(response: ZMTransportResponse, forMessage assetClientMessage: ZMAssetClientMessage) {
-        if response.result == .Success {
-            guard let fileMessageData = assetClientMessage.fileMessageData, asset = assetClientMessage.genericAssetMessage?.asset else { return }
+    fileprivate func handleResponse(_ response: ZMTransportResponse, forMessage assetClientMessage: ZMAssetClientMessage) {
+        if response.result == .success {
+            guard let fileMessageData = assetClientMessage.fileMessageData, let asset = assetClientMessage.genericAssetMessage?.asset else { return }
             // TODO: create request that streams directly to the cache file, otherwise the memory would overflow on big files
             let fileCache = self.managedObjectContext.zm_fileAssetCache
             fileCache.storeAssetData(assetClientMessage.nonce, fileName: fileMessageData.filename, encrypted: true, data: response.rawData)
@@ -106,15 +106,15 @@ import ZMTransport
         }
         
         let messageObjectId = assetClientMessage.objectID
-        self.managedObjectContext.zm_userInterfaceContext.performGroupedBlock({ () -> Void in
+        self.managedObjectContext.zm_userInterface.performGroupedBlock({ () -> Void in
             let uiMessage = try? self.managedObjectContext.zm_userInterfaceContext.existingObjectWithID(messageObjectId)
             
-            let userInfo = [AssetDownloadRequestStrategyNotification.downloadStartTimestampKey: response.startOfUploadTimestamp ?? NSDate()]
+            let userInfo = [AssetDownloadRequestStrategyNotification.downloadStartTimestampKey: response.startOfUploadTimestamp ?? Date()]
             if assetClientMessage.transferState == .Downloaded {
-                NSNotificationCenter.defaultCenter().postNotificationName(AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: uiMessage, userInfo: userInfo)
+                NotificationCenter.defaultCenter().postNotificationName(AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: uiMessage, userInfo: userInfo)
             }
             else {
-                NSNotificationCenter.defaultCenter().postNotificationName(AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: uiMessage, userInfo: userInfo)
+                NotificationCenter.defaultCenter().postNotificationName(AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: uiMessage, userInfo: userInfo)
             }
         })
     }
@@ -129,7 +129,7 @@ import ZMTransport
 
     // MARK: - ZMDownstreamTranscoder
     
-    public func requestForFetchingObject(object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func requestForFetchingObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         if let assetClientMessage = object as? ZMAssetClientMessage {
             
             let taskCreationHandler = ZMTaskCreatedHandler(onGroupQueue: managedObjectContext) { taskIdentifier in
@@ -140,7 +140,7 @@ import ZMTransport
                 self.handleResponse(response, forMessage: assetClientMessage)
             }
             
-            let progressHandler = ZMTaskProgressHandler(onGroupQueue: self.managedObjectContext) { progress in
+            let progressHandler = ZMTaskProgressHandler(on: self.managedObjectContext) { progress in
                 assetClientMessage.progress = progress
                 self.managedObjectContext.enqueueDelayedSave()
             }
@@ -156,11 +156,11 @@ import ZMTransport
         fatalError("Cannot generate request for \(object)")
     }
     
-    public func deleteObject(object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
+    public func deleteObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
         // no-op
     }
     
-    public func updateObject(object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
+    public func updateObject(_ object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         // no-op
     }
 }

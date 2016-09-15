@@ -28,8 +28,8 @@ class FilePreprocessorTests : MessagingTest {
     }
 }
 
-private let testDataURL = NSBundle(forClass: FilePreprocessorTests.self).URLForResource("Lorem Ipsum", withExtension: "txt")!
-private let testData = NSData(contentsOfURL: testDataURL)!
+private let testDataURL = Bundle(for: FilePreprocessorTests.self).url(forResource: "Lorem Ipsum", withExtension: "txt")!
+private let testData = try! Data(contentsOf: testDataURL)
 
 
 // MARK: - File encryption
@@ -41,7 +41,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .Uploading
         msg.delivered = false
         self.syncMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
@@ -61,7 +61,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .Uploading
         msg.delivered = false
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
@@ -74,7 +74,7 @@ extension FilePreprocessorTests {
         let encryptedData = self.uiMOC.zm_fileAssetCache.assetData(msg.nonce, fileName: name, encrypted: true)
 
         XCTAssertEqual(msg.genericAssetMessage.asset.uploaded.sha256, encryptedData?.zmSHA256Digest())
-        if let key = msg.genericAssetMessage.asset.uploaded.otrKey where key.length > 0 {
+        if let key = msg.genericAssetMessage.asset.uploaded.otrKey , key.length > 0 {
             XCTAssertEqual(encryptedData?.zmDecryptPrefixedPlainTextIVWithKey(key), testData)
         }
         else {
@@ -88,7 +88,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
         XCTAssertFalse(msg.isReadyToUploadFile)
         
@@ -104,11 +104,11 @@ extension FilePreprocessorTests {
     func testThatItDoesNotEncryptAFileMessageThatAlreadyHasAnEncryptedVersion() {
         
         // given
-        let encData = "foobar".dataUsingEncoding(NSUTF8StringEncoding)!
+        let encData = "foobar".data(using: String.Encoding.utf8)!
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .Uploading
         msg.delivered = false
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
@@ -127,7 +127,7 @@ extension FilePreprocessorTests {
         
         // given
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
-        let msg = ZMAssetClientMessage(originalImageData: testData, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(originalImageData: testData, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         
         // when
         sut.objectsDidChange(Set(arrayLiteral: msg))
@@ -144,7 +144,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.delivered = true
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
         
@@ -162,7 +162,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .Uploaded
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
         
@@ -180,7 +180,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .FailedUpload
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
         
@@ -198,7 +198,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .FailedDownload
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
         
@@ -216,7 +216,7 @@ extension FilePreprocessorTests {
         let name = "report.txt"
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .Uploading
         msg.delivered = true
         self.uiMOC.zm_fileAssetCache.storeAssetData(msg.nonce, fileName: name, encrypted: false, data: testData)
@@ -234,17 +234,17 @@ extension FilePreprocessorTests {
         // given
         let sut = FilePreprocessor(managedObjectContext: self.syncMOC)
         let metadata = ZMFileMetadata(fileURL: testDataURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.transferState = .Uploading
         msg.delivered = false
         
-        let otherMsg = ZMAssetClientMessage(originalImageData: testData, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let otherMsg = ZMAssetClientMessage(originalImageData: testData, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         otherMsg.transferState = .FailedUpload
         otherMsg.delivered = false
         
         
 //        let wrongMetadata = ZMFileMetadata(fileURL: testDataURL)
-        let wrongMsg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let wrongMsg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.createUUID(), managedObjectContext: self.syncMOC)
         wrongMsg.transferState = .Uploading
         wrongMsg.delivered = true
         self.syncMOC.saveOrRollback()

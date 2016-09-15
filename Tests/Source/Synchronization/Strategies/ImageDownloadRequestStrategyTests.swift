@@ -22,9 +22,9 @@ import Foundation
 
 class ImageDownloadRequestStrategyTests: MessagingTest {
     
-    private var authenticationStatus : MockAuthenticationStatus!
-    private var clientRegistrationStatus : ZMMockClientRegistrationStatus!
-    private var sut : ImageDownloadRequestStrategy!
+    fileprivate var authenticationStatus : MockAuthenticationStatus!
+    fileprivate var clientRegistrationStatus : ZMMockClientRegistrationStatus!
+    fileprivate var sut : ImageDownloadRequestStrategy!
     
     override func setUp() {
         super.setUp()
@@ -37,14 +37,14 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     
     func createImageMessage(withAssetId assetId: NSUUID?) -> ZMAssetClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation!.remoteIdentifier = NSUUID.createUUID()
+        conversation!.remoteIdentifier = UUID.createUUID()
         
-        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: NSUUID.createUUID())
+        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.createUUID())
         
         let imageData = message.imageAssetStorage?.originalImageData()
         let imageSize = ZMImagePreprocessor.sizeOfPrerotatedImageWithData(imageData)
         let properties = ZMIImageProperties(size: imageSize, length: UInt(imageData!.length), mimeType: "image/jpeg")
-        let keys = ZMImageAssetEncryptionKeys(otrKey: NSData.randomEncryptionKey(), macKey: NSData.zmRandomSHA256Key(), mac: NSData.zmRandomSHA256Key())
+        let keys = ZMImageAssetEncryptionKeys(otrKey: Data.randomEncryptionKey(), macKey: Data.zmRandomSHA256Key(), mac: Data.zmRandomSHA256Key())
         
         message.addGenericMessage(ZMGenericMessage(
             mediumImageProperties: properties,
@@ -70,10 +70,10 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     
     func createFileMessage() -> ZMAssetClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation!.remoteIdentifier = NSUUID.createUUID()
+        conversation!.remoteIdentifier = UUID.createUUID()
         
-        let nonce = NSUUID.createUUID()
-        let fileURL = NSBundle(forClass: ImageDownloadRequestStrategyTests.self).URLForResource("Lorem Ipsum", withExtension: "txt")!
+        let nonce = NSUUID.create()
+        let fileURL = Bundle(for: ImageDownloadRequestStrategyTests.self).url(forResource: "Lorem Ipsum", withExtension: "txt")!
         let metadata = ZMFileMetadata(fileURL: fileURL)
         let message = conversation!.appendOTRMessageWithFileMetadata(metadata, nonce: nonce)
         
@@ -93,8 +93,8 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     
     func testRequestToDownloadAsset_whenAssetIdIsAvailable() {
         // given
-        var assetId: NSUUID?
-        var conversationId : NSUUID?
+        var assetId: UUID?
+        var conversationId : UUID?
         
         self.syncMOC.performGroupedBlock {
             assetId = NSUUID.createUUID()

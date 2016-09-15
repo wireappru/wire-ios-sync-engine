@@ -22,14 +22,14 @@ import ZMUtilities
 /// Mark: - Encoding
 extension AddressBook {
     
-    func encodeWithCompletionHandler(groupQueue: ZMSGroupQueue,
+    func encodeWithCompletionHandler(_ groupQueue: ZMSGroupQueue,
                                      startingContactIndex: UInt,
                                      maxNumberOfContacts: UInt,
-                                     completion: (EncodedAddressBookChunk?)->()
+                                     completion: @escaping (EncodedAddressBookChunk?)->()
         ) {
         // here we are explicitly capturing self, this is executed on a queue that is
         // never blocked indefinitely as this is the only function using it
-        groupQueue.dispatchGroup.asyncOnQueue(addressBookProcessingQueue) {
+        groupQueue.dispatchGroup.async(on: addressBookProcessingQueue) {
 
             let range = startingContactIndex..<(startingContactIndex+maxNumberOfContacts)
             let cards = self.generateContactCards(range)
@@ -53,7 +53,7 @@ extension AddressBook {
     }
     
     /// Generate contact cards for the given range of contacts
-    private func generateContactCards(range: Range<UInt>) -> [[String]]
+    fileprivate func generateContactCards(_ range: Range<UInt>) -> [[String]]
     {
         return self.iterate()
             .elements(range)
@@ -74,7 +74,7 @@ struct EncodedAddressBookChunk {
     let otherContactsHashes : [[String]]
     
     /// Contacts included in this chuck, according to AB order
-    let includedContacts : Range<UInt>
+    let includedContacts : CountableRange<UInt>
 }
 
 
@@ -83,26 +83,26 @@ extension String {
     
     /// Returns the base64 encoded string of the SHA hash of the string
     var base64EncodedSHADigest : String {
-        return self.dataUsingEncoding(NSUTF8StringEncoding)!.zmSHA256Digest().base64EncodedStringWithOptions([])
+        return (self.data(using: String.Encoding.utf8)! as NSData).zmSHA256Digest().base64EncodedString(options: [])
     }
     
 }
 
 
 /// Private AB processing queue
-private let addressBookProcessingQueue = dispatch_queue_create("Address book processing", DISPATCH_QUEUE_SERIAL)
+private let addressBookProcessingQueue = DispatchQueue(label: "Address book processing", attributes: [])
 
-extension SequenceType {
+extension Sequence {
     
     /// Returns the elements of the sequence in the positions indicated by the range
-    func elements(range: Range<UInt>) -> AnyGenerator<Self.Generator.Element> {
+    func elements(_ range: Range<UInt>) -> AnyIterator<Self.Iterator.Element> {
         
-        var generator = self.generate()
+        var generator = self.makeIterator()
         var count : UInt = 0
         
-        return AnyGenerator {
+        return AnyIterator {
             
-            while count < range.startIndex {
+            while count < range.lowerBound {
                 if generator.next() != nil {
                     count += 1
                     continue
@@ -110,7 +110,7 @@ extension SequenceType {
                     return nil
                 }
             }
-            if count == range.endIndex {
+            if count == range.upperBound {
                 return nil
             }
             count += 1

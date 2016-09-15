@@ -57,7 +57,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         
         let fromClient = user1.clients.anyObject() as! MockUserClient
         let toClient = selfUser.clients.anyObject() as! MockUserClient
-        let textMessage = ZMGenericMessage(text: "Hello", nonce: NSUUID.createUUID().transportString())
+        let textMessage = ZMGenericMessage(text: "Hello", nonce: UUID.createUUID().transportString())
         
         // when
         mockTransportSession.performRemoteChanges { session in
@@ -70,8 +70,8 @@ class DeleteMessagesTests: ConversationTestsBase {
         let conversation = conversationForMockConversation(selfToUser1Conversation)
         let messages = conversation.messages
         XCTAssertEqual(messages.count, 2) // system message & inserted message
-        guard let message = messages.lastObject as? ZMClientMessage where message.textMessageData?.messageText == "Hello" else { return XCTFail() }
-        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce.transportString(), nonce: NSUUID.createUUID().transportString())
+        guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
+        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce.transportString(), nonce: UUID.createUUID().transportString())
         
         // when
         mockTransportSession.performRemoteChanges { session in
@@ -95,7 +95,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         let firstClient = user1.clients.anyObject() as! MockUserClient
         let secondClient = user2.clients.anyObject() as! MockUserClient
         let selfClient = selfUser.clients.anyObject() as! MockUserClient
-        let textMessage = ZMGenericMessage(text: "Hello", nonce: NSUUID.createUUID().transportString())
+        let textMessage = ZMGenericMessage(text: "Hello", nonce: UUID.createUUID().transportString())
         
         // when
         mockTransportSession.performRemoteChanges { session in
@@ -108,9 +108,9 @@ class DeleteMessagesTests: ConversationTestsBase {
         let conversation = conversationForMockConversation(selfToUser1Conversation)
         let messages = conversation.messages
         XCTAssertEqual(messages.count, 2) // system message & inserted message
-        guard let message = messages.lastObject as? ZMClientMessage where message.textMessageData?.messageText == "Hello" else { return XCTFail() }
+        guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
         
-        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce.transportString(), nonce: NSUUID.createUUID().transportString())
+        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce.transportString(), nonce: UUID.createUUID().transportString())
         
         // when
         mockTransportSession.performRemoteChanges { session in
@@ -173,7 +173,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         
         let fromClient = user1.clients.anyObject() as! MockUserClient
         let toClient = selfUser.clients.anyObject() as! MockUserClient
-        let textMessage = ZMGenericMessage(text: "Hello", nonce: NSUUID.createUUID().transportString())
+        let textMessage = ZMGenericMessage(text: "Hello", nonce: UUID.createUUID().transportString())
         
         // when
         mockTransportSession.performRemoteChanges { session in
@@ -188,8 +188,8 @@ class DeleteMessagesTests: ConversationTestsBase {
         // then
         let messages = conversation.messages
         XCTAssertEqual(messages.count, 2) // system message & inserted message
-        guard let message = messages.lastObject as? ZMClientMessage where message.textMessageData?.messageText == "Hello" else { return XCTFail() }
-        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce.transportString(), nonce: NSUUID.createUUID().transportString())
+        guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
+        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce.transportString(), nonce: UUID.createUUID().transportString())
         
         // when
         mockTransportSession.performRemoteChanges { session in

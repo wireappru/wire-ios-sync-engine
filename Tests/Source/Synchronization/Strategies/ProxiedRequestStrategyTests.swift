@@ -22,8 +22,8 @@ import zmessaging
 
 class ProxiedRequestStrategyTests: MessagingTest {
 
-    private var sut : ProxiedRequestStrategy!
-    private var requestsStatus : ProxiedRequestsStatus!
+    fileprivate var sut : ProxiedRequestStrategy!
+    fileprivate var requestsStatus : ProxiedRequestsStatus!
     
     override func setUp() {
         super.setUp()
@@ -122,9 +122,9 @@ class ProxiedRequestStrategyTests: MessagingTest {
         
         // given
         let error = NSError(domain: "ZMTransportSession", code: 10, userInfo: nil)
-        let data = "Foobar".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true)!
-        let HTTPResponse = NSHTTPURLResponse(URL: NSURL(string: "http://www.example.com/")!, statusCode:200, HTTPVersion:"HTTP/1.1", headerFields:[
-                "Content-Length": "\(data.length)",
+        let data = "Foobar".data(using: String.Encoding.utf8, allowLossyConversion: true)!
+        let HTTPResponse = HTTPURLResponse(url: URL(string: "http://www.example.com/")!, statusCode:200, httpVersion:"HTTP/1.1", headerFields:[
+                "Content-Length": "\(data.count)",
                 "Server": "nginx"
             ]
         )!
@@ -157,7 +157,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
     func testThatItMakesTheRequestExpireAfter20Seconds() {
         
         // given
-        let ExpectedDelay : NSTimeInterval = 20
+        let ExpectedDelay : TimeInterval = 20
         requestsStatus.addRequest(.Giphy, path: "/foo/bar1", method:.MethodGET, callback: {_,_,_ in return})
         
         // when

@@ -22,9 +22,9 @@ import Foundation
 
 extension ZMHotFixDirectory {
 
-    public static func moveOrUpdateSignalingKeysInContext(context: NSManagedObjectContext) {
+    public static func moveOrUpdateSignalingKeysInContext(_ context: NSManagedObjectContext) {
         guard let selfClient = ZMUser.selfUserInContext(context).selfClient()
-              where selfClient.apsVerificationKey == nil && selfClient.apsDecryptionKey == nil
+              , selfClient.apsVerificationKey == nil && selfClient.apsDecryptionKey == nil
         else { return }
         
         if let keys = APSSignalingKeysStore.keysStoredInKeyChain() {
@@ -43,7 +43,7 @@ extension ZMHotFixDirectory {
     /// There is an edge case in which the user has such a message in his database which is not yet uploaded and we want to upload it again, thus
     /// not set the state to `.Done` in this case. We fetch all asset messages without an assetID and set set their uploaded state 
     /// to `.UploadingFailed`, in case this message represents an image we also expire it.
-    public static func updateUploadedStateForNotUploadedFileMessages(context: NSManagedObjectContext) {
+    public static func updateUploadedStateForNotUploadedFileMessages(_ context: NSManagedObjectContext) {
         let selfUser = ZMUser.selfUserInContext(context)
         let predicate = NSPredicate(format: "sender == %@ AND assetId_data == NULL", selfUser)
         let fetchRequest = ZMAssetClientMessage.sortedFetchRequestWithPredicate(predicate)
@@ -59,7 +59,7 @@ extension ZMHotFixDirectory {
         context.enqueueDelayedSave()
     }
     
-    public static func insertNewConversationSystemMessage(context: NSManagedObjectContext)
+    public static func insertNewConversationSystemMessage(_ context: NSManagedObjectContext)
     {
         let fetchRequest = ZMConversation.sortedFetchRequest()
         guard let conversations = context.executeFetchRequestOrAssert(fetchRequest) as? [ZMConversation] else { return }
@@ -70,7 +70,7 @@ extension ZMHotFixDirectory {
         }
     }
     
-    public static func updateSystemMessages(context: NSManagedObjectContext) {
+    public static func updateSystemMessages(_ context: NSManagedObjectContext) {
         let fetchRequest = ZMConversation.sortedFetchRequest()
         guard let conversations = context.executeFetchRequestOrAssert(fetchRequest) as? [ZMConversation] else { return }
         let filteredConversations =  conversations.filter{ $0.conversationType == .OneOnOne || $0.conversationType == .Group }

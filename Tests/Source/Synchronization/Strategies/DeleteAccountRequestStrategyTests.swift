@@ -21,10 +21,10 @@ import Foundation
 import zmessaging
 import ZMTransport
 
-@objc class DeleteAccountRequestStrategyTests: MessagingTest {
+class DeleteAccountRequestStrategyTests: MessagingTest {
     
-    private var sut : DeleteAccountRequestStrategy!
-    private var authStatus : ZMAuthenticationStatus!
+    fileprivate var sut : DeleteAccountRequestStrategy!
+    fileprivate var authStatus : ZMAuthenticationStatus!
     
     override func setUp() {
         super.setUp()
@@ -80,13 +80,13 @@ import ZMTransport
         self.uiMOC.setPersistentStoreMetadata(NSNumber(bool: true), forKey: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NSNotificationCenter.defaultCenter().addObserverForName("ZMUserSessionAuthenticationNotificationName", object: nil, queue: .mainQueue()) { _ in
+        let _ = NotificationCenter.defaultCenter().addObserverForName("ZMUserSessionAuthenticationNotificationName", object: nil, queue: .mainQueue()) { _ in
             notificationExpectation.fulfill()
         }
         
         // when
         let request1 : ZMTransportRequest! = self.sut.nextRequest()
-        request1.completeWithResponse(ZMTransportResponse(payload: [], HTTPstatus: 201, transportSessionError: nil))
+        request1.complete(with: ZMTransportResponse(payload: [], httPstatus: 201, transportSessionError: nil))
         
         // then
         XCTAssertTrue(self.waitForCustomExpectationsWithTimeout(0.5))

@@ -44,7 +44,7 @@ class EventDecoderTest: MessagingTest {
         return event
     }
     
-    func insert(events events: [ZMUpdateEvent], startIndex: Int64 = 0) {
+    func insert(events: [ZMUpdateEvent], startIndex: Int64 = 0) {
         eventMOC.performGroupedBlockAndWait {
             events.enumerate().forEach { index, event  in
                 let _ = StoredUpdateEvent.create(event, managedObjectContext: self.eventMOC, index: startIndex + index)

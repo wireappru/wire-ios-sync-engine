@@ -30,9 +30,9 @@ class IncompleteConversationsDownstreamSyncTests: MessagingTest {
     
     class RequestEncoderMock : NSObject, ConversationEventsRequestEncoder {
         
-        var requestForFetchingRange_Mock : ((range: ZMEventIDRange, conversation: ZMConversation)->ZMTransportRequest)?
+        var requestForFetchingRange_Mock : ((_ range: ZMEventIDRange, _ conversation: ZMConversation)->ZMTransportRequest)?
         
-        func requestForFetchingRange(range: ZMEventIDRange, conversation: ZMConversation) -> ZMTransportRequest {
+        func requestForFetchingRange(_ range: ZMEventIDRange, conversation: ZMConversation) -> ZMTransportRequest {
             return requestForFetchingRange_Mock!(range: range, conversation: conversation)
         }
         
@@ -40,9 +40,9 @@ class IncompleteConversationsDownstreamSyncTests: MessagingTest {
     
     class EventsParserMock : NSObject, DownloadedConversationEventsParser {
         
-        var updateRangeInvocation_Mock : ((range: ZMEventIDRange, conversation: ZMConversation, response: ZMTransportResponse)->())?
+        var updateRangeInvocation_Mock : ((_ range: ZMEventIDRange, _ conversation: ZMConversation, _ response: ZMTransportResponse)->())?
         
-        func updateRange(range: ZMEventIDRange, conversation: ZMConversation, response: ZMTransportResponse) {
+        func updateRange(_ range: ZMEventIDRange, conversation: ZMConversation, response: ZMTransportResponse) {
             self.updateRangeInvocation_Mock!(range: range, conversation: conversation, response: response)
         }
     }
@@ -58,7 +58,7 @@ class IncompleteConversationsDownstreamSyncTests: MessagingTest {
         }
         override var incompleteNonWhitelistedConversations: NSOrderedSet { return self.incompleteNonWhitelistedConversations_Stub
         }
-        override func gapForConversation(conversation: ZMConversation) -> ZMEventIDRange? {
+        override func gapForConversation(_ conversation: ZMConversation) -> ZMEventIDRange? {
             return gapForConversation_Stub[conversation]!
         }
     }
@@ -76,7 +76,7 @@ class IncompleteConversationsDownstreamSyncTests: MessagingTest {
         self.conversationCache = IncompleteConversationsCacheStub(context: self.uiMOC)
     }
     
-    func createSut(cooldownInterval : NSTimeInterval = 0) -> IncompleteConversationsDownstreamSync {
+    func createSut(_ cooldownInterval : NSTimeInterval = 0) -> IncompleteConversationsDownstreamSync {
         return IncompleteConversationsDownstreamSync(
             requestEncoder: self.requestEncoderMock,
             responseParser: self.eventsParserMock,
@@ -415,7 +415,7 @@ extension IncompleteConversationsDownstreamSyncTests {
         }
         
         // given
-        let startDate = NSDate()
+        let startDate = Date()
         let conv1 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
         let conv2 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
         let range = ZMEventIDRange(eventIDs: [ZMEventID(major: 15, minor: 100)])
@@ -442,7 +442,7 @@ extension IncompleteConversationsDownstreamSyncTests {
         
         // and when
         var lastRequest : ZMTransportRequest? = nil
-        while(lastRequest == nil && NSDate().timeIntervalSinceDate(startDate) < 5) { // eventually this will return
+        while(lastRequest == nil && Date().timeIntervalSinceDate(startDate) < 5) { // eventually this will return
             lastRequest = sut.nextRequest()
             self.spinMainQueueWithTimeout(0.1)
         }

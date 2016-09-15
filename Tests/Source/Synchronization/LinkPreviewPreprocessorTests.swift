@@ -26,7 +26,7 @@ final class MockLinkDetector: LinkPreviewDetectorType {
     var nextResult = [LinkPreview]()
     var downloadLinkPreviewsCallCount = 0
     
-    @objc func downloadLinkPreviews(inText text: String, completion: [LinkPreview] -> Void) {
+    @objc func downloadLinkPreviews(inText text: String, completion: ([LinkPreview]) -> Void) {
         downloadLinkPreviewsCallCount += 1
         completion(nextResult)
     }
@@ -55,7 +55,7 @@ class LinkPreviewPreprocessorTests: MessagingTest {
         let URL = "http://www.example.com"
         let preview = LinkPreview(originalURLString: "example.com", permamentURLString: URL, offset: 0)
         preview.imageData = [.secureRandomDataOfLength(256)]
-        preview.imageURLs = [NSURL(string: "http://www.example.com/image")!]
+        preview.imageURLs = [Foundation.URL(string: "http://www.example.com/image")!]
         mockDetector.nextResult = [preview]
         let message = createMessage()
         
@@ -119,7 +119,7 @@ class LinkPreviewPreprocessorTests: MessagingTest {
     
     // MARK: - Helper
     
-    func createMessage(state: ZMLinkPreviewState = .WaitingToBeProcessed) -> ZMClientMessage {
+    func createMessage(_ state: ZMLinkPreviewState = .WaitingToBeProcessed) -> ZMClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
         conversation.remoteIdentifier = .createUUID()
         let message = conversation.appendMessageWithText(name!) as! ZMClientMessage
@@ -127,7 +127,7 @@ class LinkPreviewPreprocessorTests: MessagingTest {
         return message
     }
     
-    func assertThatItProcessesMessageWithLinkPreviewState(state: ZMLinkPreviewState, shouldProcess: Bool = false, line: UInt = #line) {
+    func assertThatItProcessesMessageWithLinkPreviewState(_ state: ZMLinkPreviewState, shouldProcess: Bool = false, line: UInt = #line) {
         // given
         let message = createMessage(state)
         

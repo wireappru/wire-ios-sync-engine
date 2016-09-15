@@ -185,7 +185,7 @@ class ZMAccountStatusTests : MessagingTest {
         XCTAssertEqual(oneOnOne.messages.count, 1)
         XCTAssertEqual(group.messages.count, 1)
         XCTAssertEqual(connection.messages.count, 0)
-        if let oneOnOneMsg = oneOnOne.messages.lastObject as? ZMSystemMessage, groupMsg = oneOnOne.messages.lastObject as? ZMSystemMessage {
+        if let oneOnOneMsg = oneOnOne.messages.lastObject as? ZMSystemMessage, let groupMsg = oneOnOne.messages.lastObject as? ZMSystemMessage {
             XCTAssertEqual(oneOnOneMsg.systemMessageType, ZMSystemMessageType.UsingNewDevice)
             XCTAssertEqual(groupMsg.systemMessageType, ZMSystemMessageType.UsingNewDevice)
         } else {
@@ -222,7 +222,7 @@ class ZMAccountStatusTests : MessagingTest {
         XCTAssertEqual(oneOnOne.messages.count, 1)
         XCTAssertEqual(group.messages.count, 1)
         XCTAssertEqual(connection.messages.count, 0)
-        if let oneOnOneMsg = oneOnOne.messages.lastObject as? ZMSystemMessage, groupMsg = oneOnOne.messages.lastObject as? ZMSystemMessage {
+        if let oneOnOneMsg = oneOnOne.messages.lastObject as? ZMSystemMessage, let groupMsg = oneOnOne.messages.lastObject as? ZMSystemMessage {
             XCTAssertEqual(oneOnOneMsg.systemMessageType, ZMSystemMessageType.ReactivatedDevice)
             XCTAssertEqual(groupMsg.systemMessageType, ZMSystemMessageType.ReactivatedDevice)
         } else {

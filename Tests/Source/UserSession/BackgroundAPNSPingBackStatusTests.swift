@@ -27,11 +27,11 @@ import ZMCMockTransport
 class OperationLoopNewRequestObserver {
     
     var notifications = [NSNotification]()
-    private var notificationCenter = NSNotificationCenter.defaultCenter()
-    private var newRequestNotification = "ZMOperationLoopNewRequestAvailable"
+    fileprivate var notificationCenter = NotificationCenter.default
+    fileprivate var newRequestNotification = "ZMOperationLoopNewRequestAvailable"
     
     init() {
-        notificationCenter.addObserverForName(newRequestNotification, object: nil, queue: .mainQueue()) { [weak self] note in
+        notificationCenter.addObserverForName(NSNotification.Name(rawValue: newRequestNotification), object: nil, queue: .mainQueue()) { [weak self] note in
          self?.notifications.append(note)
         }
     }
@@ -56,7 +56,7 @@ class OperationLoopNewRequestObserver {
         return nil
     }
     
-    func performGroupedBlock(block : dispatch_block_t)
+    func performGroupedBlock(_ block : dispatch_block_t)
     {
         block()
     }
@@ -87,11 +87,11 @@ class EventsWithIdentifierTests: ZMTBaseTest {
     
     override func setUp() {
         super.setUp()
-        identifier = NSUUID.createUUID()
+        identifier = NSUUID.create()
         let pushChannelData = [
             "id": identifier.transportString(),
             "payload": [messageAddPayload(), messageAddPayload()]
-        ]
+        ] as [String : Any]
         
         
         events = ZMUpdateEvent.eventsArrayFromPushChannelData(pushChannelData)
@@ -150,7 +150,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
     func testThatItSetsTheNotificationID() {
         // given
         XCTAssertFalse(sut.hasNotificationIDs)
-        let notificationID = NSUUID.createUUID()
+        let notificationID = NSUUID.create()
         
         // when
         sut.didReceiveVoIPNotification(createEventsWithID(notificationID))
@@ -171,7 +171,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
     func testThatItReAddsTheNotificationIDWhenReceiving_TryAgainLater() {
         // given
         XCTAssertFalse(sut.hasNotificationIDs)
-        let notificationID = NSUUID.createUUID()
+        let notificationID = NSUUID.create()
         let eventsWithID = createEventsWithID(notificationID)
         
         // when
@@ -212,7 +212,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
     func testThatItRemovesTheIDWhenThePingBackFailed() {
         // given
         XCTAssertFalse(sut.hasNotificationIDs)
-        let notificationID = NSUUID.createUUID()
+        let notificationID = NSUUID.create()
         let eventsWithID = createEventsWithID(notificationID)
         
         // when
@@ -281,7 +281,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
         checkThatItCallsTheHandlerAfterPingBackRequestCompleted(.PermanentError)
     }
     
-    func checkThatItCallsTheHandlerAfterPingBackRequestCompleted(status: ZMTransportResponseStatus) {
+    func checkThatItCallsTheHandlerAfterPingBackRequestCompleted(_ status: ZMTransportResponseStatus) {
         // given
         let eventsWithID = createEventsWithID()
         let expectation = expectationWithDescription("It calls the completion handler")
@@ -413,7 +413,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
         checkThatItEndsTheBackgroundActivityAfterThePingBackCompleted(false)
     }
     
-    func checkThatItEndsTheBackgroundActivityAfterThePingBackCompleted(successfully: Bool) {
+    func checkThatItEndsTheBackgroundActivityAfterThePingBackCompleted(_ successfully: Bool) {
         // given
         let eventsWithID = createEventsWithID()
         sut.didReceiveVoIPNotification(eventsWithID)
@@ -429,7 +429,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
         XCTAssertNil(sut.backgroundActivity)
     }
     
-    func checkThatItEndsTheBackgroundActivityAfterTheFetchCompleted(fetchSuccess: Bool) {
+    func checkThatItEndsTheBackgroundActivityAfterTheFetchCompleted(_ fetchSuccess: Bool) {
         // given
         let eventsWithID = createEventsWithID(isNotice: true)
         sut.didReceiveVoIPNotification(eventsWithID)
@@ -474,7 +474,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
         return nextEventsWithID.identifier
     }
     
-    func checkThatItUpdatesStatusToFetchingWhenFirstAndNextNotificationAreNotice(nextIsNotice: Bool) {
+    func checkThatItUpdatesStatusToFetchingWhenFirstAndNextNotificationAreNotice(_ nextIsNotice: Bool) {
        
         // given
         let eventsWithID1 = createEventsWithID(isNotice: true)
@@ -521,7 +521,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
         checkThatItUpdatesStatusToFetchingWhenFirstAndNextNotificationAreNotice(false)
     }
     
-    func checkThatItUpdatesStatusToFetchingWhenFirstIsNonNoticeAndNextNotification(nextIsNotice: Bool) {
+    func checkThatItUpdatesStatusToFetchingWhenFirstIsNonNoticeAndNextNotification(_ nextIsNotice: Bool) {
         
         // given
         let eventsWithID1 = createEventsWithID(isNotice: false)
@@ -598,13 +598,13 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
 // MARK: - Helper
 
 extension BackgroundAPNSPingBackStatus {
-    func didReceiveVoIPNotification(eventsWithID: EventsWithIdentifier) {
+    func didReceiveVoIPNotification(_ eventsWithID: EventsWithIdentifier) {
         didReceiveVoIPNotification(eventsWithID, handler: { _ in })
     }
 }
 
 extension BackgroundAPNSPingBackStatusTests {
-    func createEventsWithID(identifier: NSUUID = NSUUID.createUUID(), events: [ZMUpdateEvent] = [ZMUpdateEvent()], isNotice: Bool = false) -> EventsWithIdentifier {
+    func createEventsWithID(_ identifier: NSUUID = NSUUID.createUUID(), events: [ZMUpdateEvent] = [ZMUpdateEvent()], isNotice: Bool = false) -> EventsWithIdentifier {
         return EventsWithIdentifier(events: events, identifier: identifier, isNotice: isNotice)
     }
 }

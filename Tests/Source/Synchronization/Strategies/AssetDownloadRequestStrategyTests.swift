@@ -20,19 +20,19 @@
 import Foundation
 @testable import zmessaging
 
-private let testDataURL = NSBundle(forClass: FilePreprocessorTests.self).URLForResource("Lorem Ipsum", withExtension: "txt")!
+private let testDataURL = Bundle(for: FilePreprocessorTests.self).url(forResource: "Lorem Ipsum", withExtension: "txt")!
 
 class MockTaskCancellationProvider: NSObject, ZMRequestCancellation {
     
     var cancelledIdentifiers = [ZMTaskIdentifier]()
     
-    func cancelTaskWithIdentifier(identifier: ZMTaskIdentifier) {
+    func cancelTaskWithIdentifier(_ identifier: ZMTaskIdentifier) {
         cancelledIdentifiers.append(identifier)
     }
 }
 
 
-@objc class AssetDownloadRequestStrategyTests: MessagingTest {
+class AssetDownloadRequestStrategyTests: MessagingTest {
     
     var authStatus: MockAuthenticationStatus!
     var cancellationProvider: MockTaskCancellationProvider!
@@ -51,15 +51,15 @@ class MockTaskCancellationProvider: NSObject, ZMRequestCancellation {
         conversation = createConversation()
     }
     
-    private func createConversation() -> ZMConversation {
+    fileprivate func createConversation() -> ZMConversation {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
         conversation.remoteIdentifier = .createUUID()
         return conversation
     }
     
-    private func createFileTransferMessage(conversation: ZMConversation) -> ZMAssetClientMessage {
+    fileprivate func createFileTransferMessage(_ conversation: ZMConversation) -> ZMAssetClientMessage {
         let message = conversation.appendMessageWithFileMetadata(ZMFileMetadata(fileURL: testDataURL)) as! ZMAssetClientMessage
-        message.assetId = NSUUID.createUUID()
+        message.assetId = UUID.createUUID()
         message.fileMessageData?.transferState = .Downloading
         
         self.syncMOC.saveOrRollback()
@@ -117,7 +117,7 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItGeneratesNoRequestsIfMessageIsUploading() {
         // given
         let message = conversation.appendMessageWithFileMetadata(ZMFileMetadata(fileURL: testDataURL)) as! ZMAssetClientMessage
-        message.assetId = NSUUID.createUUID()
+        message.assetId = UUID.createUUID()
         message.fileMessageData?.transferState = .Uploaded
         
         self.syncMOC.saveOrRollback()
@@ -174,10 +174,10 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItMarksDownloadAsSuccessIfSuccessfulDownloadAndDecryption() {
         
         // given
-        let plainTextData = NSData.secureRandomDataOfLength(500)
+        let plainTextData = NSData.secureRandomData(ofLength: 500)
         let key = NSData.randomEncryptionKey()
-        let encryptedData = plainTextData.zmEncryptPrefixingPlainTextIVWithKey(key)
-        let sha = encryptedData.zmSHA256Digest()
+        let encryptedData = plainTextData?.zmEncryptPrefixingPlainTextIV(key: key!)
+        let sha = encryptedData?.zmSHA256Digest()
         
         
         let message = self.createFileTransferMessage(self.conversation)
@@ -282,10 +282,10 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItSendsTheNotificationIfSuccessfulDownloadAndDecryption() {
         
         // given
-        let plainTextData = NSData.secureRandomDataOfLength(500)
+        let plainTextData = NSData.secureRandomData(ofLength: 500)
         let key = NSData.randomEncryptionKey()
-        let encryptedData = plainTextData.zmEncryptPrefixingPlainTextIVWithKey(key)
-        let sha = encryptedData.zmSHA256Digest()
+        let encryptedData = plainTextData?.zmEncryptPrefixingPlainTextIV(key: key!)
+        let sha = encryptedData?.zmSHA256Digest()
         
         
         let message = self.createFileTransferMessage(self.conversation)
@@ -305,7 +305,7 @@ extension AssetDownloadRequestStrategyTests {
         
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NSNotificationCenter.defaultCenter().addObserverForName(AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.defaultCenter().addObserverForName(AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: nil, queue: .mainQueue()) { notification in
             XCTAssertNotNil(notification.userInfo![AssetDownloadRequestStrategyNotification.downloadStartTimestampKey])
             notificationExpectation.fulfill()
         }
@@ -328,7 +328,7 @@ extension AssetDownloadRequestStrategyTests {
         
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NSNotificationCenter.defaultCenter().addObserverForName(AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.defaultCenter().addObserverForName(AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: nil, queue: .mainQueue()) { notification in
             XCTAssertNotNil(notification.userInfo![AssetDownloadRequestStrategyNotification.downloadStartTimestampKey])
             notificationExpectation.fulfill()
         }

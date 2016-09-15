@@ -24,7 +24,7 @@ class ZMLocalNotificationForEventsTests_Reactions : ZMLocalNotificationForEventT
 
 extension ZMLocalNotificationForEventsTests_Reactions {
     
-    func createUpdateEvent(nonce: NSUUID, conversationID: NSUUID, genericMessage: ZMGenericMessage, senderID: NSUUID = .createUUID()) -> ZMUpdateEvent {
+    func createUpdateEvent(_ nonce: NSUUID, conversationID: NSUUID, genericMessage: ZMGenericMessage, senderID: NSUUID = .createUUID()) -> ZMUpdateEvent {
         let payload = [
             "id": NSUUID.createUUID().transportString(),
             "conversation": conversationID.transportString(),
@@ -115,7 +115,7 @@ extension ZMLocalNotificationForEventsTests_Reactions {
 
 extension ZMLocalNotificationForEventsTests_Reactions {
 
-    func alertBody(conversation: ZMConversation, aSender: ZMUser) -> String? {
+    func alertBody(_ conversation: ZMConversation, aSender: ZMUser) -> String? {
         // given
         let message = conversation.appendMessageWithText("text") as! ZMClientMessage
         let reaction = ZMGenericMessage(emojiString: "❤️", messageID: message.nonce.transportString(), nonce: NSUUID.createUUID().transportString())

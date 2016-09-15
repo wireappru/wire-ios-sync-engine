@@ -18,11 +18,11 @@
 
 import Foundation
 
-public class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrategy {
+open class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrategy {
     
-    private let authenticationStatus : AuthenticationStatusProvider
-    private var downstreamSync : ZMDownstreamObjectSyncWithWhitelist!
-    private let requestFactory : ClientMessageRequestFactory = ClientMessageRequestFactory()
+    fileprivate let authenticationStatus : AuthenticationStatusProvider
+    fileprivate var downstreamSync : ZMDownstreamObjectSyncWithWhitelist!
+    fileprivate let requestFactory : ClientMessageRequestFactory = ClientMessageRequestFactory()
     
     public init(authenticationStatus: AuthenticationStatusProvider, managedObjectContext: NSManagedObjectContext) {
         self.authenticationStatus = authenticationStatus
@@ -45,11 +45,11 @@ public class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrateg
     }
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
     func registerForWhitelistingNotification() {
-        NSNotificationCenter.defaultCenter().addObserver(
+        NotificationCenter.defaultCenter().addObserver(
             self,
             selector: #selector(didRequestToDownloadImage),
             name: ZMAssetClientMessage.ImageDownloadNotificationName,
@@ -57,11 +57,11 @@ public class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrateg
         )
     }
     
-    func didRequestToDownloadImage(note: NSNotification) {
+    func didRequestToDownloadImage(_ note: Notification) {
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let `self` = self else { return }
             guard let objectID = note.object as? NSManagedObjectID else { return }
-            guard let object = try? self.managedObjectContext.existingObjectWithID(objectID) else { return }
+            guard let object = try? self.managedObjectContext.existingObject(with: objectID) else { return }
             guard let message = object as? ZMAssetClientMessage else { return }
             self.downstreamSync.whiteListObject(message)
             ZMOperationLoop.notifyNewRequestsAvailable(self)
@@ -69,7 +69,7 @@ public class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrateg
     }
     
     func nextRequest() -> ZMTransportRequest? {
-        guard authenticationStatus.currentPhase == .Authenticated else { return nil }
+        guard authenticationStatus.currentPhase == .authenticated else { return nil }
         return downstreamSync.nextRequest()
     }
 
@@ -77,7 +77,7 @@ public class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrateg
 
 extension ImageDownloadRequestStrategy : ZMDownstreamTranscoder {
     
-    public func requestForFetchingObject(object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func requestForFetchingObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let message = object as? ZMAssetClientMessage, let conversation = message.conversation else { return nil }
         
         if let existingData = managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .Medium, encrypted: false) {
@@ -97,22 +97,22 @@ extension ImageDownloadRequestStrategy : ZMDownstreamTranscoder {
         return nil
     }
     
-    public func updateObject(object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
+    public func updateObject(_ object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         guard let message = object as? ZMAssetClientMessage else { return }
         updateMediumImage(forMessage: message, imageData: response.rawData)
     }
     
-    public func deleteObject(object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
+    public func deleteObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
         guard let message = object as? ZMAssetClientMessage else { return }
         message.managedObjectContext?.deleteObject(message)
     }
     
-    private func updateMediumImage(forMessage message: ZMAssetClientMessage, imageData: NSData) {
+    fileprivate func updateMediumImage(forMessage message: ZMAssetClientMessage, imageData: Data) {
         message.imageAssetStorage?.updateMessageWithImageData(imageData, forFormat: .Medium)
         
-        let uiMOC = managedObjectContext.zm_userInterfaceContext
+        let uiMOC = managedObjectContext.zm_userInterface
         
-        uiMOC.performGroupedBlock { 
+        uiMOC?.performGroupedBlock { 
             guard let message = try? uiMOC.existingObjectWithID(message.objectID) else { return }
             uiMOC.globalManagedObjectContextObserver.notifyNonCoreDataChangeInManagedObject(message)
         }

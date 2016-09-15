@@ -25,7 +25,7 @@ extension ZMSearchResult {
     
     /// Creates a new search result with the same results and additional
     /// results obtained by searching through the address book
-    public func extendWithContactsFromAddressBook(query: String,
+    public func extendWithContactsFromAddressBook(_ query: String,
                                                   usersToMatch: [ZMUser],
                                                   userSession: ZMUserSession) -> ZMSearchResult {
         
@@ -37,13 +37,13 @@ extension ZMSearchResult {
         var localMatchedUsers : [ZMUser] = []
         
         addressBook.matchInAddressBook(usersToMatch).forEach { match in
-            if let user = match.user where queryUsers.contains(user) && user.connection?.status == .Accepted {
+            if let user = match.user , queryUsers.contains(user) && user.connection?.status == .Accepted {
                 if let contact = match.contact {
                     matchedUsers.append(ZMSearchUser(contact: contact, user: nil, userSession: userSession))
                 } else {
                     localMatchedUsers.append(user)
                 }
-            } else if let contact = match.contact where queryContacts.contains(contact)
+            } else if let contact = match.contact , queryContacts.contains(contact)
                 && (match.user == nil || match.user?.connection?.status != .Blocked) {
                 matchedUsers.append(ZMSearchUser(contact: contact, user: match.user, userSession: userSession))
             }

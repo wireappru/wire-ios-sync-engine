@@ -25,7 +25,7 @@ import ZMTesting;
 class ZMLocalNotificationForMessageTests : ZMLocalNotificationForEventTest {
 
     
-    func textNotification(conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> ZMLocalNotificationForMessage? {
+    func textNotification(_ conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> ZMLocalNotificationForMessage? {
         let message = conversation.appendMessageWithText(text ?? "Hello Hello!") as! ZMOTRMessage
         message.sender = sender
         conversation.lastReadServerTimeStamp = NSDate()
@@ -34,7 +34,7 @@ class ZMLocalNotificationForMessageTests : ZMLocalNotificationForEventTest {
         return ZMLocalNotificationForMessage(message: message, application: self.application)
     }
     
-    func alertBodyForNotification(conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> String? {
+    func alertBodyForNotification(_ conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> String? {
         guard let notification = textNotification(conversation, sender: sender, text: text),
               let uiNote = notification.uiNotifications.first else { return nil }
         
@@ -110,14 +110,14 @@ class ZMLocalNotificationForMessageTests : ZMLocalNotificationForEventTest {
 // MARK : Image Asset Messages
 extension ZMLocalNotificationForMessageTests {
     
-    func imageNotification(conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> ZMLocalNotificationForMessage? {
+    func imageNotification(_ conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> ZMLocalNotificationForMessage? {
         let message = conversation.appendMessageWithImageData(verySmallJPEGData()) as! ZMAssetClientMessage
         message.sender = sender
         
         return ZMLocalNotificationForMessage(message: message, application: self.application)
     }
     
-    func alertBodyForImageNotification(conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> String? {
+    func alertBodyForImageNotification(_ conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> String? {
         guard let notification = imageNotification(conversation, sender: sender, text: text),
             let uiNote = notification.uiNotifications.first
         else {
@@ -143,34 +143,34 @@ extension ZMLocalNotificationForMessageTests {
 
 
 enum FileType {
-    case Txt, Video, Audio
+    case txt, video, audio
     
     var testURL : NSURL {
         var name : String
         var fileExtension : String
         switch self {
-        case .Txt:
+        case .txt:
             name = "Lorem Ipsum"
             fileExtension = "txt"
-        case .Video:
+        case .video:
             name = "video"
             fileExtension = "mp4"
-        case  .Audio:
+        case  .audio:
             name = "audioFile"
             fileExtension = "m4a"
         }
-        return NSBundle(forClass: ZMLocalNotificationForMessageTests.self).URLForResource(name, withExtension: fileExtension)!
+        return Bundle(forClass: ZMLocalNotificationForMessageTests.self).URLForResource(name, withExtension: fileExtension)!
     }
     
     var testData : NSData {
-        return NSData(contentsOfURL: testURL)!
+        return NSData(contentsOf: testURL as URL)!
     }
 }
 
 // MARK : File Asset Messages
 extension ZMLocalNotificationForMessageTests {
 
-    func messageForFile(mimeType: String, nonce: NSUUID){
+    func messageForFile(_ mimeType: String, nonce: NSUUID){
         let dataBuilder = ZMAssetRemoteDataBuilder()
         dataBuilder.setSha256(NSData.secureRandomDataOfLength(32))
         dataBuilder.setOtrKey(NSData.secureRandomDataOfLength(32))
@@ -190,7 +190,7 @@ extension ZMLocalNotificationForMessageTests {
     }
 
     
-    func assetNotification(fileType: FileType, conversation: ZMConversation, sender: ZMUser) -> ZMLocalNotificationForMessage? {
+    func assetNotification(_ fileType: FileType, conversation: ZMConversation, sender: ZMUser) -> ZMLocalNotificationForMessage? {
         let metadata = ZMFileMetadata(fileURL: fileType.testURL)
         let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
         msg.sender = sender
@@ -199,7 +199,7 @@ extension ZMLocalNotificationForMessageTests {
         return ZMLocalNotificationForMessage(message: msg, application: self.application)
     }
     
-    func alertBodyForAssetNotification(fileType: FileType, conversation: ZMConversation, sender: ZMUser) -> String? {
+    func alertBodyForAssetNotification(_ fileType: FileType, conversation: ZMConversation, sender: ZMUser) -> String? {
         guard let notification = assetNotification(fileType, conversation: conversation, sender: sender),
             let uiNote = notification.uiNotifications.first else { return nil }
         
@@ -242,14 +242,14 @@ extension ZMLocalNotificationForMessageTests {
 
 extension ZMLocalNotificationForMessageTests {
 
-    func knockNotification(conversation: ZMConversation, sender: ZMUser) -> ZMLocalNotificationForMessage? {
+    func knockNotification(_ conversation: ZMConversation, sender: ZMUser) -> ZMLocalNotificationForMessage? {
         let message = conversation.appendKnock() as! ZMClientMessage
         message.sender = sender
         
         return ZMLocalNotificationForMessage(message: message, application: self.application)
     }
     
-    func alertBodyForKnockNotification(conversation: ZMConversation, sender: ZMUser) -> String? {
+    func alertBodyForKnockNotification(_ conversation: ZMConversation, sender: ZMUser) -> String? {
         guard let notification = knockNotification(conversation, sender: sender),
             let uiNote = notification.uiNotifications.first else { return nil }
         
@@ -302,13 +302,13 @@ extension ZMLocalNotificationForMessageTests {
 
 extension ZMLocalNotificationForMessageTests {
 
-    func editNotification(message: ZMOTRMessage, sender: ZMUser, text: String) -> ZMLocalNotificationForMessage? {
+    func editNotification(_ message: ZMOTRMessage, sender: ZMUser, text: String) -> ZMLocalNotificationForMessage? {
         let editMessage = ZMOTRMessage.edit(message, newText: text)
         editMessage!.sender = sender
         return ZMLocalNotificationForMessage(message: editMessage as! ZMClientMessage, application: self.application)
     }
     
-    func alertBodyForEditNotification(conversation: ZMConversation, sender: ZMUser, text: String) -> String? {
+    func alertBodyForEditNotification(_ conversation: ZMConversation, sender: ZMUser, text: String) -> String? {
         let message = conversation.appendMessageWithText("Foo") as! ZMClientMessage
         message.markAsSent()
         guard let notification = editNotification(message, sender: sender, text: text),

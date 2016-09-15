@@ -52,7 +52,7 @@ class ClientUpdateStatusTests: MessagingTest {
         XCTAssertEqual(self.sut.currentPhase, ClientUpdatePhase.FetchingClients)
     }
     
-    func insertNewClient(isSelfClient: Bool) -> UserClient! {
+    func insertNewClient(_ isSelfClient: Bool) -> UserClient! {
         var client : UserClient!
         self.syncMOC.performGroupedBlockAndWait { () -> Void in
             client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)

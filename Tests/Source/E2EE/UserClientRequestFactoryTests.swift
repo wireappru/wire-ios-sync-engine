@@ -45,7 +45,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         super.tearDown()
     }
 
-    func expectedKeyPayloadForClientPreKeys(client : UserClient) -> [[String : AnyObject]] {
+    func expectedKeyPayloadForClientPreKeys(_ client : UserClient) -> [[String : AnyObject]] {
         let generatedKeys = (client.keysStore as! FakeKeysStore).lastGeneratedKeys
         let expectedPrekeys : [[String: AnyObject]] = generatedKeys.map { (key: (id: UInt16, prekey: String)) in
             return ["key": key.prekey, "id": NSNumber(unsignedShort: key.id)]

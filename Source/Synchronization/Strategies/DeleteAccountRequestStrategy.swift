@@ -21,15 +21,15 @@ import Foundation
 import ZMTransport
 
 /// Requests the account deletion
-@objc public class DeleteAccountRequestStrategy: NSObject, RequestStrategy, ZMSingleRequestTranscoder {
+@objc open class DeleteAccountRequestStrategy: NSObject, RequestStrategy, ZMSingleRequestTranscoder {
 
-    private static let path: String = "/self"
-    public static let userDeletionInitiatedKey: String = "ZMUserDeletionInitiatedKey"
+    fileprivate static let path: String = "/self"
+    open static let userDeletionInitiatedKey: String = "ZMUserDeletionInitiatedKey"
     
-    private(set) var deleteSync: ZMSingleRequestSync! = nil
+    fileprivate(set) var deleteSync: ZMSingleRequestSync! = nil
     /// The managed object context to operate on
-    private let managedObjectContext: NSManagedObjectContext
-    private let authStatus: ZMAuthenticationStatus
+    fileprivate let managedObjectContext: NSManagedObjectContext
+    fileprivate let authStatus: ZMAuthenticationStatus
     
     public init(authStatus: ZMAuthenticationStatus, managedObjectContext: NSManagedObjectContext) {
         self.authStatus = authStatus
@@ -38,9 +38,9 @@ import ZMTransport
         self.deleteSync = ZMSingleRequestSync(singleRequestTranscoder: self, managedObjectContext: self.managedObjectContext)
     }
     
-    public func nextRequest() -> ZMTransportRequest? {
-        guard let shouldBeDeleted : NSNumber = self.managedObjectContext.persistentStoreMetadataForKey(self.dynamicType.userDeletionInitiatedKey) as? NSNumber
-            where shouldBeDeleted.boolValue
+    open func nextRequest() -> ZMTransportRequest? {
+        guard let shouldBeDeleted : NSNumber = self.managedObjectContext.persistentStoreMetadata(forKey: type(of: self).userDeletionInitiatedKey) as? NSNumber
+            , shouldBeDeleted.boolValue
         else {
             return nil
         }
@@ -51,17 +51,17 @@ import ZMTransport
     
     // MARK: - ZMSingleRequestTranscoder
     
-    public func requestForSingleRequestSync(sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
-        let request = ZMTransportRequest(path: self.dynamicType.path, method: .MethodDELETE, payload: [:], shouldCompress: true)
+    open func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
+        let request = ZMTransportRequest(path: type(of: self).path, method: .methodDELETE, payload: [:], shouldCompress: true)
         return request
     }
     
-    public func didReceiveResponse(response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {
-        if response.result == .Success || response.result == .PermanentError {
-            self.managedObjectContext.setPersistentStoreMetadata(NSNumber(bool: false), forKey: self.dynamicType.userDeletionInitiatedKey)
+    open func didReceive(_ response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {
+        if response.result == .success || response.result == .permanentError {
+            self.managedObjectContext.setPersistentStoreMetadata(NSNumber(value: false as Bool), forKey: type(of: self).userDeletionInitiatedKey)
             ZMPersistentCookieStorage.deleteAllKeychainItems()
-            NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
-                ZMUserSessionAuthenticationNotification.notifyAuthenticationDidFail(NSError.userSessionErrorWithErrorCode(.AccountDeleted, userInfo: .None))
+            OperationQueue.main.addOperation({ () -> Void in
+                ZMUserSessionAuthenticationNotification.notifyAuthenticationDidFail(NSError.userSessionErrorWith(.accountDeleted, userInfo: .none))
             })
         }
     }

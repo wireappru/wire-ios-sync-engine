@@ -26,10 +26,10 @@ let NoUserNameKey = "nousername"
 let NoOtherUserNameKey = "nootherusername"
 
 
-public class LocalizationInfo : NSObject {
+open class LocalizationInfo : NSObject {
     
-    public let localizationString : String
-    public let arguments : [String]
+    open let localizationString : String
+    open let arguments : [String]
     public init(localizationString: String, arguments: [String]) {
         self.localizationString = localizationString
         self.arguments = arguments
@@ -65,7 +65,7 @@ public extension NSString {
                 arguments.append(convName!)
             }
         }
-        let localizationString = keyComponents.reduce(self){$0.0.stringByAppendingPathExtension($0.1)!}
+        let localizationString = keyComponents.reduce(self){$0.0.appendingPathExtension($0.1)!}
         return LocalizationInfo(localizationString: localizationString as String, arguments: arguments)
     }
 }

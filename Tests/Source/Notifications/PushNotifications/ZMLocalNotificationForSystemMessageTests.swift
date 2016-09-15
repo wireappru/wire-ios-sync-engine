@@ -39,7 +39,7 @@ class ZMLocalNotificationForSystemMessageTests : ZMLocalNotificationForEventTest
         XCTAssertEqual(uiNote.alertBody, "Super User renamed a conversation to New Name")
     }
     
-    func alertBodyForParticipantAdded(conversation: ZMConversation, aSender: ZMUser, otherUsers: Set<ZMUser>) -> String?{
+    func alertBodyForParticipantAdded(_ conversation: ZMConversation, aSender: ZMUser, otherUsers: Set<ZMUser>) -> String?{
         // given
         let systemMessage = ZMSystemMessage.insertNewObjectInManagedObjectContext(syncMOC)
         systemMessage.systemMessageType = .ParticipantsAdded
@@ -78,7 +78,7 @@ class ZMLocalNotificationForSystemMessageTests : ZMLocalNotificationForEventTest
         XCTAssertEqual(alertBodyForParticipantAdded(groupConversationWithoutName, aSender: sender, otherUsers: Set(arrayLiteral: otherUser, otherUser2)), "Super User added people to a conversation")
     }
     
-    func alertBodyForParticipantRemoved(conversation: ZMConversation, aSender: ZMUser, otherUsers: Set<ZMUser>) -> String?{
+    func alertBodyForParticipantRemoved(_ conversation: ZMConversation, aSender: ZMUser, otherUsers: Set<ZMUser>) -> String?{
         // given
         let systemMessage = ZMSystemMessage.insertNewObjectInManagedObjectContext(syncMOC)
         systemMessage.systemMessageType = .ParticipantsRemoved

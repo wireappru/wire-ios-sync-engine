@@ -21,16 +21,16 @@ import Foundation
 import ZMCLinkPreview
 
 @objc public protocol LinkPreviewDetectorType {
-    func downloadLinkPreviews(inText text: String, completion: [LinkPreview] -> Void)
+    func downloadLinkPreviews(inText text: String, completion: ([LinkPreview]) -> Void)
 }
 
 extension LinkPreviewDetector: LinkPreviewDetectorType {}
 
-@objc public class LinkPreviewPreprocessor : NSObject, ZMContextChangeTracker {
+@objc open class LinkPreviewPreprocessor : NSObject, ZMContextChangeTracker {
         
     /// List of objects currently being processed
-    private var objectsBeingProcessed = Set<ZMClientMessage>()
-    private let linkPreviewDetector: LinkPreviewDetectorType
+    fileprivate var objectsBeingProcessed = Set<ZMClientMessage>()
+    fileprivate let linkPreviewDetector: LinkPreviewDetectorType
 
     let managedObjectContext : NSManagedObjectContext
     
@@ -40,31 +40,31 @@ extension LinkPreviewDetector: LinkPreviewDetectorType {}
         super.init()
     }
 
-    public func objectsDidChange(objects: Set<NSObject>) {
+    open func objectsDidChange(_ objects: Set<NSObject>) {
         processObjects(objects)
     }
     
-    public func fetchRequestForTrackedObjects() -> NSFetchRequest? {
+    open func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
         let predicate = NSPredicate(format: "%K == %d", ZMClientMessageLinkPreviewStateKey, ZMLinkPreviewState.WaitingToBeProcessed.rawValue)
         return ZMClientMessage.sortedFetchRequestWithPredicate(predicate)
     }
     
-    public func addTrackedObjects(objects: Set<NSObject>) {
+    open func addTrackedObjects(_ objects: Set<NSObject>) {
         processObjects(objects)
     }
     
-    func processObjects(objects: Set<NSObject>) {
+    func processObjects(_ objects: Set<NSObject>) {
         objects.flatMap(linkPreviewsToPreprocess)
             .filter { !self.objectsBeingProcessed.contains($0) }
             .forEach(processMessage)
     }
     
-    func linkPreviewsToPreprocess(object: NSObject) -> ZMClientMessage? {
+    func linkPreviewsToPreprocess(_ object: NSObject) -> ZMClientMessage? {
         guard let message = object as? ZMClientMessage else { return nil }
         return message.linkPreviewState == .WaitingToBeProcessed ? message : nil
     }
     
-    func processMessage(message: ZMClientMessage) {
+    func processMessage(_ message: ZMClientMessage) {
         objectsBeingProcessed.insert(message)
         
         if let messageText = (message as ZMConversationMessage).textMessageData?.messageText {
@@ -78,7 +78,7 @@ extension LinkPreviewDetector: LinkPreviewDetectorType {}
         }
     }
     
-    func didProcessMessage(message: ZMClientMessage, linkPreviews: [LinkPreview]) {
+    func didProcessMessage(_ message: ZMClientMessage, linkPreviews: [LinkPreview]) {
         objectsBeingProcessed.remove(message)
         
         if let preview = linkPreviews.first {

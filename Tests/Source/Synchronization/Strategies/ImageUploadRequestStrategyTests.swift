@@ -30,9 +30,9 @@ class ImageUploadMockClientRegistrationStatus : ZMMockClientRegistrationStatus {
 
 class ImageUploadRequestStrategyTests: MessagingTest {
     
-    private var authenticationStatus : MockAuthenticationStatus!
-    private var clientRegistrationStatus : ZMMockClientRegistrationStatus!
-    private var sut : ImageUploadRequestStrategy!
+    fileprivate var authenticationStatus : MockAuthenticationStatus!
+    fileprivate var clientRegistrationStatus : ZMMockClientRegistrationStatus!
+    fileprivate var sut : ImageUploadRequestStrategy!
     
     override func setUp() {
         super.setUp()
@@ -49,15 +49,15 @@ class ImageUploadRequestStrategyTests: MessagingTest {
     
     func createImageMessage() -> ZMAssetClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation!.remoteIdentifier = NSUUID.createUUID()
+        conversation!.remoteIdentifier = UUID.createUUID()
         
-        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: NSUUID.createUUID())
+        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.createUUID())
         syncMOC.saveOrRollback()
         
         return message
     }
     
-    func prepare(message: ZMAssetClientMessage, forUploadingFormat format: ZMImageFormat) {
+    func prepare(_ message: ZMAssetClientMessage, forUploadingFormat format: ZMImageFormat) {
         let otherFormat : ZMImageFormat = format == .Medium ? .Preview : .Medium
         
         let properties = ZMIImageProperties(size: message.imageAssetStorage!.originalImageSize(), length: 1000, mimeType: "image/jpg")
@@ -68,7 +68,7 @@ class ImageUploadRequestStrategyTests: MessagingTest {
         syncMOC.saveOrRollback()
     }
         
-    func assertRequestIsGeneratedToSendOTRAssetWhenAMessageIsInserted(withFormat format: ZMImageFormat, block: (message: ZMMessage) -> Void) {
+    func assertRequestIsGeneratedToSendOTRAssetWhenAMessageIsInserted(withFormat format: ZMImageFormat, block: (_ message: ZMMessage) -> Void) {
         
         syncMOC.performGroupedBlock { 
             let message = self.createImageMessage()
@@ -110,7 +110,7 @@ class ImageUploadRequestStrategyTests: MessagingTest {
         }
     }
         
-    func assertMessageIsDeleted_whenFailedToCreatedUpdateRequestAndNoOriginalDataStored(format: ZMImageFormat) {
+    func assertMessageIsDeleted_whenFailedToCreatedUpdateRequestAndNoOriginalDataStored(_ format: ZMImageFormat) {
         syncMOC.performGroupedBlock {
             //given
             let message = self.createImageMessage()

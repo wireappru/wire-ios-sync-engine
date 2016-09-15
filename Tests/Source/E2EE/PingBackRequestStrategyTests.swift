@@ -47,7 +47,7 @@ class MockBackgroundAPNSPingBackStatus: BackgroundAPNSPingBackStatus {
         }
     }
 
-    override func didPerfomPingBackRequest(eventsWithID: EventsWithIdentifier, responseStatus: ZMTransportResponseStatus) {
+    override func didPerfomPingBackRequest(_ eventsWithID: EventsWithIdentifier, responseStatus: ZMTransportResponseStatus) {
         didPerformPingBackVerification?(eventsWithID, responseStatus)
     }
     
@@ -63,7 +63,7 @@ class MockBackgroundAPNSPingBackStatus: BackgroundAPNSPingBackStatus {
         }
     }
     
-    override func didFetchNoticeNotification(eventsWithID: EventsWithIdentifier, responseStatus: ZMTransportResponseStatus, events: [ZMUpdateEvent]) {
+    override func didFetchNoticeNotification(_ eventsWithID: EventsWithIdentifier, responseStatus: ZMTransportResponseStatus, events: [ZMUpdateEvent]) {
         didFetchNoticeNotification?(eventsWithID, responseStatus, events)
     }
 }
@@ -95,7 +95,7 @@ class PingBackRequestStrategyTests: MessagingTest {
 
     func testThatItGeneratesARequestWhenThePingBackStatusReturnsANotificationIDAndTheStateIsAuthenticated() {
         // given
-        let notificationID = NSUUID.createUUID()
+        let notificationID = NSUUID.create()
         pingBackStatus.mockNextNotificationID = notificationID
         pingBackStatus.mockStatus = .Pinging
         XCTAssertTrue(pingBackStatus.hasNotificationIDs)
@@ -112,7 +112,7 @@ class PingBackRequestStrategyTests: MessagingTest {
     
     func testThatItDoesNotGenerateARequestWhenThePingBackStatusReturnsANotificationIDButTheStatusIsNotPinging() {
         // given
-        let notificationID = NSUUID.createUUID()
+        let notificationID = NSUUID.create()
         pingBackStatus.mockNextNotificationID = notificationID
         pingBackStatus.mockStatus = .FetchingNotice
         XCTAssertTrue(pingBackStatus.hasNotificationIDs)
@@ -127,7 +127,7 @@ class PingBackRequestStrategyTests: MessagingTest {
     func testThatItDoesNotGenerateARequestWhenThePingBackStatusReturnsANotificationIDButTheStateIsUnauthenticated() {
         // given
         authenticationStatus.mockPhase = .Unauthenticated
-        pingBackStatus.mockNextNotificationID = NSUUID.createUUID()
+        pingBackStatus.mockNextNotificationID = NSUUID.create()
         XCTAssertTrue(pingBackStatus.hasNotificationIDs)
         
         // when
@@ -151,7 +151,7 @@ class PingBackRequestStrategyTests: MessagingTest {
 
     func testThatItCallsDidPerformPingBackRequestWithSuccessOnThePingBackStatusAfterSuccessfullyPerformingThePingBack() {
         // given
-        let nextUUID = NSUUID.createUUID()
+        let nextUUID = NSUUID.create()
         var didPerformPingBackCalled = false
         var receivedEventsWithID: EventsWithIdentifier?
         var receivedStatus: ZMTransportResponseStatus?
@@ -180,7 +180,7 @@ class PingBackRequestStrategyTests: MessagingTest {
     
     func testThatItCallsDidPerformPingBackRequestOnThePingBackStatusAfterFailingPerformingThePingBack_401_ReenqueuesTheEventsAndID() {
         // given
-        let nextUUID = NSUUID.createUUID()
+        let nextUUID = NSUUID.create()
         var didPerformPingBackCallCount = 0
         var receivedEventsWithID: EventsWithIdentifier?
         var receivedStatus: ZMTransportResponseStatus?
@@ -218,7 +218,7 @@ class PingBackRequestStrategyTests: MessagingTest {
     
     func testThatItCallsDidPerformPingBackRequestOnThePingBackStatusAfterFailingPerformingThePingBack_400() {
         // given
-        let nextUUID = NSUUID.createUUID()
+        let nextUUID = NSUUID.create()
         var didPerformPingBackCalled = false
         var receivedEventsWithID: EventsWithIdentifier?
         var receivedStatus: ZMTransportResponseStatus?

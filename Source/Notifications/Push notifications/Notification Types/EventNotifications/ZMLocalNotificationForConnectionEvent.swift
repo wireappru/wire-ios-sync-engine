@@ -22,10 +22,10 @@ import Foundation
 class ZMLocalNotificationForConverstionCreateEvent : ZMLocalNotificationForEvent {
     
     override var eventType : ZMUpdateEventType {
-        return .ConversationCreate
+        return .conversationCreate
     }
     
-    override func configureAlertBody(conversation: ZMConversation?) -> String {
+    override func configureAlertBody(_ conversation: ZMConversation?) -> String {
         return ZMPushStringConversationCreate.localizedStringWithUser(sender, count:nil)
     }
     
@@ -37,50 +37,50 @@ class ZMLocalNotificationForConverstionCreateEvent : ZMLocalNotificationForEvent
 class ZMLocalNotificationForUserConnectionEvent : ZMLocalNotificationForEvent {
     
     override var eventType : ZMUpdateEventType {
-        return .UserConnection
+        return .userConnection
     }
     
     enum ConnectionType {
-        case Accepted, Requested
+        case accepted, requested
     }
     
     var connectionType : ConnectionType!
     
-    override func canCreateNotification(conversation: ZMConversation?) -> Bool {
+    override func canCreateNotification(_ conversation: ZMConversation?) -> Bool {
         if !super.canCreateNotification(conversation) { return false }
         let lastEvent = self.lastEvent! // last event is sure to exist here, checked in canCreateNotificaion
         if let status = lastEvent.payload["connection"]?["status"] as? String {
             if status == "accepted" {
-                connectionType = .Accepted
+                connectionType = .accepted
                 return true
             } else if status == "pending" {
-                connectionType = .Requested
+                connectionType = .requested
                 return true
             }
         }
         return false
     }
     
-    override func configureAlertBody(conversation: ZMConversation?) -> String {
+    override func configureAlertBody(_ conversation: ZMConversation?) -> String {
         let name = sender?.name ?? lastEvent!.payload["user"]?["name"] as? String
-        if connectionType == .Requested {
+        if connectionType == .requested {
             return ZMPushStringConnectionRequest.localizedStringWithUserName(name)
         }
         return ZMPushStringConnectionAccepted.localizedStringWithUserName(name)
     }
     
     override var category : String {
-        return (connectionType == .Requested) ? ZMConnectCategory : ZMConversationCategory
+        return (connectionType == .requested) ? ZMConnectCategory : ZMConversationCategory
     }
 }
 
 class ZMLocalNotificationForNewUserEvent : ZMLocalNotificationForEvent {
     
     override var eventType : ZMUpdateEventType {
-        return .UserContactJoin
+        return .userContactJoin
     }
     
-    override func configureAlertBody(conversation: ZMConversation?) -> String {
+    override func configureAlertBody(_ conversation: ZMConversation?) -> String {
         let name = lastEvent!.payload["user"]?["name"] as? String
         return ZMPushStringNewConnection.localizedStringWithUserName(name)
     }

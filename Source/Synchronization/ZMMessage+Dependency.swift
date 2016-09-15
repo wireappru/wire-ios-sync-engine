@@ -41,7 +41,7 @@ extension ZMOTRMessage {
         
         // If we are missing clients, we need to refetch the clients before retrying
         if let selfClient = ZMUser.selfUserInContext(self.managedObjectContext!).selfClient(),
-            let missingClients = selfClient.missingClients where missingClients.count > 0
+            let missingClients = selfClient.missingClients , missingClients.count > 0
         {
             let activeParticipants = conversation.activeParticipants.array as! [ZMUser]
             let activeClients = activeParticipants.flatMap {

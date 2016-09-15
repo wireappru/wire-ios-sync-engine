@@ -22,19 +22,19 @@ import ZMCDataModel;
 
 @testable import zmessaging;
 
-public class MockKVStore : NSObject, ZMSynchonizableKeyValueStore {
+open class MockKVStore : NSObject, ZMSynchonizableKeyValueStore {
     
     var keysAndValues = [String : AnyObject]()
     
-    @objc public override func setValue(value: AnyObject!, forKey key: String) {
+    @objc open override func setValue(_ value: AnyObject!, forKey key: String) {
         keysAndValues[key] = value
     }
     
-    @objc public override func valueForKey(key: String) -> AnyObject? {
+    @objc open override func valueForKey(_ key: String) -> AnyObject? {
         return keysAndValues[key]
     }
     
-    @objc public func enqueueDelayedSave(){
+    @objc open func enqueueDelayedSave(){
     
     }
 }
@@ -43,7 +43,7 @@ class MockLocalNotification : ZMLocalNotification {
     
     internal var notifications = [UILocalNotification]()
     
-    func add(notification: UILocalNotification){
+    func add(_ notification: UILocalNotification){
         notifications.append(notification)
     }
     

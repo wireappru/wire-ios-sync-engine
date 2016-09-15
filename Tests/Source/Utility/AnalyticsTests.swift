@@ -29,9 +29,9 @@ class AnalyticsTests: XCTestCase {
     var analytics: MockAnalytics!
     
     func createSyncMOC() -> NSManagedObjectContext {
-        let fm = NSFileManager.defaultManager()
-        let url = try! fm.URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create:true)
-        return .createSyncContextWithStoreDirectory(url)
+        let fm = FileManager.default
+        let url = try! fm.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create:true)
+        return .createSyncContext(withStoreDirectory: url)
     }
     
     override func setUp() {
@@ -60,10 +60,10 @@ extension AnalyticsTests {
     
     func testVOIPTimeDifferenceTracking() {
         // given
-        let notificationID = NSUUID.createUUID()
-        let serverTime = NSDate(timeIntervalSince1970: 1234567890)
-        let currentTime = serverTime.dateByAddingTimeInterval(4.5) // Simulate VoIP arriving in OperationLoop after 4.5 sec
-        let referenceDate = currentTime.dateByAddingTimeInterval(0.25) // Simulate VoIP arriving in PingBackStatus after 250 ms
+        let notificationID = NSUUID.create()
+        let serverTime = Date(timeIntervalSince1970: 1234567890)
+        let currentTime = serverTime.addingTimeInterval(4.5) // Simulate VoIP arriving in OperationLoop after 4.5 sec
+        let referenceDate = currentTime.addingTimeInterval(0.25) // Simulate VoIP arriving in PingBackStatus after 250 ms
 
         // when
         let tracker = APNSPerformanceTracker()
@@ -79,7 +79,7 @@ extension AnalyticsTests {
         let secondEventWithAttribute = analytics.taggedEventsWithAttributes.last
 
         let firstExpected = EventWithAttributes(event: "apns_performance", attributes: [
-            "server_timestamp_difference": "4000-5000",
+            "server_timestamp_difference": "4000-5000" as NSObject,
             "notification_identifier": notificationID.transportString(),
             "state_description": "OperationLoop",
             "state_index": 0,
@@ -154,11 +154,11 @@ extension AnalyticsTests {
 
 extension AnalyticsTests {
     
-    func assertThatItTracksAddresBookUploadEnded(hoursSinceLastUpload: Int? = nil, shouldTrackInterval: Bool = true, line: UInt = #line) {
+    func assertThatItTracksAddresBookUploadEnded(_ hoursSinceLastUpload: Int? = nil, shouldTrackInterval: Bool = true, line: UInt = #line) {
         // given
         let tracker = zmessaging.AddressBookAnalytics(analytics: analytics, managedObjectContext: createSyncMOC())
-        if let hours = hoursSinceLastUpload.map(NSTimeInterval.init) {
-            let lastDate = NSDate(timeIntervalSinceNow: -hours * 3600)
+        if let hours = hoursSinceLastUpload.map(TimeInterval.init) {
+            let lastDate = Date(timeIntervalSinceNow: -hours * 3600)
             tracker.managedObjectContext.lastAddressBookUploadDate = lastDate
         }
 
@@ -173,8 +173,8 @@ extension AnalyticsTests {
         
         var attributes: [String: NSObject] = [:]
         
-        if let hours = hoursSinceLastUpload where shouldTrackInterval {
-            attributes["interval"] = hours
+        if let hours = hoursSinceLastUpload , shouldTrackInterval {
+            attributes["interval"] = hours as NSObject?
         }
         XCTAssertEqual(eventWithAtributes.attributes, attributes, line: line)
     }
@@ -192,11 +192,11 @@ func ==(lhs: EventWithAttributes, rhs: EventWithAttributes) -> Bool {
 
 final class MockAnalytics: NSObject, AnalyticsType {
     
-    @objc func tagEvent(event: String) {
+    @objc func tagEvent(_ event: String) {
         taggedEvents.append(event)
     }
     
-    @objc func tagEvent(event: String, attributes: [String : NSObject]) {
+    @objc func tagEvent(_ event: String, attributes: [String : NSObject]) {
         taggedEventsWithAttributes.append(EventWithAttributes(event: event, attributes: attributes))
     }
     

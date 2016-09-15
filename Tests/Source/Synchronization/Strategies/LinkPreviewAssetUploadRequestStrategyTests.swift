@@ -22,10 +22,10 @@ import ZMCLinkPreview
 @testable import zmessaging
 
 // MARK: - Tests setup
-@objc class LinkPreviewAssetUploadRequestStrategyTests: MessagingTest {
+class LinkPreviewAssetUploadRequestStrategyTests: MessagingTest {
     
-    private var sut: LinkPreviewAssetUploadRequestStrategy!
-    private var authStatus: MockAuthenticationStatus!
+    fileprivate var sut: LinkPreviewAssetUploadRequestStrategy!
+    fileprivate var authStatus: MockAuthenticationStatus!
     
     override func setUp() {
         super.setUp()
@@ -35,9 +35,9 @@ import ZMCLinkPreview
     }
     
     /// Creates a message that should generate request
-    func createMessage(text: String, linkPreviewState: ZMLinkPreviewState = .WaitingToBeProcessed, linkPreview: LinkPreview) -> ZMClientMessage {
+    func createMessage(_ text: String, linkPreviewState: ZMLinkPreviewState = .WaitingToBeProcessed, linkPreview: LinkPreview) -> ZMClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-        conversation!.remoteIdentifier = NSUUID.createUUID()
+        conversation!.remoteIdentifier = UUID.createUUID()
         
         let message = conversation.appendMessageWithText(text) as! ZMClientMessage
         message.linkPreviewState = linkPreviewState
@@ -61,20 +61,20 @@ import ZMCLinkPreview
     }
     
     /// Forces the strategy to process the message
-    func process(strategy: LinkPreviewAssetUploadRequestStrategy, message: ZMClientMessage) {
+    func process(_ strategy: LinkPreviewAssetUploadRequestStrategy, message: ZMClientMessage) {
         strategy.contextChangeTrackers.forEach {
             $0.objectsDidChange(Set(arrayLiteral: message))
         }
     }
     
-    func completeRequest(request: ZMTransportRequest?, HTTPStatus: Int) {
+    func completeRequest(_ request: ZMTransportRequest?, HTTPStatus: Int) {
         request?.completeWithResponse(ZMTransportResponse(payload: [], HTTPstatus: HTTPStatus, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.5))
     }
     
-    func encryptLinkPreview(inMessage message: ZMClientMessage) -> (NSData, NSData) {
-        let otrKey = "1".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
-        let sha256 = "2".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false)!
+    func encryptLinkPreview(inMessage message: ZMClientMessage) -> (Data, Data) {
+        let otrKey = "1".data(using: String.Encoding.utf8, allowLossyConversion: false)!
+        let sha256 = "2".data(using: String.Encoding.utf8, allowLossyConversion: false)!
         
         var linkPreview = message.genericMessage!.text.linkPreview.first as! ZMLinkPreview
         linkPreview = linkPreview.update(withOtrKey: otrKey, sha256: sha256)
@@ -84,7 +84,7 @@ import ZMCLinkPreview
         return (otrKey, sha256)
     }
     
-    func completeRequest(message: ZMClientMessage, request: ZMTransportRequest?, assetKey: String, token: String) {
+    func completeRequest(_ message: ZMClientMessage, request: ZMTransportRequest?, assetKey: String, token: String) {
         let response = ZMTransportResponse(payload: ["key" : assetKey, "token": token], HTTPstatus: 201, transportSessionError: nil)
         sut.updateUpdatedObject(message, requestUserInfo: nil, response: response, keysToParse: [ZMClientMessageLinkPreviewStateKey])
         XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.5))

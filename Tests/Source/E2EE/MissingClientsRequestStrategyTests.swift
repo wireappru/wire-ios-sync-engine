@@ -71,7 +71,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
         
         let missingUser = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
-        missingUser.remoteIdentifier = NSUUID.createUUID()
+        missingUser.remoteIdentifier = UUID.createUUID()
         
         let firstMissingClient = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
         firstMissingClient.remoteIdentifier = NSString.createAlphanumericalString()
@@ -109,7 +109,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         let missingClient = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
         missingClient.remoteIdentifier = NSString.createAlphanumericalString()
         let missingUser = ZMUser.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
-        missingUser.remoteIdentifier = NSUUID.createUUID()
+        missingUser.remoteIdentifier = UUID.createUUID()
         missingClient.user = missingUser
         
         client.missesClient(missingClient)
@@ -422,7 +422,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         XCTAssertTrue(otherClient.failedToEstablishSession)
     }
     
-    func generateValidPrekeysStrings(selfClient: UserClient, howMany: UInt16) -> [String] {
+    func generateValidPrekeysStrings(_ selfClient: UserClient, howMany: UInt16) -> [String] {
         var prekeys : [String] = []
         selfClient.keysStore.encryptionContext.perform { (sessionsDirectory) in
             let keysAndIds = try! sessionsDirectory.generatePrekeys(Range<UInt16>(0..<howMany))
@@ -431,7 +431,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         return prekeys
     }
     
-    func assertRequestEqualsExpectedRequest(request: ZMTransportRequest?) {
+    func assertRequestEqualsExpectedRequest(_ request: ZMTransportRequest?) {
         let client = ZMUser.selfUserInContext(self.sut.managedObjectContext).selfClient()
         let expectedRequest = sut.requestsFactory.fetchMissingClientKeysRequest(client!.missingClients!).transportRequest
         
@@ -445,7 +445,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         }
     }
     
-    func missingClientsRequestAndResponse(selfClient: UserClient, missingClients: [UserClient], payload: [String: [String: AnyObject]]? = nil)
+    func missingClientsRequestAndResponse(_ selfClient: UserClient, missingClients: [UserClient], payload: [String: [String: AnyObject]]? = nil)
         -> (request: ZMUpstreamRequest, response: ZMTransportResponse)
     {
         let lastKey = try! selfClient.keysStore.lastPreKey()
@@ -472,9 +472,9 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         return (request, response)
     }
     
-    func messageThatMissesRecipient(missingRecipient: UserClient) -> ZMClientMessage {
+    func messageThatMissesRecipient(_ missingRecipient: UserClient) -> ZMClientMessage {
         let message = ZMClientMessage.insertNewObjectInManagedObjectContext(self.syncMOC)
-        let data = ZMGenericMessage(text: self.name, nonce: NSUUID.createUUID().transportString()).data()
+        let data = ZMGenericMessage(text: self.name, nonce: UUID.createUUID().transportString()).data()
         message.addData(data)
         message.missesRecipient(missingRecipient)
         XCTAssertEqual(message.missingRecipients.count, 1)
@@ -487,10 +487,10 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         
         let selfClient = createSelfClient()
         
-        let remoteClientIdentifier = String.createAlphanumericalString()
+        let remoteClientIdentifier = String.createAlphanumerical()
         
         // when
-        let newSelfClient = UserClient.createOrUpdateClient(["id": remoteClientIdentifier , "type": "permanent", "time": NSDate().transportString()], context: self.syncMOC)!
+        let newSelfClient = UserClient.createOrUpdateClient(["id": remoteClientIdentifier , "type": "permanent", "time": Date().transportString()], context: self.syncMOC)!
         newSelfClient.user = selfClient.user
         sut.notifyChangeTrackers(selfClient)
         

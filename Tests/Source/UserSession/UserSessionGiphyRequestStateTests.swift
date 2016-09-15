@@ -35,10 +35,10 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         
         //given
         let path = "foo/bar"
-        let url = NSURL(string: path, relativeToURL: nil)!
+        let url = URL(string: path, relativeTo: nil)!
         
         let exp = self.expectationWithDescription("expected callback")
-        let callback: (NSData!, NSHTTPURLResponse!, NSError!) -> Void = { (_, _, _) -> Void in
+        let callback: (Data?, HTTPURLResponse?, NSError?) -> Void = { (_, _, _) -> Void in
             exp.fulfill()
         }
         
@@ -51,7 +51,7 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         XCTAssert(request != nil)
         XCTAssertEqual(request!.path, path)
         XCTAssert(request!.callback != nil)
-        request!.callback!(nil, NSHTTPURLResponse(), nil)
+        request!.callback!(nil, HTTPURLResponse(), nil)
         XCTAssertTrue(self.waitForCustomExpectationsWithTimeout(0.5))
     }
 
@@ -59,12 +59,12 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         
         //given
         let exp = self.expectationWithDescription("new operation loop started")
-        let token = NSNotificationCenter.defaultCenter().addObserverForName("ZMOperationLoopNewRequestAvailable", object: nil, queue: nil) { (note) -> Void in
+        let token = NotificationCenter.defaultCenter().addObserverForName("ZMOperationLoopNewRequestAvailable", object: nil, queue: nil) { (note) -> Void in
             exp.fulfill()
         }
         
-        let url = NSURL(string: "foo/bar", relativeToURL: nil)!
-        let callback: (NSData!, NSURLResponse!, NSError!) -> Void = { (_, _, _) -> Void in }
+        let url = URL(string: "foo/bar", relativeTo: nil)!
+        let callback: (Data?, URLResponse?, NSError?) -> Void = { (_, _, _) -> Void in }
         
         //when
         self.sut.proxiedRequestWithPath(url.absoluteString, method:.MethodGET, type:.Giphy, callback: callback)
@@ -72,20 +72,20 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         //then
         XCTAssertTrue(self.waitForCustomExpectationsWithTimeout(0.5))
         
-        NSNotificationCenter.defaultCenter().removeObserver(token)
+        NotificationCenter.defaultCenter().removeObserver(token)
     }
 
     func testThatAddingRequestIsMadeOnSyncThread() {
         
         //given
-        let url = NSURL(string: "foo/bar", relativeToURL: nil)!
-        let callback: (NSData!, NSURLResponse!, NSError!) -> Void = { (_, _, _) -> Void in }
+        let url = URL(string: "foo/bar", relativeTo: nil)!
+        let callback: (Data?, URLResponse?, NSError?) -> Void = { (_, _, _) -> Void in }
 
         //here we block sync thread and check that right after giphyRequestWithURL call no request is created
         //after we signal semaphore sync thread should be unblocked and pending request should be created
-        let sem = dispatch_semaphore_create(0)
+        let sem = DispatchSemaphore(value: 0)
         self.syncMOC.performGroupedBlock {
-            dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+            sem.wait(timeout: DispatchTime.distantFuture)
         }
 
         //when
@@ -96,7 +96,7 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         XCTAssertTrue(request == nil)
 
         //when
-        dispatch_semaphore_signal(sem)
+        sem.signal()
         
         XCTAssertTrue(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
 

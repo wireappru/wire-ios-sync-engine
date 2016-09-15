@@ -22,17 +22,17 @@ import Foundation
 
 @objc final public class LinkPreviewAssetDownloadRequestStrategy: ZMObjectSyncStrategy, RequestStrategy {
     
-    private var assetDownstreamObjectSync: ZMDownstreamObjectSyncWithWhitelist!
-    private let authStatus: AuthenticationStatusProvider
-    private let assetRequestFactory = AssetDownloadRequestFactory()
+    fileprivate var assetDownstreamObjectSync: ZMDownstreamObjectSyncWithWhitelist!
+    fileprivate let authStatus: AuthenticationStatusProvider
+    fileprivate let assetRequestFactory = AssetDownloadRequestFactory()
     
     public init(authStatus: AuthenticationStatusProvider, managedObjectContext: NSManagedObjectContext) {
         self.authStatus = authStatus
         super.init(managedObjectContext: managedObjectContext)
         
         let downloadFilter = NSPredicate { object, _ in
-            guard let message = object as? ZMClientMessage, genericMessage = message.genericMessage where genericMessage.hasText() else { return false }
-            guard let preview = genericMessage.text.linkPreview?.first, remote: ZMAssetRemoteData = preview.remote  else { return false }
+            guard let message = object as? ZMClientMessage, let genericMessage = message.genericMessage , genericMessage.hasText() else { return false }
+            guard let preview = genericMessage.text.linkPreview?.first, let remote: ZMAssetRemoteData = preview.remote  else { return false }
             guard nil == managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .Medium, encrypted: false) else { return false }
             return remote.hasAssetId()
         }
@@ -48,11 +48,11 @@ import Foundation
     }
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
     func registerForWhitelistingNotification() {
-        NSNotificationCenter.defaultCenter().addObserver(
+        NotificationCenter.defaultCenter().addObserver(
             self,
             selector: #selector(didWhitelistAssetDownload),
             name: ZMClientMessageLinkPreviewImageDownloadNotificationName,
@@ -60,7 +60,7 @@ import Foundation
         )
     }
     
-    func didWhitelistAssetDownload(note: NSNotification) {
+    func didWhitelistAssetDownload(_ note: Notification) {
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let `self` = self else { return }
             guard let objectID = note.object as? NSManagedObjectID else { return }
@@ -71,12 +71,12 @@ import Foundation
     }
     
     func nextRequest() -> ZMTransportRequest? {
-        guard authStatus.currentPhase == .Authenticated else { return nil }
+        guard authStatus.currentPhase == .authenticated else { return nil }
         return assetDownstreamObjectSync.nextRequest()
     }
     
-    func handleResponse(response: ZMTransportResponse!, forMessage message: ZMClientMessage) {
-        guard response.result == .Success else { return }
+    func handleResponse(_ response: ZMTransportResponse!, forMessage message: ZMClientMessage) {
+        guard response.result == .success else { return }
         let cache = managedObjectContext.zm_imageAssetCache
         
         guard let remote = message.genericMessage?.text.linkPreview.first?.remote else { return }
@@ -90,9 +90,9 @@ import Foundation
         
         guard success else { return }
         
-        let uiMOC = managedObjectContext.zm_userInterfaceContext
+        let uiMOC = managedObjectContext.zm_userInterface
         let objectID = message.objectID
-        uiMOC.performGroupedBlock {
+        uiMOC?.performGroupedBlock {
             guard let uiMessage = try? uiMOC.existingObjectWithID(objectID) else { return }
             uiMOC.globalManagedObjectContextObserver.notifyNonCoreDataChangeInManagedObject(uiMessage)
         }
@@ -111,7 +111,7 @@ extension LinkPreviewAssetDownloadRequestStrategy: ZMContextChangeTrackerSource 
 
 extension LinkPreviewAssetDownloadRequestStrategy: ZMDownstreamTranscoder {
     
-    public func requestForFetchingObject(object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func requestForFetchingObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let message = object as? ZMClientMessage else { fatal("Unable to generate request for \(object)") }
         let linkPreview = message.genericMessage?.text.linkPreview.first
         guard let remoteData = linkPreview?.remote else { return nil }
@@ -125,11 +125,11 @@ extension LinkPreviewAssetDownloadRequestStrategy: ZMDownstreamTranscoder {
         return request
     }
     
-    public func deleteObject(object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
+    public func deleteObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
         // no-op
     }
     
-    public func updateObject(object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
+    public func updateObject(_ object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         // no-op
     }
     
@@ -137,9 +137,9 @@ extension LinkPreviewAssetDownloadRequestStrategy: ZMDownstreamTranscoder {
 
 extension ZMLinkPreview {
     var remote: ZMAssetRemoteData? {
-        if let image = article.image where image.hasUploaded() {
+        if let image = article.image , image.hasUploaded() {
             return image.uploaded
-        } else if let image = image where hasImage() {
+        } else if let image = image , hasImage() {
             return image.uploaded
         }
         

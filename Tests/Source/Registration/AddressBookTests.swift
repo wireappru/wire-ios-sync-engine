@@ -22,7 +22,7 @@ import AddressBook
 
 class AddressBookTests : XCTestCase {
     
-    private var addressBookFake : AddressBookContactsFake!
+    fileprivate var addressBookFake : AddressBookContactsFake!
     
     override func setUp() {
         self.addressBookFake = AddressBookContactsFake()

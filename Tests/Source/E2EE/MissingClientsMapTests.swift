@@ -35,7 +35,7 @@ class MissingClientsMapTests: MessagingTest {
         
         // then
         guard let user1Id = user1Client1.user?.remoteIdentifier?.transportString(),
-            user2Id = user2Client1.user?.remoteIdentifier?.transportString() else { return XCTFail() }
+            let user2Id = user2Client1.user?.remoteIdentifier?.transportString() else { return XCTFail() }
         
         XCTAssertEqual(sut.payload.keys.count, 2)
         XCTAssertEqual(sut.payload[user1Id]?.count, 2)
@@ -87,22 +87,22 @@ class MissingClientsMapTests: MessagingTest {
     
     // MARK: - Helper
     
-    func assertExpectedUserInfo(missingClientsMap: MissingClientsMap, _ clients: UserClient...) {
+    func assertExpectedUserInfo(_ missingClientsMap: MissingClientsMap, _ clients: UserClient...) {
         let identifiers = Set(clients.map { $0.remoteIdentifier })
         guard let actualClients = missingClientsMap.userInfo["clients"].map(Set.init) else { return XCTFail() }
         XCTAssertEqual(actualClients, identifiers)
     }
     
-    func assertPayloadContainsClient(missingClientsMap: MissingClientsMap, _ client: UserClient) {
-        guard let userId = client.user?.remoteIdentifier?.transportString(), clientPayload = missingClientsMap.payload[userId] else { return XCTFail()}
+    func assertPayloadContainsClient(_ missingClientsMap: MissingClientsMap, _ client: UserClient) {
+        guard let userId = client.user?.remoteIdentifier?.transportString(), let clientPayload = missingClientsMap.payload[userId] else { return XCTFail()}
         XCTAssertTrue(clientPayload.contains(client.remoteIdentifier))
     }
     
-    func createClient(forUser: ZMUser? = nil) -> UserClient {
+    func createClient(_ forUser: ZMUser? = nil) -> UserClient {
         let client = UserClient.insertNewObjectInManagedObjectContext(syncMOC)
-        client.remoteIdentifier = NSUUID.createUUID().transportString()
+        client.remoteIdentifier = UUID.createUUID().transportString()
         let user: ZMUser = forUser ?? ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
-        user.remoteIdentifier = forUser?.remoteIdentifier ?? NSUUID.createUUID()
+        user.remoteIdentifier = forUser?.remoteIdentifier ?? UUID.createUUID()
         client.user = user
         return client
     }
