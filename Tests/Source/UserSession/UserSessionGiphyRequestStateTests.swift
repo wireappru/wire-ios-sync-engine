@@ -38,7 +38,7 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         let url = URL(string: path, relativeTo: nil)!
         
         let exp = self.expectationWithDescription("expected callback")
-        let callback: (Data?, HTTPURLResponse?, Error?) -> Void = { (_, _, _) -> Void in
+        let callback: (Data?, HTTPURLResponse?, NSError?) -> Void = { (_, _, _) -> Void in
             exp.fulfill()
         }
         
@@ -59,12 +59,12 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         
         //given
         let exp = self.expectationWithDescription("new operation loop started")
-        let token = NotificationCenter.default.addObserverForName("ZMOperationLoopNewRequestAvailable", object: nil, queue: nil) { (note) -> Void in
+        let token = NotificationCenter.defaultCenter().addObserverForName("ZMOperationLoopNewRequestAvailable", object: nil, queue: nil) { (note) -> Void in
             exp.fulfill()
         }
         
         let url = URL(string: "foo/bar", relativeTo: nil)!
-        let callback: (Data?, URLResponse?, Error?) -> Void = { (_, _, _) -> Void in }
+        let callback: (Data?, URLResponse?, NSError?) -> Void = { (_, _, _) -> Void in }
         
         //when
         self.sut.proxiedRequestWithPath(url.absoluteString, method:.MethodGET, type:.Giphy, callback: callback)
@@ -79,7 +79,7 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         
         //given
         let url = URL(string: "foo/bar", relativeTo: nil)!
-        let callback: (Data?, URLResponse?, Error?) -> Void = { (_, _, _) -> Void in }
+        let callback: (Data?, URLResponse?, NSError?) -> Void = { (_, _, _) -> Void in }
 
         //here we block sync thread and check that right after giphyRequestWithURL call no request is created
         //after we signal semaphore sync thread should be unblocked and pending request should be created

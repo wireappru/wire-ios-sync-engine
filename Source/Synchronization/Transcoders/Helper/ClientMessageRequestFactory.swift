@@ -23,21 +23,21 @@ import zimages
 
 private let zmLog = ZMSLog(tag: "Network")
 
-open class ClientMessageRequestFactory: NSObject {
+public final class ClientMessageRequestFactory: NSObject {
     
     let protobufContentType = "application/x-protobuf"
     let octetStreamContentType = "application/octet-stream"
     
-    open func upstreamRequestForMessage(_ message: ZMClientMessage, forConversationWithId conversationId: UUID) -> ZMTransportRequest? {
+    public func upstreamRequestForMessage(_ message: ZMClientMessage, forConversationWithId conversationId: UUID) -> ZMTransportRequest? {
         return upstreamRequestForEncryptedClientMessage(message, forConversationWithId: conversationId);
     }
     
-    open func upstreamRequestForAssetMessage(_ format: ZMImageFormat, message: ZMAssetClientMessage, forConversationWithId conversationId: UUID) -> ZMTransportRequest? {
+    public func upstreamRequestForAssetMessage(_ format: ZMImageFormat, message: ZMAssetClientMessage, forConversationWithId conversationId: UUID) -> ZMTransportRequest? {
             return upstreamRequestForEncryptedImageMessage(format, message: message, forConversationWithId: conversationId);
     }
     
     fileprivate func upstreamRequestForEncryptedClientMessage(_ message: ZMClientMessage, forConversationWithId conversationId: UUID) -> ZMTransportRequest? {
-        let path = "/" + ["conversations", (conversationId as NSUUID).transportString(), "otr", "messages"].joined(separator: "/")
+        let path = "/" + ["conversations", conversationId.transportString(), "otr", "messages"].joined(separator: "/")
         guard let dataAndMissingClientStrategy = message.encryptedMessagePayloadData() else {
             return nil
         }
@@ -51,7 +51,7 @@ open class ClientMessageRequestFactory: NSObject {
 
     fileprivate func upstreamRequestForEncryptedImageMessage(_ format: ZMImageFormat, message: ZMAssetClientMessage, forConversationWithId conversationId: UUID) -> ZMTransportRequest? {
 
-        let genericMessage = format == .Medium ? message.imageAssetStorage!.mediumGenericMessage : message.imageAssetStorage!.previewGenericMessage
+        let genericMessage = format == .medium ? message.imageAssetStorage!.mediumGenericMessage : message.imageAssetStorage!.previewGenericMessage
         let format = ImageFormatFromString(genericMessage!.image.tag)
         let isInline = message.imageAssetStorage!.isInlineForFormat(format)
         let hasAssetId = message.assetId != nil
@@ -71,7 +71,7 @@ open class ClientMessageRequestFactory: NSObject {
     // request for first upload and reupload inline images
     fileprivate func upstreamRequestForInsertedEncryptedImageMessage(_ format: ZMImageFormat, message: ZMAssetClientMessage, forConversationWithId conversationId: UUID) -> ZMTransportRequest? {
         if let imageData = message.imageAssetStorage!.imageDataForFormat(format, encrypted: true) {
-            let path = "/" +  ["conversations", (conversationId as NSUUID).transportString(), "otr", "assets"].joined(separator: "/")
+            let path = "/" +  ["conversations", conversationId.transportString(), "otr", "assets"].joined(separator: "/")
             let metaData = message.encryptedMessagePayloadForImageFormat(format)!
             let request = ZMTransportRequest.multipartRequestWithPath(path, imageData: imageData, metaData: metaData.data(), metaDataContentType: protobufContentType, mediaContentType: octetStreamContentType)
             request.appendDebugInformation("\(message.imageAssetStorage!.genericMessageForFormat(format))")
@@ -93,8 +93,8 @@ open class ClientMessageRequestFactory: NSObject {
         return request
     }
     
-    open func requestToGetAsset(_ assetId: String, inConversation conversationId: UUID, isEncrypted: Bool) -> ZMTransportRequest {
-        let path = "/" + ["conversations", (conversationId as NSUUID).transportString()!, isEncrypted ? "otr" : "", "assets", assetId].joined(separator: "/")
+    public func requestToGetAsset(_ assetId: String, inConversation conversationId: UUID, isEncrypted: Bool) -> ZMTransportRequest {
+        let path = "/" + ["conversations", conversationId.transportString()!, isEncrypted ? "otr" : "", "assets", assetId].joined(separator: "/")
         let request = ZMTransportRequest.imageGet(fromPath: path)
         request.forceToBackgroundSession()
         return request

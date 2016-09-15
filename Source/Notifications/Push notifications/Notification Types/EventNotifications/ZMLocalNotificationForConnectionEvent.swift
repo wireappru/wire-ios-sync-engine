@@ -26,7 +26,7 @@ class ZMLocalNotificationForConverstionCreateEvent : ZMLocalNotificationForEvent
     }
     
     override func configureAlertBody(_ conversation: ZMConversation?) -> String {
-        return ZMPushStringConversationCreate.localizedStringWithUser(sender, count:nil)
+        return ZMPushStringConversationCreate.localizedString(with: sender, count:nil)
     }
     
     override var category : String {

@@ -18,26 +18,6 @@
 
 
 import Foundation
-fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
-}
-
-fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l > r
-  default:
-    return rhs < lhs
-  }
-}
-
 
 public enum ClientUpdatePhase {
     case done
@@ -62,7 +42,7 @@ public enum ClientUpdateError : NSInteger {
 }
 
 @objc
-open class ClientUpdateStatus: NSObject {
+public final class ClientUpdateStatus: NSObject {
     
     var syncManagedObjectContext: NSManagedObjectContext
 
@@ -75,7 +55,7 @@ open class ClientUpdateStatus: NSObject {
     
     fileprivate var authenticationToken : ZMAuthenticationObserverToken?
     fileprivate var internalCredentials : ZMEmailCredentials?
-    open var credentials : ZMEmailCredentials? {
+    public var credentials : ZMEmailCredentials? {
         return internalCredentials
     }
 
@@ -90,7 +70,7 @@ open class ClientUpdateStatus: NSObject {
         self.needsToVerifySelfClientOnAuthenticationDidSucceed = !ZMClientRegistrationStatus.needsToRegisterClient(in: self.syncManagedObjectContext)
         
         // check if we are already trying to delete the client
-        if let selfUser = ZMUser.selfUserInContext(syncManagedObjectContext).selfClient() , selfUser.markedToDelete {
+        if let selfUser = ZMUser.selfUser(in: syncManagedObjectContext).selfClient() , selfUser.markedToDelete {
             // This recovers from the bug where we think we should delete the self cient.
             // See: https://wearezeta.atlassian.net/browse/ZIOS-6646
             // This code can be removed and possibly moved to a hotfix once all paths that lead to the bug
@@ -100,7 +80,7 @@ open class ClientUpdateStatus: NSObject {
         }
     }
     
-    open func tearDown() {
+    public func tearDown() {
         ZMUserSessionAuthenticationNotification.removeObserver(self.authenticationToken)
         authenticationToken = nil
         tornDown = true
@@ -114,7 +94,7 @@ open class ClientUpdateStatus: NSObject {
         needsToFetchClients(andVerifySelfClient: needsToVerifySelfClientOnAuthenticationDidSucceed)
     }
     
-    open var currentPhase : ClientUpdatePhase {
+    public var currentPhase : ClientUpdatePhase {
         if isFetchingClients {
             return .fetchingClients
         }
@@ -124,7 +104,7 @@ open class ClientUpdateStatus: NSObject {
         return .done
     }
     
-    open func needsToFetchClients(andVerifySelfClient verifySelfClient: Bool) {
+    public func needsToFetchClients(andVerifySelfClient verifySelfClient: Bool) {
         isFetchingClients = true
         
         // there are three cases in which this method is called
@@ -135,7 +115,7 @@ open class ClientUpdateStatus: NSObject {
         needsToVerifySelfClient = verifySelfClient
     }
     
-    open func didFetchClients(_ clients: Array<UserClient>) {
+    public func didFetchClients(_ clients: Array<UserClient>) {
         if isFetchingClients {
             isFetchingClients = false
             var excludingSelfClient = clients
@@ -149,7 +129,7 @@ open class ClientUpdateStatus: NSObject {
                 }
             }
             else {
-                ZMClientUpdateNotification.notifyFetchingClientsCompletedWithUserClients(clients)
+                ZMClientUpdateNotification.notifyFetchingClientsCompleted(with: clients)
             }
         }
     }
@@ -182,14 +162,14 @@ open class ClientUpdateStatus: NSObject {
         return excludingSelfClient
     }
     
-    open func failedToFetchClients() {
+    public func failedToFetchClients() {
         if isFetchingClients {
             let error = ClientUpdateError.errorForType(.deviceIsOffline)()
             ZMClientUpdateNotification.notifyFetchingClientsDidFail(error)
         }
     }
     
-    open func deleteClients(withCredentials emailCredentials:ZMEmailCredentials) {
+    public func deleteClients(withCredentials emailCredentials:ZMEmailCredentials) {
         if (emailCredentials.password?.characters.count)! > 0 {
             isWaitingToDeleteClients = true
             internalCredentials = emailCredentials
@@ -198,7 +178,7 @@ open class ClientUpdateStatus: NSObject {
         }
     }
     
-    open func failedToDeleteClient(_ client:UserClient, error: NSError) {
+    public func failedToDeleteClient(_ client:UserClient, error: NSError) {
         if !isWaitingToDeleteClients {
             return
         }
@@ -220,7 +200,7 @@ open class ClientUpdateStatus: NSObject {
         }
     }
     
-    open func didDeleteClient() {
+    public func didDeleteClient() {
         if isWaitingToDeleteClients && !hasClientsToDelete {
             isWaitingToDeleteClients = false
             internalCredentials = nil;

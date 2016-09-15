@@ -127,7 +127,7 @@ extension NSManagedObjectContext {
     }
 }
 
-@objc open class EventDecoder: NSObject {
+@objc public final class EventDecoder: NSObject {
     
     public typealias ConsumeBlock = (([ZMUpdateEvent]) -> Void)
     
@@ -156,7 +156,7 @@ extension NSManagedObjectContext {
     /// It then calls the passed in block (multiple times if necessary), returning the decrypted events
     /// If the app crashes while processing the events, they can be recovered from the database
     /// Recovered events are processed before the passed in events to reflect event history
-    open func processEvents(_ events: [ZMUpdateEvent], block: ConsumeBlock) {
+    public func processEvents(_ events: [ZMUpdateEvent], block: ConsumeBlock) {
         
         var lastIndex: Int64?
         
@@ -188,7 +188,7 @@ extension NSManagedObjectContext {
                 
                 // Insert the decryted events in the event database using a `storeIndex`
                 // incrementing from the highest index currently stored in the database
-                for (idx, event) in newUpdateEvents.enumerate() {
+                for (idx, event) in newUpdateEvents.enumerated() {
                     _ = StoredUpdateEvent.create(event, managedObjectContext: self.eventMOC, index: idx + startIndex + 1)
                 }
                 

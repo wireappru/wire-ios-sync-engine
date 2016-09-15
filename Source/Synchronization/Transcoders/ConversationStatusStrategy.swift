@@ -21,25 +21,25 @@ import Foundation
 import ZMCDataModel
 
 @objc
-open class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextChangeTracker {
+public final class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextChangeTracker {
 
     let lastReadKey = "lastReadServerTimeStamp"
     let clearedKey = "clearedTimeStamp"
     
-    open func objectsDidChange(_ objects: Set<NSObject>) {
+    public func objectsDidChange(_ objects: Set<NSObject>) {
         var didUpdateConversation = false
         objects.forEach{
             if let conv = $0 as? ZMConversation {
-                if conv.hasLocalModificationsForKey(lastReadKey){
+                if conv.hasLocalModifications(forKey: lastReadKey){
                     conv.resetLocallyModifiedKeys(Set(arrayLiteral: lastReadKey))
                     conv.updateUnread()
-                    ZMConversation.appendSelfConversationWithLastReadOfConversation(conv)
+                    ZMConversation.appendSelfConversation(withLastReadOf: conv)
                     didUpdateConversation = true
                 }
-                if conv.hasLocalModificationsForKey(clearedKey) {
+                if conv.hasLocalModifications(forKey: clearedKey) {
                     conv.resetLocallyModifiedKeys(Set(arrayLiteral: clearedKey))
                     conv.deleteOlderMessages()
-                    ZMConversation.appendSelfConversationWithClearedOfConversation(conv)
+                    ZMConversation.appendSelfConversation(withClearedOf: conv)
                     didUpdateConversation = true
                 }
             }
@@ -50,12 +50,12 @@ open class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextChangeTra
         }
     }
     
-    open func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
-        let request = NSFetchRequest(entityName: ZMConversation.entityName())
+    public func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
+        let request = NSFetchRequest<ZMConversation>(entityName: ZMConversation.entityName())
         return request
     }
 
-    open func addTrackedObjects(_ objects: Set<NSObject>) {
+    public func addTrackedObjects(_ objects: Set<NSObject>) {
         objectsDidChange(objects)
     }
 }

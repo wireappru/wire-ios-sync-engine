@@ -36,7 +36,7 @@ final public class ZMLocalNotificationForReaction : ZMLocalNotificationForEvent,
     override func canCreateNotification(_ conversation: ZMConversation?) -> Bool {
         guard super.canCreateNotification(conversation) else { return false }
         guard let lastEvent = lastEvent,
-              let receivedMessage = ZMGenericMessage(fromUpdateEvent:lastEvent) , receivedMessage.hasReaction()
+              let receivedMessage = ZMGenericMessage(from:lastEvent) , receivedMessage.hasReaction()
         else { return false }
         
         // If the message is an "unlike", we don't want to display a notification

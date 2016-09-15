@@ -35,7 +35,7 @@ import ZMCDataModel
 extension ZMPersistentCookieStorage : ZMCookieProvider {
 }
 
-open class ZMAccountStatus : NSObject, ZMInitialSyncCompletionObserver, ZMAuthenticationObserver, ZMRegistrationObserver {
+public final class ZMAccountStatus : NSObject, ZMInitialSyncCompletionObserver, ZMAuthenticationObserver, ZMRegistrationObserver {
 
     let managedObjectContext: NSManagedObjectContext
     let cookieStorage : ZMCookieProvider
@@ -43,9 +43,9 @@ open class ZMAccountStatus : NSObject, ZMInitialSyncCompletionObserver, ZMAuthen
     var registrationToken : ZMRegistrationObserverToken!
     
     var didRegister: Bool = false
-    open fileprivate (set) var currentAccountState : AccountState = .newDeviceNewAccount
+    public fileprivate (set) var currentAccountState : AccountState = .newDeviceNewAccount
     
-    open lazy var hadHistoryBeforeLogin : Bool = {
+    public lazy var hadHistoryBeforeLogin : Bool = {
         let convRequest = NSFetchRequest.init(entityName:ZMConversation.entityName())
         let convCount = self.managedObjectContext.countForFetchRequest(convRequest, error: nil)
         let hasHistory = convCount > 1
@@ -56,7 +56,7 @@ open class ZMAccountStatus : NSObject, ZMInitialSyncCompletionObserver, ZMAuthen
         return cookieStorage.authenticationCookieData != nil
     }
     
-    @objc open func initialSyncCompleted(_ note: Notification){
+    @objc public func initialSyncCompleted(_ note: Notification){
         self.managedObjectContext.performGroupedBlock { 
             if self.currentAccountState == .oldDeviceDeactivatedAccount || self.currentAccountState == .newDeviceExistingAccount {
                 self.appendMessage(self.currentAccountState)

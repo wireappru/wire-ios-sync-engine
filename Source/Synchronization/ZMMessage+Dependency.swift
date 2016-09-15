@@ -34,7 +34,7 @@ extension ZMOTRMessage {
             return conversation
         }
         
-        if (conversation.conversationType == .OneOnOne || conversation.conversationType == .Connection)
+        if (conversation.conversationType == .oneOnOne || conversation.conversationType == .Connection)
             && conversation.connection?.needsToBeUpdatedFromBackend == true {
                 return conversation.connection
         }

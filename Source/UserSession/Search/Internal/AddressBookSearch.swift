@@ -105,7 +105,7 @@ extension AddressBookSearch {
 extension AddressBookSearch {
 
     /// Returns contacts filtered by the query
-    func contactsMatchingQuery(_ query: String) -> LazySequence<AnyGenerator<ZMAddressBookContact>> {
+    func contactsMatchingQuery(_ query: String) -> LazySequence<AnyIterator<ZMAddressBookContact>> {
         guard !query.isEmpty else {
             return self.limitedContactsRange().lazy
         }

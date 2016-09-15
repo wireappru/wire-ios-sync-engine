@@ -19,14 +19,14 @@
 import Foundation
 
 
-open class MissingClientsRequestFactory {
+public final class MissingClientsRequestFactory {
     
     let pageSize : Int
     public init(pageSize: Int = 128) {
         self.pageSize = pageSize
     }
     
-    open func fetchMissingClientKeysRequest(_ missingClients: Set<UserClient>) -> ZMUpstreamRequest! {
+    public func fetchMissingClientKeysRequest(_ missingClients: Set<UserClient>) -> ZMUpstreamRequest! {
         let map = MissingClientsMap(Array(missingClients), pageSize: pageSize)
         let request = ZMTransportRequest(path: "/users/prekeys", method: ZMTransportRequestMethod.MethodPOST, payload: map.payload)
         return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientMissingKey), transportRequest: request, userInfo: map.userInfo)
@@ -57,7 +57,7 @@ public struct MissingClientsMap {
             return users.count <= pageSize
         }
         
-        payload = missing.filter { $0.user?.remoteIdentifier != nil } .reduce([String:[String]](), combine: addClientIdToMap)
+        payload = missing.filter { $0.user?.remoteIdentifier != nil } .reduce([String:[String]](), addClientIdToMap)
         userInfo = [MissingClientsRequestUserInfoKeys.clients: missing.map { $0.remoteIdentifier }]
     }
 }

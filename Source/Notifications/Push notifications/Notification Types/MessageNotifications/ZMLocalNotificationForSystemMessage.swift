@@ -23,7 +23,7 @@ final public class ZMLocalNotificationForSystemMessage : ZMLocalNotification, No
 
     public typealias MessageType = ZMSystemMessage
     public let contentType : ZMLocalNotificationContentType
-    static let supportedMessageTypes : [ZMSystemMessageType] = [.ParticipantsRemoved, .ParticipantsAdded, .ConversationNameChanged, .ConnectionRequest]
+    static let supportedMessageTypes : [ZMSystemMessageType] = [.participantsRemoved, .participantsAdded, .conversationNameChanged, .connectionRequest]
 
     let senderUUID : UUID
     public var notifications : [UILocalNotification] = []

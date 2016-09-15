@@ -21,7 +21,7 @@ import Foundation
 
 
 @objc
-open class PushNoticeRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
+public final class PushNoticeRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
     
     weak fileprivate(set) var authenticationStatus: ZMAuthenticationStatus?
     weak fileprivate(set) var pingBackStatus: BackgroundAPNSPingBackStatus?
@@ -36,19 +36,19 @@ open class PushNoticeRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
             pingBackSync = ZMSingleRequestSync(singleRequestTranscoder: self, managedObjectContext: moc)
     }
     
-    open var isSlowSyncDone: Bool {
+    public var isSlowSyncDone: Bool {
         return true
     }
     
-    open var requestGenerators: [ZMRequestGenerator] {
+    public var requestGenerators: [ZMRequestGenerator] {
         return []
     }
     
-    open var contextChangeTrackers: [ZMContextChangeTracker] {
+    public var contextChangeTrackers: [ZMContextChangeTracker] {
         return []
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
         guard authenticationStatus?.currentPhase == .authenticated && pingBackStatus?.status == .fetchingNotice,
               let hasNotification = pingBackStatus?.hasNoticeNotificationIDs , hasNotification
         else { return nil }
@@ -57,11 +57,11 @@ open class PushNoticeRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
         return pingBackSync.nextRequest()
     }
     
-    open func setNeedsSlowSync() {
+    public func setNeedsSlowSync() {
         // no op
     }
     
-    open func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
+    public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         // no op
     }
     
@@ -74,7 +74,7 @@ extension PushNoticeRequestStrategy: ZMSingleRequestTranscoder {
     public func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
         guard sync == pingBackSync,
               let nextEventsWithID = pingBackStatus?.nextNoticeNotificationEventsWithID(),
-              let selfClientID = ZMUser.selfUserInContext(self.managedObjectContext).selfClient()?.remoteIdentifier
+              let selfClientID = ZMUser.selfUser(in: self.managedObjectContext).selfClient()?.remoteIdentifier
         else { return nil }
         
         let nextNotificationID = nextEventsWithID.identifier

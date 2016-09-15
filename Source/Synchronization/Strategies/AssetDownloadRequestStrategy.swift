@@ -21,13 +21,13 @@ import Foundation
 import zimages
 import ZMTransport
 
-@objc open class AssetDownloadRequestStrategyNotification: NSObject {
-    open static let downloadFinishedNotificationName = "AssetDownloadRequestStrategyDownloadFinishedNotificationName"
-    open static let downloadStartTimestampKey = "requestStartTimestamp"
-    open static let downloadFailedNotificationName = "AssetDownloadRequestStrategyDownloadFailedNotificationName"
+@objc public final class AssetDownloadRequestStrategyNotification: NSObject {
+    public static let downloadFinishedNotificationName = "AssetDownloadRequestStrategyDownloadFinishedNotificationName"
+    public static let downloadStartTimestampKey = "requestStartTimestamp"
+    public static let downloadFailedNotificationName = "AssetDownloadRequestStrategyDownloadFailedNotificationName"
 }
 
-@objc final public class AssetDownloadRequestStrategy: NSObject, RequestStrategy, ZMDownstreamTranscoder, ZMContextChangeTrackerSource {
+@objc public final class AssetDownloadRequestStrategy: NSObject, RequestStrategy, ZMDownstreamTranscoder, ZMContextChangeTrackerSource {
     
     fileprivate var assetDownstreamObjectSync: ZMDownstreamObjectSync!
     fileprivate let managedObjectContext: NSManagedObjectContext
@@ -57,13 +57,13 @@ import ZMTransport
     }
     
     func registerForCancellationNotification() {
-        NotificationCenter.defaultCenter().addObserver(self, selector: #selector(AssetDownloadRequestStrategy.cancelOngoingRequestForAssetClientMessage(_:)), name: ZMAssetClientMessageDidCancelFileDownloadNotificationName, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(AssetDownloadRequestStrategy.cancelOngoingRequestForAssetClientMessage(_:)), name: ZMAssetClientMessageDidCancelFileDownloadNotificationName, object: nil)
     }
     
     func cancelOngoingRequestForAssetClientMessage(_ note: Notification) {
         guard let objectID = note.object as? NSManagedObjectID else { return }
         managedObjectContext.performGroupedBlock { [weak self] in
-            guard let message = self?.managedObjectContext.objectRegisteredForID(objectID) as? ZMAssetClientMessage else { return }
+            guard let message = self?.managedObjectContext.registeredObject(for: objectID) as? ZMAssetClientMessage else { return }
             guard let identifier = message.associatedTaskIdentifier else { return }
             self?.taskCancellationProvider?.cancelTaskWithIdentifier(identifier)
             message.associatedTaskIdentifier = nil
@@ -111,10 +111,10 @@ import ZMTransport
             
             let userInfo = [AssetDownloadRequestStrategyNotification.downloadStartTimestampKey: response.startOfUploadTimestamp ?? Date()]
             if assetClientMessage.transferState == .Downloaded {
-                NotificationCenter.defaultCenter().postNotificationName(AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: uiMessage, userInfo: userInfo)
+                NotificationCenter.default.post(name: AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: uiMessage, userInfo: userInfo)
             }
             else {
-                NotificationCenter.defaultCenter().postNotificationName(AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: uiMessage, userInfo: userInfo)
+                NotificationCenter.default.post(name: AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: uiMessage, userInfo: userInfo)
             }
         })
     }

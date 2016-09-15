@@ -75,12 +75,12 @@ public protocol ZMCallTimerClient {
     func callTimerDidFire(_ timer: ZMCallTimer)
 }
 
-open class ZMCallTimer : NSObject, ZMTimerClient {
+public final class ZMCallTimer : NSObject, ZMTimerClient {
 
-    open var conversationIDToTimerMap: [NSManagedObjectID: ZMTimer] = [:]
+    public var conversationIDToTimerMap: [NSManagedObjectID: ZMTimer] = [:]
     fileprivate weak var managedObjectContext: NSManagedObjectContext?
     
-    open var testDelegate: ZMCallTimerClient?
+    public var testDelegate: ZMCallTimerClient?
     fileprivate var testTimeout : TimeInterval {
         return ZMVoiceChannelTimerTestTimeout
     }
@@ -89,15 +89,15 @@ open class ZMCallTimer : NSObject, ZMTimerClient {
         self.managedObjectContext = managedObjectContext
     }
     
-    open class func setTestCallTimeout(_ timeout: TimeInterval) {
+    public class func setTestCallTimeout(_ timeout: TimeInterval) {
         ZMVoiceChannelTimerTestTimeout = timeout
     }
     
-    open class func resetTestCallTimeout() {
+    public class func resetTestCallTimeout() {
         ZMVoiceChannelTimerTestTimeout = 0
     }
     
-    open func addAndStartTimer(_ conversation: ZMConversation) {
+    public func addAndStartTimer(_ conversation: ZMConversation) {
         let objectID = conversation.objectID
         if conversationIDToTimerMap[objectID] == nil && !conversation.callTimedOut {
             let timeOut = (testTimeout > 0) ? testTimeout : conversation.conversationType == .Group ? ZMVoiceChannelTimerTimeOutGroup : ZMVoiceChannelTimerTimeOutOneOnOne
@@ -107,7 +107,7 @@ open class ZMCallTimer : NSObject, ZMTimerClient {
         }
     }
     
-    open func resetTimer(_ conversation: ZMConversation) {
+    public func resetTimer(_ conversation: ZMConversation) {
         cancelAndRemoveTimer(conversation.objectID)
     }
     
@@ -119,7 +119,7 @@ open class ZMCallTimer : NSObject, ZMTimerClient {
         conversationIDToTimerMap.removeValue(forKey: conversationID)
     }
     
-    open func timerDidFire(_ aTimer: ZMTimer) {
+    public func timerDidFire(_ aTimer: ZMTimer) {
         for (conversationID, timer) in conversationIDToTimerMap {
             if timer != aTimer {
                 return
@@ -128,7 +128,7 @@ open class ZMCallTimer : NSObject, ZMTimerClient {
             if let testDelegate = self.testDelegate {
                 testDelegate.callTimerDidFire(self)
             }
-            guard let conversation = self.managedObjectContext?.objectWithID(conversationID) as? ZMConversation , !conversation.isZombieObject
+            guard let conversation = self.managedObjectContext?.object(with: conversationID) as? ZMConversation , !conversation.isZombieObject
             else { return }
             conversation.voiceChannel?.callTimerDidFire(self)
             
@@ -136,7 +136,7 @@ open class ZMCallTimer : NSObject, ZMTimerClient {
         }
     }
     
-    open func tearDown() {
+    public func tearDown() {
         for timer in Array(conversationIDToTimerMap.values) {
             timer.cancel()
         }

@@ -21,10 +21,10 @@ import Foundation
 import ZMTransport
 
 /// Requests the account deletion
-@objc open class DeleteAccountRequestStrategy: NSObject, RequestStrategy, ZMSingleRequestTranscoder {
+@objc public final class DeleteAccountRequestStrategy: NSObject, RequestStrategy, ZMSingleRequestTranscoder {
 
     fileprivate static let path: String = "/self"
-    open static let userDeletionInitiatedKey: String = "ZMUserDeletionInitiatedKey"
+    public static let userDeletionInitiatedKey: String = "ZMUserDeletionInitiatedKey"
     
     fileprivate(set) var deleteSync: ZMSingleRequestSync! = nil
     /// The managed object context to operate on
@@ -38,7 +38,7 @@ import ZMTransport
         self.deleteSync = ZMSingleRequestSync(singleRequestTranscoder: self, managedObjectContext: self.managedObjectContext)
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
         guard let shouldBeDeleted : NSNumber = self.managedObjectContext.persistentStoreMetadata(forKey: type(of: self).userDeletionInitiatedKey) as? NSNumber
             , shouldBeDeleted.boolValue
         else {
@@ -51,14 +51,14 @@ import ZMTransport
     
     // MARK: - ZMSingleRequestTranscoder
     
-    open func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
+    public func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
         let request = ZMTransportRequest(path: type(of: self).path, method: .methodDELETE, payload: [:], shouldCompress: true)
         return request
     }
     
-    open func didReceive(_ response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {
+    public func didReceive(_ response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {
         if response.result == .success || response.result == .permanentError {
-            self.managedObjectContext.setPersistentStoreMetadata(NSNumber(value: false as Bool), forKey: type(of: self).userDeletionInitiatedKey)
+            self.managedObjectContext.setPersistentStoreMetadata(NSNumber(value: false), forKey: type(of: self).userDeletionInitiatedKey)
             ZMPersistentCookieStorage.deleteAllKeychainItems()
             OperationQueue.main.addOperation({ () -> Void in
                 ZMUserSessionAuthenticationNotification.notifyAuthenticationDidFail(NSError.userSessionErrorWith(.accountDeleted, userInfo: .none))

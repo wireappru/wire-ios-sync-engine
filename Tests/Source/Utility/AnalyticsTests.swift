@@ -60,7 +60,7 @@ extension AnalyticsTests {
     
     func testVOIPTimeDifferenceTracking() {
         // given
-        let notificationID = UUID.create()
+        let notificationID = NSUUID.create()
         let serverTime = Date(timeIntervalSince1970: 1234567890)
         let currentTime = serverTime.addingTimeInterval(4.5) // Simulate VoIP arriving in OperationLoop after 4.5 sec
         let referenceDate = currentTime.addingTimeInterval(0.25) // Simulate VoIP arriving in PingBackStatus after 250 ms
@@ -79,7 +79,7 @@ extension AnalyticsTests {
         let secondEventWithAttribute = analytics.taggedEventsWithAttributes.last
 
         let firstExpected = EventWithAttributes(event: "apns_performance", attributes: [
-            "server_timestamp_difference": "4000-5000",
+            "server_timestamp_difference": "4000-5000" as NSObject,
             "notification_identifier": notificationID.transportString(),
             "state_description": "OperationLoop",
             "state_index": 0,
@@ -173,8 +173,8 @@ extension AnalyticsTests {
         
         var attributes: [String: NSObject] = [:]
         
-        if let hours = hoursSinceLastUpload, shouldTrackInterval {
-            attributes["interval"] = hours
+        if let hours = hoursSinceLastUpload , shouldTrackInterval {
+            attributes["interval"] = hours as NSObject?
         }
         XCTAssertEqual(eventWithAtributes.attributes, attributes, line: line)
     }

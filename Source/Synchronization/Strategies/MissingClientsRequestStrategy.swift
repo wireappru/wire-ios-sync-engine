@@ -48,13 +48,13 @@ public extension UserClient {
 
 // Register new client, update it with new keys, deletes clients.
 @objc
-open class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy, ZMUpstreamTranscoder {
+public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy, ZMUpstreamTranscoder {
         
     weak var clientRegistrationStatus: ZMClientRegistrationStatus?
     weak var apnsConfirmationStatus: BackgroundAPNSConfirmationStatus?
 
     fileprivate(set) var modifiedSync: ZMUpstreamModifiedObjectSync! = nil
-    open var requestsFactory = MissingClientsRequestFactory()
+    public var requestsFactory = MissingClientsRequestFactory()
     
     public init(clientRegistrationStatus:ZMClientRegistrationStatus,
                 apnsConfirmationStatus: BackgroundAPNSConfirmationStatus,
@@ -78,25 +78,25 @@ open class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy
         return modifiedPredicate
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
         guard let clientStatus = clientRegistrationStatus , clientStatus.currentPhase == .registered
         else { return nil }
         
         return modifiedSync.nextRequest()
     }
     
-    open var contextChangeTrackers: [ZMContextChangeTracker] {
+    public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [modifiedSync]
     }
     
-    open var hasOutstandingItems : Bool {
+    public var hasOutstandingItems : Bool {
         return modifiedSync.hasOutstandingItems
     }
-    open func shouldProcessUpdatesBeforeInserts() -> Bool {
+    public func shouldProcessUpdatesBeforeInserts() -> Bool {
         return false
     }
     
-    open func shouldCreateRequestToSyncObject(_ managedObject: ZMManagedObject, forKeys keys: Set<String>, withSync sync: AnyObject) -> Bool {
+    public func shouldCreateRequestToSyncObject(_ managedObject: ZMManagedObject, forKeys keys: Set<String>, withSync sync: AnyObject) -> Bool {
         
         var keysToSync = keys
         if keys.contains(ZMUserClientMissingKey),
@@ -109,7 +109,7 @@ open class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy
         return (keysToSync.count > 0)
     }
     
-    open func requestForUpdatingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>) -> ZMUpstreamRequest? {
+    public func requestForUpdatingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>) -> ZMUpstreamRequest? {
         guard let client = managedObject as? UserClient
         else { fatal("Called requestForUpdatingObject() on \(managedObject) to sync keys: \(keys)") }
         
@@ -127,7 +127,7 @@ open class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy
     }
     
     /// Returns whether synchronization of this object needs additional requests
-    open func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
+    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
         
         if keysToParse.contains(ZMUserClientMissingKey) {
             return processResponseForUpdatingMissingClients(managedObject, requestUserInfo: requestUserInfo, responsePayload: response.payload)
@@ -275,7 +275,7 @@ open class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy
                 message.doesNotMissRecipient(client)
             }
             else {
-                client.mutableSetValueForKey("messagesMissingRecipient").removeObject($0)
+                client.mutableSetValue(forKey: "messagesMissingRecipient").removeObject($0)
             }
         }
     }
@@ -283,32 +283,32 @@ open class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy
     
     // MARK - Unused functions
     
-    open func requestForInsertingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>?) -> ZMUpstreamRequest? {
+    public func requestForInsertingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>?) -> ZMUpstreamRequest? {
         return nil
     }
     
-    open func updateInsertedObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse) {
+    public func updateInsertedObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse) {
         // no op
     }
     
     // Should return the objects that need to be refetched from the BE in case of upload error
-    open func objectToRefetchForFailedUpdateOfObject(_ managedObject: ZMManagedObject) -> ZMManagedObject? {
+    public func objectToRefetchForFailedUpdate(of managedObject: ZMManagedObject) -> ZMManagedObject? {
         return nil
     }
     
-    open var isSlowSyncDone: Bool {
+    public var isSlowSyncDone: Bool {
         return true
     }
     
-    open func setNeedsSlowSync() {
+    public func setNeedsSlowSync() {
         //no op
     }
     
-    open func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
+    public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         //no op
     }
     
-    open var requestGenerators: [ZMRequestGenerator] {
+    public var requestGenerators: [ZMRequestGenerator] {
         return []
     }
 }

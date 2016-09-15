@@ -26,10 +26,10 @@ let NoUserNameKey = "nousername"
 let NoOtherUserNameKey = "nootherusername"
 
 
-open class LocalizationInfo : NSObject {
+public final class LocalizationInfo : NSObject {
     
-    open let localizationString : String
-    open let arguments : [String]
+    public let localizationString : String
+    public let arguments : [String]
     public init(localizationString: String, arguments: [String]) {
         self.localizationString = localizationString
         self.arguments = arguments
@@ -46,7 +46,7 @@ public extension NSString {
         var arguments = [String]()
         var keyComponents = [String]()
         
-        let convTypeKey = (conversation.conversationType != .OneOnOne) ? GroupKey : OneOnOneKey
+        let convTypeKey = (conversation.conversationType != .oneOnOne) ? GroupKey : OneOnOneKey
         keyComponents.append(convTypeKey)
 
         
@@ -57,7 +57,7 @@ public extension NSString {
             arguments.append(userName)
         }
         
-        if (conversation.conversationType != .OneOnOne) {
+        if (conversation.conversationType != .oneOnOne) {
             if convName == nil || convName!.isEmpty {
                 keyComponents.append(NoConversationNameKey)
             }

@@ -53,7 +53,7 @@ extension AddressBook {
     }
     
     /// Generate contact cards for the given range of contacts
-    fileprivate func generateContactCards(_ range: Range<UInt>) -> [[String]]
+    fileprivate func generateContactCards(_ range: CountableRange<UInt>) -> [[String]]
     {
         return self.iterate()
             .elements(range)

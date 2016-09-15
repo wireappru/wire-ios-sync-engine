@@ -97,7 +97,7 @@ open class ZMLocalNotificationForEvent : ZMLocalNotification, EventNotification 
     }
     
     required public init?(events: [ZMUpdateEvent], conversation: ZMConversation?, managedObjectContext: NSManagedObjectContext, application: Application?) {
-        self.application = application ?? UIApplication.sharedApplication()
+        self.application = application ?? UIApplication.shared
         self.events = events
         if let senderUUID = events.last?.senderUUID() {
             self.sender = ZMUser(remoteID: senderUUID, createIfNeeded: false, inContext: managedObjectContext)

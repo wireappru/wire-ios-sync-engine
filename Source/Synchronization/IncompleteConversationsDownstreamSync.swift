@@ -38,10 +38,10 @@
 }
 
 /// A generator of requests to download missing events in conversations.
-@objc open class IncompleteConversationsDownstreamSync: NSObject, ZMRequestGenerator {
+@objc public final class IncompleteConversationsDownstreamSync: NSObject, ZMRequestGenerator {
     
     /// Whether it should download the entire history
-    open static let DownloadEntireHistory = true
+    public static let DownloadEntireHistory = true
     
     fileprivate weak var requestEncoder : ConversationEventsRequestEncoder?
     
@@ -83,7 +83,7 @@
         self.managedObjectContext = managedObjectContext
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
 
         guard
             let conversationAndGap = self.nextConversationWithGap(),

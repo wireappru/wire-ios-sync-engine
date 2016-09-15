@@ -28,15 +28,15 @@ enum UserClientRequestError: Error {
 
 //TODO: when we should update last pre key or signaling keys?
 
-open class UserClientRequestFactory {
+public final class UserClientRequestFactory {
     
     public init(keysCount: UInt16 = 100) {
         self.keyCount = keysCount
     }
     
-    open let keyCount : UInt16
+    public let keyCount : UInt16
 
-    open func registerClientRequest(_ client: UserClient, credentials: ZMEmailCredentials?, authenticationStatus: ZMAuthenticationStatus) throws -> ZMUpstreamRequest {
+    public func registerClientRequest(_ client: UserClient, credentials: ZMEmailCredentials?, authenticationStatus: ZMAuthenticationStatus) throws -> ZMUpstreamRequest {
         
         let (preKeysPayloadData, preKeysRangeMax) = try payloadForPreKeys(client)
         let (signalingKeysPayloadData, signalingKeys) = payloadForSignalingKeys()
@@ -68,7 +68,7 @@ open class UserClientRequestFactory {
     
     func storeMaxRangeID(_ client: UserClient, maxRangeID: UInt16) -> ZMCompletionHandler {
         let completionHandler = ZMCompletionHandler(onGroupQueue: client.managedObjectContext!, block: { response in
-            if response.result == .Success {
+            if response.result == .success {
                 client.preKeysRangeMax = Int64(maxRangeID)
             }
         })
@@ -77,7 +77,7 @@ open class UserClientRequestFactory {
     
     func storeAPSSignalingKeys(_ client: UserClient, signalingKeys: SignalingKeys) -> ZMCompletionHandler {
         let completionHandler = ZMCompletionHandler(onGroupQueue: client.managedObjectContext!, block: { response in
-            if response.result == .Success {
+            if response.result == .success {
                 client.apsDecryptionKey = signalingKeys.decryptionKey
                 client.apsVerificationKey = signalingKeys.verificationKey
                 client.needsToUploadSignalingKeys = false
@@ -120,7 +120,7 @@ open class UserClientRequestFactory {
         return (payload, signalingKeys)
     }
     
-    open func updateClientPreKeysRequest(_ client: UserClient) throws -> ZMUpstreamRequest {
+    public func updateClientPreKeysRequest(_ client: UserClient) throws -> ZMUpstreamRequest {
         if let remoteIdentifier = client.remoteIdentifier {
             let startIndex = UInt16(client.preKeysRangeMax)
             let (preKeysPayloadData, preKeysRangeMax) = try payloadForPreKeys(client, startIndex: startIndex)
@@ -135,7 +135,7 @@ open class UserClientRequestFactory {
         throw UserClientRequestError.clientNotRegistered
     }
     
-    open func updateClientSignalingKeysRequest(_ client: UserClient) throws -> ZMUpstreamRequest {
+    public func updateClientSignalingKeysRequest(_ client: UserClient) throws -> ZMUpstreamRequest {
         if let remoteIdentifier = client.remoteIdentifier {
             let (signalingKeysPayloadData, signalingKeys) = payloadForSignalingKeys()
             let payload: [String: AnyObject] = [
@@ -151,7 +151,7 @@ open class UserClientRequestFactory {
     }
     
     /// Password needs to be set
-    open func deleteClientRequest(_ client: UserClient, credentials: ZMEmailCredentials) -> ZMUpstreamRequest! {
+    public func deleteClientRequest(_ client: UserClient, credentials: ZMEmailCredentials) -> ZMUpstreamRequest! {
         let payload = [
             "email" : credentials.email!,
             "password" : credentials.password!
@@ -160,7 +160,7 @@ open class UserClientRequestFactory {
         return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientMarkedToDeleteKey), transportRequest: request)
     }
     
-    open func fetchClientsRequest() -> ZMTransportRequest! {
+    public func fetchClientsRequest() -> ZMTransportRequest! {
         return ZMTransportRequest(getFromPath: "/clients")
     }
     

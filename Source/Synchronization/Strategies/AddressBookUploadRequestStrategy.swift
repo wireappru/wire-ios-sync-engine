@@ -32,7 +32,7 @@ private let addressBookLastUploadedIndex = "ZMAddressBookTranscoderLastIndexUplo
 
 /// This request sync generates request to upload the address book
 /// It will upload only after `markAddressBookAsNeedingToBeUploaded` is called
-@objc open class AddressBookUploadRequestStrategy: NSObject {
+@objc public final class AddressBookUploadRequestStrategy: NSObject {
     
     /// Auth status to know whether we can make requests
     fileprivate let authenticationStatus : AuthenticationStatusProvider
@@ -118,7 +118,7 @@ extension AddressBookUploadRequestStrategy : RequestStrategy, ZMSingleRequestTra
             .enumerated()
             .map { (index, hashes) -> [String:AnyObject] in
                 return [
-                    "card_id" : "\(encodedChunk.includedContacts.lowerBound + UInt(index))" as AnyObject,
+                    "card_id" : "\(encodedChunk.includedContacts.lowerBound + UInt(index))",
                     "contact" : hashes as AnyObject
                 ]
         }
@@ -231,7 +231,7 @@ extension AddressBook {
     
     /// Sets whether the address book needs to be uploaded
     fileprivate static func markAddressBook(_ moc: NSManagedObjectContext, needsToBeUploaded: Bool) {
-        moc.setPersistentStoreMetadata(NSNumber(value: needsToBeUploaded as Bool), forKey: addressBookNeedsToBeUploadedKey)
+        moc.setPersistentStoreMetadata(NSNumber(value: needsToBeUploaded), forKey: addressBookNeedsToBeUploadedKey)
     }
     
     /// Whether the address book needs to be uploaded
@@ -266,7 +266,7 @@ extension AddressBookUploadRequestStrategy {
         }
         set {
             self.managedObjectContext
-                .setPersistentStoreMetadata(NSNumber(value: Int(newValue) as Int), forKey: addressBookLastUploadedIndex)
+                .setPersistentStoreMetadata(NSNumber(value: Int(newValue)), forKey: addressBookLastUploadedIndex)
         }
     }
 }

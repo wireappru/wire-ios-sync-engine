@@ -145,7 +145,7 @@ extension ZMLocalNotificationForMessageTests {
 enum FileType {
     case txt, video, audio
     
-    var testURL : URL {
+    var testURL : NSURL {
         var name : String
         var fileExtension : String
         switch self {
@@ -162,15 +162,15 @@ enum FileType {
         return Bundle(forClass: ZMLocalNotificationForMessageTests.self).URLForResource(name, withExtension: fileExtension)!
     }
     
-    var testData : Data {
-        return Data(contentsOf: testURL as URL)!
+    var testData : NSData {
+        return NSData(contentsOf: testURL as URL)!
     }
 }
 
 // MARK : File Asset Messages
 extension ZMLocalNotificationForMessageTests {
 
-    func messageForFile(_ mimeType: String, nonce: UUID) {
+    func messageForFile(_ mimeType: String, nonce: NSUUID){
         let dataBuilder = ZMAssetRemoteDataBuilder()
         dataBuilder.setSha256(NSData.secureRandomDataOfLength(32))
         dataBuilder.setOtrKey(NSData.secureRandomDataOfLength(32))

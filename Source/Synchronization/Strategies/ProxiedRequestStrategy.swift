@@ -33,7 +33,7 @@ extension ProxiedRequestType {
 }
 
 /// Perform requests to the Giphy search API
-@objc open class ProxiedRequestStrategy : NSObject, RequestStrategy {
+@objc public final class ProxiedRequestStrategy : NSObject, RequestStrategy {
     
     static fileprivate let BasePath = "/proxy"
     
@@ -51,7 +51,7 @@ extension ProxiedRequestType {
         self.managedObjectContext = managedObjectContext
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
         
         guard let status = self.requestsStatus else { return nil }
         
@@ -78,7 +78,7 @@ extension ProxiedRequestType {
     
     - parameter timeout: If it is not completed in the given interval, the request is completed with error
     */
-    open func scheduleAuthenticatedRequestWithCompletionHandler(_ relativeUrl: URL, completionHandler: ((Data?, URLResponse?, NSError?) -> Void), timeout: TimeInterval) {
+    public func scheduleAuthenticatedRequestWithCompletionHandler(_ relativeUrl: URL, completionHandler: ((Data?, URLResponse?, NSError?) -> Void), timeout: TimeInterval) {
         
     }
 }

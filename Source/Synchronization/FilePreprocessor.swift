@@ -23,7 +23,7 @@ import Foundation
 Prepares file to be uploaded
 It creates an encrypted version from the plain text version
 */
-@objc open class FilePreprocessor : NSObject, ZMContextChangeTracker {
+@objc public final class FilePreprocessor : NSObject, ZMContextChangeTracker {
     
     /// Queue to use for processing files
     fileprivate let processingQueue : DispatchQueue
@@ -42,22 +42,22 @@ It creates an encrypted version from the plain text version
     /// - note: All methods of this object should be called from the thread associated with the passed managedObjectContext
     public init(managedObjectContext: NSManagedObjectContext) {
         self.processingGroup = managedObjectContext.dispatchGroup
-        self.processingQueue = DispatchQueue(label: "File processor", attributes: [])
+        self.processingQueue = DispatchQueue(label: "File processor")
         self.managedObjectContext = managedObjectContext
     }
     
-    open func objectsDidChange(_ object: Set<NSObject>) {
+    public func objectsDidChange(_ object: Set<NSObject>) {
         object.flatMap(fileAssetToPreprocess)
             .filter {!self.objectsBeingProcessed.contains($0)}
             .forEach { self.startProcessing($0)}
     }
     
-    open func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
+    public func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
         let predicate = NSPredicate(format: "%K == NO && %K == %d", DeliveredKey, ZMAssetClientMessageTransferStateKey, ZMFileTransferState.Uploading.rawValue)
         return ZMAssetClientMessage.sortedFetchRequestWithPredicate(predicate)
     }
     
-    open func addTrackedObjects(_ objects: Set<NSObject>) {
+    public func addTrackedObjects(_ objects: Set<NSObject>) {
         objects.flatMap(fileAssetToPreprocess)
             .filter {!self.objectsBeingProcessed.contains($0)}
             .forEach { self.startProcessing($0)}

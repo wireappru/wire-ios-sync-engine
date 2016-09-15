@@ -25,9 +25,9 @@ import ZMTransport
     func enqueueDelayedSave()
 }
 
-@objc open class ZMLocalNotificationSet : NSObject  {
+@objc public final class ZMLocalNotificationSet : NSObject  {
     
-    open fileprivate(set) var notifications : Set<ZMLocalNotification> = Set() {
+    public fileprivate(set) var notifications : Set<ZMLocalNotification> = Set() {
         didSet {
             updateArchive()
         }
@@ -69,21 +69,21 @@ import ZMTransport
         keyValueStore.enqueueDelayedSave() // we need to save otherwiese changes might not be stored
     }
     
-    open func remove(_ notification: ZMLocalNotification) -> ZMLocalNotification? {
+    public func remove(_ notification: ZMLocalNotification) -> ZMLocalNotification? {
         return notifications.remove(notification)
     }
     
-    open func addObject(_ notification: ZMLocalNotification) {
+    public func addObject(_ notification: ZMLocalNotification) {
         notifications.insert(notification)
     }
     
-    open func replaceObject(_ toReplace: ZMLocalNotification, newObject: ZMLocalNotification) {
+    public func replaceObject(_ toReplace: ZMLocalNotification, newObject: ZMLocalNotification) {
         notifications.remove(toReplace)
         notifications.insert(newObject)
     }
     
     /// Cancels all notifications
-    open func cancelAllNotifications() {
+    public func cancelAllNotifications() {
         notifications.forEach{ $0.uiNotifications.forEach{ application?.cancelLocalNotification($0) } }
         notifications = Set()
         
@@ -92,7 +92,7 @@ import ZMTransport
     }
     
     /// This cancels all notifications of a specific conversation
-    open func cancelNotifications(_ conversation: ZMConversation) {
+    public func cancelNotifications(_ conversation: ZMConversation) {
         cancelOldNotifications(conversation)
         cancelCurrentNotifications(conversation)
     }

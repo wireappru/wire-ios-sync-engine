@@ -71,13 +71,13 @@ extension ZMLocalNotificationDispatcher {
         var idToDelete : UUID?
         
         if genericMessage.hasEdited(), let replacingID = genericMessage.edited.replacingMessageId {
-            idToDelete = UUID(UUIDString: replacingID)
+            idToDelete = UUID(uuidString: replacingID)
         }
         else if genericMessage.hasDeleted(), let deleted = genericMessage.deleted.messageId {
-            idToDelete = UUID(UUIDString: deleted)
+            idToDelete = UUID(uuidString: deleted)
         }
         else if genericMessage.hasHidden(), let hidden = genericMessage.hidden.messageId {
-            idToDelete = UUID(UUIDString: hidden)
+            idToDelete = UUID(uuidString: hidden)
         }
         
         if let idToDelete = idToDelete {

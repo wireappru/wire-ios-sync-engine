@@ -20,20 +20,20 @@
 import Foundation
 import ZMCLinkPreview
 
-@objc open class LinkPreviewDetectorHelper : NSObject {
+@objc public final class LinkPreviewDetectorHelper : NSObject {
     fileprivate static var _test_debug_linkPreviewDetector : LinkPreviewDetectorType? = nil
     
-    @objc open class func test_debug_linkPreviewDetector() -> LinkPreviewDetectorType?
+    @objc public class func test_debug_linkPreviewDetector() -> LinkPreviewDetectorType?
     {
         return _test_debug_linkPreviewDetector
     }
     
-    @objc open class func setTest_debug_linkPreviewDetector(_ detectorType: LinkPreviewDetectorType?)
+    @objc public class func setTest_debug_linkPreviewDetector(_ detectorType: LinkPreviewDetectorType?)
     {
         _test_debug_linkPreviewDetector = detectorType
     }
     
-    @objc open class func tearDown()
+    @objc public class func tearDown()
     {
         _test_debug_linkPreviewDetector = nil
     }
@@ -41,7 +41,7 @@ import ZMCLinkPreview
 }
 
 
-open class LinkPreviewAssetUploadRequestStrategy : ZMObjectSyncStrategy, RequestStrategy, ZMContextChangeTrackerSource {
+public final class LinkPreviewAssetUploadRequestStrategy : ZMObjectSyncStrategy, RequestStrategy, ZMContextChangeTrackerSource {
     
     
     
@@ -100,17 +100,17 @@ open class LinkPreviewAssetUploadRequestStrategy : ZMObjectSyncStrategy, Request
     }
     
     var predicateForAssetUpload : NSPredicate {
-        return NSPredicate(format: "%K == %d", ZMClientMessageLinkPreviewStateKey, ZMLinkPreviewState.Processed.rawValue)
+        return NSPredicate(format: "%K == %d", ZMClientMessageLinkPreviewStateKey, ZMLinkPreviewState.processed.rawValue)
     }
     
     var filterForAssetUpload: NSPredicate {
         return NSPredicate { object, _ in
             guard let message = object as? ZMClientMessage else { return false }
-            return nil != self.managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .Medium, encrypted: true)
+            return nil != self.managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .medium, encrypted: true)
         }
     }
     
-    open var contextChangeTrackers : [ZMContextChangeTracker] {
+    public var contextChangeTrackers : [ZMContextChangeTracker] {
         return [self.linkPreviewPreprocessor, self.previewImagePreprocessor, self.assetUpstreamSync]
     }
     

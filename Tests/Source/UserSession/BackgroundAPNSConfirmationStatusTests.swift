@@ -65,7 +65,7 @@ class BackgroundAPNSConfirmationStatusTests : MessagingTest {
     
     func testThat_CanSendMessage_IsSetToTrue_NewMessage() {
         // given
-        let uuid = UUID.create()
+        let uuid = NSUUID.create()
         
         // when
         sut.needsToConfirmMessage(uuid)
@@ -77,7 +77,7 @@ class BackgroundAPNSConfirmationStatusTests : MessagingTest {
     
     func testThat_CanSendMessage_IsSetToFalse_MessageConfirmed() {
         // given
-        let uuid = UUID.create()
+        let uuid = NSUUID.create()
         sut.needsToConfirmMessage(uuid)
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
 
@@ -91,8 +91,8 @@ class BackgroundAPNSConfirmationStatusTests : MessagingTest {
     
     func testThat_CanSendMessage_IsSetToTrue_OneMessageConfirmed_OneMessageNew() {
         // given
-        let uuid1 = UUID.create()
-        let uuid2 = UUID.create()
+        let uuid1 = NSUUID.create()
+        let uuid2 = NSUUID.create()
 
         sut.needsToConfirmMessage(uuid1)
         sut.needsToConfirmMessage(uuid2)
@@ -108,7 +108,7 @@ class BackgroundAPNSConfirmationStatusTests : MessagingTest {
     
     func testThat_CanSendMessage_IsSetToFalse_MessageTimedOut() {
         // given
-        let uuid1 = UUID.create()
+        let uuid1 = NSUUID.create()
         
         sut.needsToConfirmMessage(uuid1)
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
@@ -123,8 +123,8 @@ class BackgroundAPNSConfirmationStatusTests : MessagingTest {
     
     func testThat_CanSendMessage_IsSetToTrue_OneMessageTimedOut_OneMessageNew() {
         // given
-        let uuid1 = UUID.create()
-        let uuid2 = UUID.create()
+        let uuid1 = NSUUID.create()
+        let uuid2 = NSUUID.create()
         
         sut.needsToConfirmMessage(uuid1)
         sut.needsToConfirmMessage(uuid2)

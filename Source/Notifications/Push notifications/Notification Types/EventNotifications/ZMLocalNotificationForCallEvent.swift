@@ -127,7 +127,7 @@ final public class ZMLocalNotificationForCallEvent : ZMLocalNotificationForEvent
         switch (session.currentState) {
         case .incoming:
             let baseString = session.isVideo ? ZMPushStringVideoCallStarts : ZMPushStringCallStarts
-            return baseString.localizedStringWithUser(sender, conversation: conversation, count: nil)
+            return baseString.localizedString(with: sender, conversation: conversation, count: nil)
         case .sessionEnded:
             let sessions = sessionTracker.missedSessionsFor(conversation!.remoteIdentifier)
             let missedSessionsInConversation = sessions.count

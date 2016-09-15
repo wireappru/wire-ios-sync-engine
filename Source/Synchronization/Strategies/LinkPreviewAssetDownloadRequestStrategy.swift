@@ -20,7 +20,7 @@
 import Foundation
 
 
-@objc final public class LinkPreviewAssetDownloadRequestStrategy: ZMObjectSyncStrategy, RequestStrategy {
+@objc public final class LinkPreviewAssetDownloadRequestStrategy: ZMObjectSyncStrategy, RequestStrategy {
     
     fileprivate var assetDownstreamObjectSync: ZMDownstreamObjectSyncWithWhitelist!
     fileprivate let authStatus: AuthenticationStatusProvider
@@ -52,7 +52,7 @@ import Foundation
     }
     
     func registerForWhitelistingNotification() {
-        NotificationCenter.defaultCenter().addObserver(
+        NotificationCenter.default.addObserver(
             self,
             selector: #selector(didWhitelistAssetDownload),
             name: ZMClientMessageLinkPreviewImageDownloadNotificationName,

@@ -26,7 +26,7 @@ public extension ZMUser {
     
     func fetchUserClients() {
         NotificationCenter.default.post(
-            name: ZMNeedsToUpdateUserClientsNotificationName,
+            name: Notification.Name(rawValue: ZMNeedsToUpdateUserClientsNotificationName),
             object: nil,
             userInfo: [ZMNeedsToUpdateUserClientsNotificationUserObjectIDKey: objectID])
     }

@@ -43,7 +43,7 @@ extension NotificationForMessage {
     
     public func configureNotification(_ message: MessageType) -> UILocalNotification {
         let notification = UILocalNotification()
-        let shouldHideContent = message.managedObjectContext!.valueForKey(ZMShouldHideNotificationContentKey)
+        let shouldHideContent = message.managedObjectContext!.value(forKey: ZMShouldHideNotificationContentKey)
         if let shouldHideContent = shouldHideContent as? NSNumber , shouldHideContent.boolValue == true {
             notification.alertBody = ZMPushStringDefault.localized()
             notification.soundName = ZMLocalNotificationNewMessageSoundName()
@@ -52,7 +52,7 @@ extension NotificationForMessage {
             notification.soundName = soundName
             notification.category = ZMConversationCategory
         }
-        notification.setupUserInfo(message as! ZMMessage)
+        notification.setupUserInfo(message)
         return notification
     }
     
@@ -64,7 +64,7 @@ extension NotificationForMessage {
                 return false
             }
             if let timeStamp = message.serverTimestamp, let lastRead = conversation.lastReadServerTimeStamp
-                , lastRead.compare(timeStamp) != .OrderedAscending
+                , lastRead.compare(timeStamp) != .orderedAscending
             {
                 return false
             }
@@ -99,7 +99,7 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
         
         self.messageNonce = message.nonce
         self.senderUUID = sender.remoteIdentifier!
-        self.application = application ?? UIApplication.sharedApplication()
+        self.application = application ?? UIApplication.shared
         super.init(conversationID: conversation.remoteIdentifier)
         
         let notification = configureNotification(message)
@@ -123,7 +123,7 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
         case .location:
             return ZMPushStringLocationAdd.localizedStringWithUser(sender, conversation: conversation)
         case .knock:
-            let knockCount = NSNumber(value: eventCount as Int)
+            let knockCount = NSNumber(value: eventCount)
             return ZMPushStringKnock.localizedStringWithUser(sender, conversation:conversation, count:knockCount)
         default:
             return ""

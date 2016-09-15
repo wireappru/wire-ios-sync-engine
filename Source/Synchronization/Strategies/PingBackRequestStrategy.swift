@@ -23,7 +23,7 @@ import ZMTransport
 
 
 @objc
-open class PingBackRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
+public final class PingBackRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
     
     weak fileprivate(set) var authenticationStatus: ZMAuthenticationStatus?
     weak fileprivate(set) var pingBackStatus: BackgroundAPNSPingBackStatus?
@@ -38,19 +38,19 @@ open class PingBackRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
         pingBackSync = ZMSingleRequestSync(singleRequestTranscoder: self, managedObjectContext: moc)
     }
     
-    open var isSlowSyncDone: Bool {
+    public var isSlowSyncDone: Bool {
         return true
     }
     
-    open var requestGenerators: [ZMRequestGenerator] {
+    public var requestGenerators: [ZMRequestGenerator] {
         return []
     }
     
-    open var contextChangeTrackers: [ZMContextChangeTracker] {
+    public var contextChangeTrackers: [ZMContextChangeTracker] {
         return []
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
         guard authenticationStatus?.currentPhase == .authenticated && pingBackStatus?.status == .pinging,
              let hasNotification = pingBackStatus?.hasNotificationIDs , hasNotification
         else { return nil }
@@ -59,11 +59,11 @@ open class PingBackRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy {
         return pingBackSync.nextRequest()
     }
     
-    open func setNeedsSlowSync() {
+    public func setNeedsSlowSync() {
         // no op
     }
     
-    open func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
+    public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         // no op
     }
     
@@ -76,7 +76,7 @@ extension PingBackRequestStrategy: ZMSingleRequestTranscoder {
     public func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
         guard sync == pingBackSync else { return nil }
         guard let nextEventsWithID = pingBackStatus?.nextNotificationEventsWithID() else { return nil }
-        let path = "/push/fallback/\((nextEventsWithID.identifier as NSUUID).transportString())/cancel"
+        let path = "/push/fallback/\(nextEventsWithID.identifier.transportString())/cancel"
         let request = ZMTransportRequest(path: path, method: .methodPOST, payload: nil)
         request.forceToVoipSession()
         let completion = ZMCompletionHandler(on: managedObjectContext)  { [weak self] response in

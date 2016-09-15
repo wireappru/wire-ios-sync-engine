@@ -31,7 +31,7 @@ import Foundation
     var shouldDownloadFullHistory : Bool { get }
 }
 
-@objc open class ForegroundOnlyHistorySynchronizationStatus : NSObject, HistorySynchronizationStatus
+@objc public final class ForegroundOnlyHistorySynchronizationStatus : NSObject, HistorySynchronizationStatus
 {
     fileprivate var isSyncing = false
     fileprivate var isInBackground = false
@@ -55,13 +55,13 @@ import Foundation
         self.application.unregisterObserverForStateChange(self)
     }
     
-    open func didBecomeActive(_ note: Notification) {
+    public func didBecomeActive(_ note: Notification) {
         self.moc.performGroupedBlock { () -> Void in
             self.isInBackground = false
         }
     }
 
-    open func willResignActive(_ note: Notification) {
+    public func willResignActive(_ note: Notification) {
         self.moc.performGroupedBlock { () -> Void in
             self.isInBackground = true
         }
@@ -69,17 +69,17 @@ import Foundation
 
     
     /// Should be called when the initial synchronization is done
-    open func didCompleteSync() {
+    public func didCompleteSync() {
         self.isSyncing = false
     }
     
     /// Should be called when some synchronization (slow or quick) is started
-    open func didStartSync() {
+    public func didStartSync() {
         self.isSyncing = true
     }
     
     /// Returns whether history should be downloaded now
-    open var shouldDownloadFullHistory : Bool {
+    public var shouldDownloadFullHistory : Bool {
         return !self.isSyncing && !self.isInBackground;
     }
 }

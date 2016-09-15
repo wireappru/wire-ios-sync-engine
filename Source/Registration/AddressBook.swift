@@ -88,7 +88,7 @@ protocol AddressBookAccessor {
     var numberOfContacts : UInt {get}
     
     /// Iterator for contacts
-    func iterate() -> LazySequence<AnyGenerator<ZMAddressBookContact>>
+    func iterate() -> LazySequence<AnyIterator<ZMAddressBookContact>>
     
     /// Encodes an arbitraty part the address book asynchronously. Will invoke the completion handler when done.
     /// - parameter groupQueue: group queue to enter while executing, and where to invoke callback
@@ -121,7 +121,7 @@ extension AddressBook : AddressBookAccessor {
 }
 
 /// Iterator for address book
-open class AddressBookIterator : Sequence, IteratorProtocol {
+public final class AddressBookIterator : Sequence, IteratorProtocol {
     
     /// All people in the AB
     fileprivate let people : AnyIterator<ABRecord>
@@ -241,7 +241,7 @@ extension String {
                 .joined(separator: "")) // remove all non-digit
         }
         
-        var number : AnyObject? = self as AnyObject?
+        var number : AnyObject? = self
         do {
             try ZMPhoneNumberValidator.validateValue(&number)
             return number as? String
@@ -252,7 +252,7 @@ extension String {
     
     /// Returns a normalized email or nil
     var validatedEmail : String? {
-        var email : AnyObject? = self as AnyObject?
+        var email : AnyObject? = self
         do {
             try ZMEmailAddressValidator.validateValue(&email)
             return email as? String

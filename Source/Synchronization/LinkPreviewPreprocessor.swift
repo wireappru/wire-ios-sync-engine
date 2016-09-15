@@ -26,7 +26,7 @@ import ZMCLinkPreview
 
 extension LinkPreviewDetector: LinkPreviewDetectorType {}
 
-@objc open class LinkPreviewPreprocessor : NSObject, ZMContextChangeTracker {
+@objc public final class LinkPreviewPreprocessor : NSObject, ZMContextChangeTracker {
         
     /// List of objects currently being processed
     fileprivate var objectsBeingProcessed = Set<ZMClientMessage>()
@@ -40,16 +40,16 @@ extension LinkPreviewDetector: LinkPreviewDetectorType {}
         super.init()
     }
 
-    open func objectsDidChange(_ objects: Set<NSObject>) {
+    public func objectsDidChange(_ objects: Set<NSObject>) {
         processObjects(objects)
     }
     
-    open func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
+    public func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
         let predicate = NSPredicate(format: "%K == %d", ZMClientMessageLinkPreviewStateKey, ZMLinkPreviewState.WaitingToBeProcessed.rawValue)
         return ZMClientMessage.sortedFetchRequestWithPredicate(predicate)
     }
     
-    open func addTrackedObjects(_ objects: Set<NSObject>) {
+    public func addTrackedObjects(_ objects: Set<NSObject>) {
         processObjects(objects)
     }
     

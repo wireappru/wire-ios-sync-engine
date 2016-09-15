@@ -18,7 +18,7 @@
 
 import Foundation
 
-open class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrategy {
+public final class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrategy {
     
     fileprivate let authenticationStatus : AuthenticationStatusProvider
     fileprivate var downstreamSync : ZMDownstreamObjectSyncWithWhitelist!
@@ -49,7 +49,7 @@ open class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestStrategy 
     }
     
     func registerForWhitelistingNotification() {
-        NotificationCenter.defaultCenter().addObserver(
+        NotificationCenter.default.addObserver(
             self,
             selector: #selector(didRequestToDownloadImage),
             name: ZMAssetClientMessage.ImageDownloadNotificationName,

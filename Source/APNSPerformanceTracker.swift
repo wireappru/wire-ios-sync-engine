@@ -29,8 +29,8 @@ public enum NotificationFunnelState {
     
     var attributes: [String: NSObject] {
         var attributes = customTrackingAttributes
-        attributes["state_description"] = stateDescription as NSObject?
-        attributes["state_index"] = stateIndex as NSObject?
+        attributes["state_description"] = stateDescription
+        attributes["state_index"] = stateIndex
         return attributes
     }
     
@@ -111,7 +111,7 @@ extension TimeInterval {
             attributes["time_since_last"] = clusterized
         }
 
-        attributes["notification_identifier"] = (identifier as NSUUID).transportString() as NSObject?
+        attributes["notification_identifier"] = identifier.transportString()
         timestampsByNotificationID[identifier] = currentDate ?? Date()
         analytics.tagEvent(notificationEventName, attributes: attributes)
         

@@ -23,8 +23,8 @@ import ZMTransport
 
 class DeleteAccountRequestStrategyTests: MessagingTest {
     
-    private var sut : DeleteAccountRequestStrategy!
-    private var authStatus : ZMAuthenticationStatus!
+    fileprivate var sut : DeleteAccountRequestStrategy!
+    fileprivate var authStatus : ZMAuthenticationStatus!
     
     override func setUp() {
         super.setUp()
@@ -80,7 +80,7 @@ class DeleteAccountRequestStrategyTests: MessagingTest {
         self.uiMOC.setPersistentStoreMetadata(NSNumber(bool: true), forKey: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NotificationCenter.default.addObserverForName("ZMUserSessionAuthenticationNotificationName", object: nil, queue: .mainQueue()) { _ in
+        let _ = NotificationCenter.defaultCenter().addObserverForName("ZMUserSessionAuthenticationNotificationName", object: nil, queue: .mainQueue()) { _ in
             notificationExpectation.fulfill()
         }
         

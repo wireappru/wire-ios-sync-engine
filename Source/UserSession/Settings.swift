@@ -22,10 +22,10 @@ enum SettingsKeys {
 }
 
 @objc
-open class ZMSettings: NSObject {
+public final class ZMSettings: NSObject {
     
     /// Shared settings
-    open static let sharedSettings : ZMSettings = ZMSettings()
+    public static let sharedSettings : ZMSettings = ZMSettings()
     
     /// Isolation queue to change settings
     fileprivate let isolationQueue : DispatchQueue

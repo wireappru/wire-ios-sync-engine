@@ -37,7 +37,7 @@ extension ZMSearchResult {
         var localMatchedUsers : [ZMUser] = []
         
         addressBook.matchInAddressBook(usersToMatch).forEach { match in
-            if let user = match.user , queryUsers.contains(user) && user.connection?.status == .Accepted {
+            if let user = match.user , queryUsers.contains(user) && user.connection?.status == .accepted {
                 if let contact = match.contact {
                     matchedUsers.append(ZMSearchUser(contact: contact, user: nil, userSession: userSession))
                 } else {

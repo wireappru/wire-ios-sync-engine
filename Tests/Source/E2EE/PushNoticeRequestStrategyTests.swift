@@ -51,7 +51,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
     
     func testThatItGeneratesARequestWhenThePingBackStatusReturnsANotificationIDAndTheStateIsAuthenticated() {
         // given
-        let notificationID = UUID.create()
+        let notificationID = NSUUID.create()
         pingBackStatus.mockNextNotificationID = notificationID
         pingBackStatus.mockStatus = .FetchingNotice
         XCTAssertTrue(pingBackStatus.hasNoticeNotificationIDs)
@@ -68,7 +68,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
     
     func testThatItDoesNotGenerateARequestWhenThePingBackStatusReturnsANotificationIDButTheStatusIsNotFetching() {
         // given
-        let notificationID = UUID.create()
+        let notificationID = NSUUID.create()
         pingBackStatus.mockNextNotificationID = notificationID
         pingBackStatus.mockStatus = .Pinging
         XCTAssertTrue(pingBackStatus.hasNoticeNotificationIDs)
@@ -83,7 +83,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
     func testThatItDoesNotGenerateARequestWhenThePingBackStatusReturnsANotificationIDButTheStateIsUnauthenticated() {
         // given
         authenticationStatus.mockPhase = .Unauthenticated
-        pingBackStatus.mockNextNotificationID = UUID.create()
+        pingBackStatus.mockNextNotificationID = NSUUID.create()
         XCTAssertTrue(pingBackStatus.hasNoticeNotificationIDs)
         
         // when
@@ -107,7 +107,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
     
     func testThatItCallsDidFetchNoticeNotificationWithSuccessOnThePingBackStatusAfterSuccessfullyPerformingTheFetch() {
         // given
-        let nextUUID = UUID.create()
+        let nextUUID = NSUUID.create()
         var didPerformPingBackCalled = false
         var receivedFinalEvents = []
         var receivedEventsWithID: EventsWithIdentifier?
@@ -143,7 +143,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
     
     func testThatItCallsDidFetchNoticeNotificationOnThePingBackStatusAfterFailingPerformingTheFetch() {
         // given
-        let nextUUID = UUID.create()
+        let nextUUID = NSUUID.create()
         var didPerformPingBackCalled = false
         var receivedFinalEvents = []
         var receivedEventsWithID: EventsWithIdentifier?

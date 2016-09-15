@@ -27,30 +27,30 @@ public enum ZMLocalNotificationContentType : Equatable {
     
     static func typeForMessage(_ message: ZMConversationMessage) -> ZMLocalNotificationContentType {
         if let text = message.textMessageData?.messageText , !text.isEmpty {
-            return .Text(text)
+            return .text(text)
         }
         if message.knockMessageData != nil {
-            return .Knock
+            return .knock
         }
         if message.imageMessageData != nil {
-            return .Image
+            return .image
         }
         if let systemMessage = message.systemMessageData {
-            return .System(systemMessage.systemMessageType)
+            return .system(systemMessage.systemMessageType)
         }
         if let fileData = message.fileMessageData {
             if fileData.isAudio() {
-                return .Audio
+                return .audio
             }
             else if fileData.isVideo() {
-                return .Video
+                return .video
             }
-            return .FileUpload
+            return .fileUpload
         }
         if message.locationMessageData != nil {
-            return .Location
+            return .location
         }
-        return .Undefined
+        return .undefined
     }
     
     var localizationString : String? {

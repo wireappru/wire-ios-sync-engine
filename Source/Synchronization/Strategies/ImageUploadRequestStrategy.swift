@@ -18,7 +18,7 @@
 
 import Foundation
 
-open class ImageUploadRequestStrategy: ZMObjectSyncStrategy, RequestStrategy, ZMContextChangeTrackerSource {
+public final class ImageUploadRequestStrategy: ZMObjectSyncStrategy, RequestStrategy, ZMContextChangeTrackerSource {
     
     fileprivate let imagePreprocessor : ZMImagePreprocessingTracker
     fileprivate let authenticationStatus : AuthenticationStatusProvider
@@ -41,11 +41,11 @@ open class ImageUploadRequestStrategy: ZMObjectSyncStrategy, RequestStrategy, ZM
         
         super.init(managedObjectContext: managedObjectContext)
         
-        let insertPredicate = NSPredicate(format: "\(ZMAssetClientMessageUploadedStateKey) != \(ZMAssetUploadState.Done.rawValue)")
+        let insertPredicate = NSPredicate(format: "\(ZMAssetClientMessageUploadedStateKey) != \(ZMAssetUploadState.done.rawValue)")
         let uploadFilter = NSPredicate { (object : AnyObject, _) -> Bool in
             guard let message = object as? ZMAssetClientMessage else { return false }
             return message.imageMessageData != nil &&
-                (message.uploadState == .UploadingPlaceholder || message.uploadState == .UploadingFullAsset) &&
+                (message.uploadState == .uploadingPlaceholder || message.uploadState == .uploadingFullAsset) &&
                 message.imageAssetStorage?.mediumGenericMessage?.image.width != 0 &&
                 message.imageAssetStorage?.previewGenericMessage?.image.width != 0
         }
@@ -58,11 +58,11 @@ open class ImageUploadRequestStrategy: ZMObjectSyncStrategy, RequestStrategy, ZM
                                                     managedObjectContext: managedObjectContext)
     }
     
-    open var contextChangeTrackers: [ZMContextChangeTracker] {
+    public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [imagePreprocessor, upstreamSync]
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
         guard self.authenticationStatus.currentPhase == .authenticated else { return nil }
         return self.upstreamSync.nextRequest()
     }

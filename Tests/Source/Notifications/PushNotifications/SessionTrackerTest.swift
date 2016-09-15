@@ -27,8 +27,8 @@ class SessionBaseTest : MessagingTest {
     
     override func setUp() {
         super.setUp()
-        let convID = UUID.create()
-        let senderID = UUID.create()
+        let convID = NSUUID.create()
+        let senderID = NSUUID.create()
         sender = ZMUser.insertNewObjectInManagedObjectContext(uiMOC)
         sender.remoteIdentifier = senderID
         otherUser = ZMUser.insertNewObjectInManagedObjectContext(uiMOC)

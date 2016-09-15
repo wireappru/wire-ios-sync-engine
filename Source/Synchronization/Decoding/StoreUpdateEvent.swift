@@ -20,7 +20,7 @@ import Foundation
 import CoreData
 
 @objc(StoredUpdateEvent)
-open class StoredUpdateEvent: NSManagedObject {
+final class StoredUpdateEvent: NSManagedObject {
     
     static let entityName =  "StoredUpdateEvent"
     static let SortIndexKey = "sortIndex"
@@ -37,7 +37,7 @@ open class StoredUpdateEvent: NSManagedObject {
     
     /// Maps a passed in `ZMUpdateEvent` to a `StoredUpdateEvent` which is persisted in a database
     /// The passed in `index` is used to enumerate events to be able to fetch and sort them later on in the order they were received
-    open static func create(_ event: ZMUpdateEvent, managedObjectContext: NSManagedObjectContext, index: Int64) -> StoredUpdateEvent? {
+    public static func create(_ event: ZMUpdateEvent, managedObjectContext: NSManagedObjectContext, index: Int64) -> StoredUpdateEvent? {
         guard let storedEvent = StoredUpdateEvent.insertNewObject(managedObjectContext) else { return nil }
         storedEvent.debugInformation = event.debugInformation
         storedEvent.isTransient = event.isTransient
@@ -50,7 +50,7 @@ open class StoredUpdateEvent: NSManagedObject {
     
     /// Returns stored events sorted by and up until (including) the defined `stopIndex`
     /// Returns a maximum of `batchSize` events at a time
-    open static func nextEvents(_ context: NSManagedObjectContext, batchSize: Int) -> [StoredUpdateEvent] {
+    public static func nextEvents(_ context: NSManagedObjectContext, batchSize: Int) -> [StoredUpdateEvent] {
         let fetchRequest = NSFetchRequest(entityName: self.entityName)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: StoredUpdateEvent.SortIndexKey, ascending: true)]
         fetchRequest.fetchLimit = batchSize
@@ -60,7 +60,7 @@ open class StoredUpdateEvent: NSManagedObject {
     }
     
     /// Returns the highest index of all stored events
-    open static func highestIndex(_ context: NSManagedObjectContext) -> Int64 {
+    public static func highestIndex(_ context: NSManagedObjectContext) -> Int64 {
         let fetchRequest = NSFetchRequest(entityName: self.entityName)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: StoredUpdateEvent.SortIndexKey, ascending: false)]
         fetchRequest.fetchBatchSize = 1
@@ -69,7 +69,7 @@ open class StoredUpdateEvent: NSManagedObject {
     }
     
     /// Maps passed in objects of type `StoredUpdateEvent` to `ZMUpdateEvent`
-    open static func eventsFromStoredEvents(_ storedEvents: [StoredUpdateEvent]) -> [ZMUpdateEvent] {
+    public static func eventsFromStoredEvents(_ storedEvents: [StoredUpdateEvent]) -> [ZMUpdateEvent] {
         let events : [ZMUpdateEvent] = storedEvents.flatMap{
             var eventUUID : UUID?
             if let uuid = $0.uuidString {

@@ -29,7 +29,7 @@ extension ZMUpdateEvent {
             let participantInfo = payload["participants"] as? [String : [String : AnyObject]]
             else { return .undefined}
         
-        let selfUser = ZMUser.selfUserInContext(context)
+        let selfUser = ZMUser.selfUser(in: context)
         
         var isSelfUserJoined = false
         var isVideo = false
@@ -72,7 +72,7 @@ extension ZMUpdateEvent {
     }
 }
 
-open class Session : NSObject, NSCoding, NSCopying {
+public final class Session : NSObject, NSCoding, NSCopying {
     let sessionID : String
     let initiatorID : UUID
     let conversationID : UUID
@@ -93,7 +93,7 @@ open class Session : NSObject, NSCoding, NSCopying {
     public enum State : Int {
         case incoming, ongoing, selfUserJoined, sessionEndedSelfJoined, sessionEnded
     }
-    open var currentState : State {
+    public var currentState : State {
         switch (callEnded, selfUserJoined) {
         case (true, true):
             return .sessionEndedSelfJoined
@@ -106,7 +106,7 @@ open class Session : NSObject, NSCoding, NSCopying {
         }
     }
     
-    open func changeState(_ event: ZMUpdateEvent, managedObjectContext: NSManagedObjectContext) -> State {
+    public func changeState(_ event: ZMUpdateEvent, managedObjectContext: NSManagedObjectContext) -> State {
         guard let sequence = event.callingSequence , sequence >= lastSequence else { return currentState }
         lastSequence = sequence
         let callStateType = event.callStateType(managedObjectContext)
@@ -173,7 +173,7 @@ open class Session : NSObject, NSCoding, NSCopying {
     }
 }
 
-@objc open class SessionTracker : NSObject {
+@objc public final class SessionTracker : NSObject {
     static let ArchivingKey = "SessionTracker"
     let managedObjectContext: NSManagedObjectContext
 
@@ -193,12 +193,12 @@ open class Session : NSObject, NSCoding, NSCopying {
         unarchiveOldSessions()
     }
     
-    open func tearDown(){
+    public func tearDown(){
         sessions = []
         managedObjectContext.saveOrRollback()
     }
     
-    open func clearSessions(_ conversation: ZMConversation){
+    public func clearSessions(_ conversation: ZMConversation){
         sessions = sessions.filter{$0.conversationID != conversation.remoteIdentifier}
     }
     
@@ -217,7 +217,7 @@ open class Session : NSObject, NSCoding, NSCopying {
         managedObjectContext.saveOrRollback() // we need to save otherwiese changes might not be stored
     }
     
-    open func addEvent(_ event: ZMUpdateEvent)  {
+    public func addEvent(_ event: ZMUpdateEvent)  {
         guard event.type == .callState, let sessionID = event.callingSessionID
         else { return }
         

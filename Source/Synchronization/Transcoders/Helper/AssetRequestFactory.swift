@@ -19,7 +19,7 @@
 
 import Foundation
 
-open class AssetRequestFactory : NSObject {
+public final class AssetRequestFactory : NSObject {
     
     let jsonContentType = "application/json"
     let octetStreamContentType = "application/octet-stream"
@@ -30,7 +30,7 @@ open class AssetRequestFactory : NSObject {
         case Volatile = "volatile"
     }
 
-    open func upstreamRequestForAsset(withData data: Data, shareable: Bool = true, retention : Retention = .Persistent) -> ZMTransportRequest? {
+    public func upstreamRequestForAsset(withData data: Data, shareable: Bool = true, retention : Retention = .Persistent) -> ZMTransportRequest? {
         let path = "/assets/v3"
         guard let multipartData = try? dataForMultipartAssetUploadRequest(data, shareable: shareable, retention: retention) else { return nil }
         let request = ZMTransportRequest(path: path, method: .methodPOST, binaryData: multipartData, type: "multipart/mixed; boundary=frontier", contentDisposition: nil)

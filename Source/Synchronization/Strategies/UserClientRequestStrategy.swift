@@ -29,7 +29,7 @@ private let zmLog = ZMSLog(tag: "Crypto")
 
 // Register new client, update it with new keys, deletes clients.
 @objc
-open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrackerSource, ZMObjectStrategy, ZMUpstreamTranscoder, ZMSingleRequestTranscoder {
+public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrackerSource, ZMObjectStrategy, ZMUpstreamTranscoder, ZMSingleRequestTranscoder {
     
     weak var clientRegistrationStatus: ZMClientRegistrationStatus?
     weak var authenticationStatus: ZMAuthenticationStatus?
@@ -41,8 +41,8 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
     fileprivate(set) var fetchAllClientsSync: ZMSingleRequestSync! = nil
     fileprivate var didRetryRegisteringSignalingKeys : Bool = false
     
-    open var requestsFactory: UserClientRequestFactory = UserClientRequestFactory()
-    open var minNumberOfRemainingKeys: UInt = 20
+    public var requestsFactory: UserClientRequestFactory = UserClientRequestFactory()
+    public var minNumberOfRemainingKeys: UInt = 20
     
     fileprivate(set) var userClientsObserverToken: NSObjectProtocol!
     fileprivate(set) var userClientsSync: ZMRemoteIdentifierObjectSync!
@@ -78,7 +78,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         
         self.userClientsObserverToken = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: ZMNeedsToUpdateUserClientsNotificationName), object: nil, queue: .main()) { [unowned self] note in
 
-            let objectID = (note as NSNotification).userInfo?[ZMNeedsToUpdateUserClientsNotificationUserObjectIDKey] as? NSManagedObjectID
+            let objectID = note.userInfo?[ZMNeedsToUpdateUserClientsNotificationUserObjectIDKey] as? NSManagedObjectID
             self.managedObjectContext.performGroupedBlock {
                 guard let optionalUser = try? objectID.flatMap(self.managedObjectContext.existingObject(with:)), let user = optionalUser as? ZMUser  else { return }
                 self.userClientsSync.setRemoteIdentifiersAsNeedingDownload(Set(arrayLiteral: user.remoteIdentifier!))
@@ -103,7 +103,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         return modifiedPredicate
     }
     
-    open func nextRequest() -> ZMTransportRequest? {
+    public func nextRequest() -> ZMTransportRequest? {
         guard let clientRegistrationStatus = self.clientRegistrationStatus,
             let clientUpdateStatus = self.clientUpdateStatus else {
                 return nil
@@ -138,23 +138,23 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
     }
     
     //we don;t use this method but it's required by ZMObjectStrategy protocol
-    open var requestGenerators: [ZMRequestGenerator] {
+    public var requestGenerators: [ZMRequestGenerator] {
         return []
     }
     
-    open var contextChangeTrackers: [ZMContextChangeTracker] {
+    public var contextChangeTrackers: [ZMContextChangeTracker] {
         return [self.insertSync, self.modifiedSync, self.deleteSync]
     }
     
-    open func shouldProcessUpdatesBeforeInserts() -> Bool {
+    public func shouldProcessUpdatesBeforeInserts() -> Bool {
         return false
     }
         
-    open func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
+    public func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
         return requestsFactory.fetchClientsRequest()
     }
     
-    open func requestForUpdatingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>) -> ZMUpstreamRequest? {
+    public func requestForUpdatingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>) -> ZMUpstreamRequest? {
         if let managedObject = managedObject as? UserClient {
             guard let clientUpdateStatus = self.clientUpdateStatus else { fatal("clientUpdateStatus is not set") }
             
@@ -190,7 +190,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         }
     }
     
-    open func requestForInsertingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>?) -> ZMUpstreamRequest? {
+    public func requestForInsertingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>?) -> ZMUpstreamRequest? {
         if let managedObject = managedObject as? UserClient {
             guard let authenticationStatus = self.authenticationStatus else { fatal("authenticationStatus is not set") }
             let request = try? requestsFactory.registerClientRequest(managedObject, credentials: clientRegistrationStatus?.emailCredentials, authenticationStatus: authenticationStatus)
@@ -201,7 +201,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         }
     }
     
-    open func shouldRetryToSyncAfterFailedToUpdateObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
+    public func shouldRetryToSyncAfterFailedToUpdateObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
         if keysToParse.contains(ZMUserClientNumberOfKeysRemainingKey) {
             return false
         }
@@ -241,7 +241,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         }
     }
     
-    open func updateInsertedObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse) {
+    public func updateInsertedObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse) {
         if let client = managedObject as? UserClient {
             
             guard
@@ -262,7 +262,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         }
     }
     
-    open func errorFromFailedDeleteResponse(_ response: ZMTransportResponse!) -> NSError {
+    public func errorFromFailedDeleteResponse(_ response: ZMTransportResponse!) -> NSError {
         var errorCode: ClientUpdateError = .none
         if let response = response , response.result == .permanentError {
             if let errorLabel = response.payload.asDictionary()["label"] as? String {
@@ -281,7 +281,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         return ClientUpdateError.errorForType(errorCode)()
     }
     
-    open func errorFromFailedInsertResponse(_ response: ZMTransportResponse!) -> NSError {
+    public func errorFromFailedInsertResponse(_ response: ZMTransportResponse!) -> NSError {
         var errorCode: ZMUserSessionErrorCode = .unkownError
         if let response = response , response.result == .permanentError {
 
@@ -305,7 +305,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
         return NSError(domain: ZMUserSessionErrorDomain, code: Int(errorCode.rawValue), userInfo: nil)
     }
     
-    open func didReceive(_ response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {
+    public func didReceive(_ response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {
         
         switch (response.result) {
         case .success:
@@ -330,7 +330,7 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
     }
     
     /// Returns whether synchronization of this object needs additional requests
-    open func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
+    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
         
         if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
             return processResponseForDeletingClients(managedObject, requestUserInfo: requestUserInfo, responsePayload: response.payload)
@@ -359,19 +359,19 @@ open class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextChangeTrack
     }
     
     // Should return the objects that need to be refetched from the BE in case of upload error
-    open func objectToRefetchForFailedUpdateOfObject(_ managedObject: ZMManagedObject) -> ZMManagedObject? {
+    public func objectToRefetchForFailedUpdate(of managedObject: ZMManagedObject) -> ZMManagedObject? {
         return nil
     }
     
-    open var isSlowSyncDone: Bool {
+    public var isSlowSyncDone: Bool {
         return true
     }
     
-    open func setNeedsSlowSync() {
+    public func setNeedsSlowSync() {
         //no op
     }
     
-    open func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
+    public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
         events.forEach(processUpdateEvent)
     }
             
