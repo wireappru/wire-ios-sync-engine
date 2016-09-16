@@ -26,8 +26,8 @@ class ZMCallStateTests : MessagingTest {
     
     func testThatItMergesChangesOnIsVideoCallFromMainIntoSync() {
         // given
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        conversation.conversationType = .OneOnOne
+        let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
+        conversation.conversationType = .oneOnOne
         self.uiMOC.saveOrRollback()
         
         // when
@@ -53,8 +53,8 @@ class ZMCallStateTests : MessagingTest {
         // given
         var conversation : ZMConversation!
         self.syncMOC.performGroupedBlockAndWait{
-            conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-            conversation.conversationType = .OneOnOne
+            conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            conversation.conversationType = .oneOnOne
             self.syncMOC.saveOrRollback()
             
             // when
@@ -81,8 +81,8 @@ class ZMCallStateTests : MessagingTest {
     
     func testThatItMergesChangesOnIsSendingVideoFromMainIntoSync() {
         // given
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        conversation.conversationType = .OneOnOne
+        let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
+        conversation.conversationType = .oneOnOne
         self.uiMOC.saveOrRollback()
         
         // when
@@ -109,8 +109,8 @@ class ZMCallStateTests : MessagingTest {
         // given
         var conversation : ZMConversation!
         self.syncMOC.performGroupedBlockAndWait{
-            conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-            conversation.conversationType = .OneOnOne
+            conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            conversation.conversationType = .oneOnOne
             self.syncMOC.saveOrRollback()
             
             // when we force to sync changes made on the syncMOC
@@ -163,8 +163,8 @@ class ZMCallStateTests : MessagingTest {
         // given
         var conversation : ZMConversation!
         self.syncMOC.performGroupedBlockAndWait{
-            conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-            conversation.conversationType = .OneOnOne
+            conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            conversation.conversationType = .oneOnOne
             self.syncMOC.saveOrRollback()
             
             // when we force to sync changes made on the syncMOC
@@ -216,9 +216,9 @@ class ZMCallStateTests : MessagingTest {
         // given
         var conversation : ZMConversation!
         self.syncMOC.performGroupedBlockAndWait{
-            conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-            conversation.conversationType = .OneOnOne
-            let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
+            conversation = ZMConversation.insertNewObject(in: self.syncMOC)
+            conversation.conversationType = .oneOnOne
+            let user = ZMUser.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             
             // when

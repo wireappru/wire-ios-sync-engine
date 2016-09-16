@@ -24,7 +24,7 @@ class ZMLocalNotificationForSystemMessageTests : ZMLocalNotificationForEventTest
     
     func testThatItCreatesANotificationForConversationRename(){
         // given
-        let systemMessage = ZMSystemMessage.insertNewObjectInManagedObjectContext(syncMOC)
+        let systemMessage = ZMSystemMessage.insertNewObject(in: syncMOC)
         systemMessage.systemMessageType = .ConversationNameChanged
         systemMessage.text = "New Name"
         systemMessage.sender = sender
@@ -41,7 +41,7 @@ class ZMLocalNotificationForSystemMessageTests : ZMLocalNotificationForEventTest
     
     func alertBodyForParticipantAdded(_ conversation: ZMConversation, aSender: ZMUser, otherUsers: Set<ZMUser>) -> String?{
         // given
-        let systemMessage = ZMSystemMessage.insertNewObjectInManagedObjectContext(syncMOC)
+        let systemMessage = ZMSystemMessage.insertNewObject(in: syncMOC)
         systemMessage.systemMessageType = .ParticipantsAdded
         systemMessage.addedUsers = otherUsers
         systemMessage.sender = aSender
@@ -80,7 +80,7 @@ class ZMLocalNotificationForSystemMessageTests : ZMLocalNotificationForEventTest
     
     func alertBodyForParticipantRemoved(_ conversation: ZMConversation, aSender: ZMUser, otherUsers: Set<ZMUser>) -> String?{
         // given
-        let systemMessage = ZMSystemMessage.insertNewObjectInManagedObjectContext(syncMOC)
+        let systemMessage = ZMSystemMessage.insertNewObject(in: syncMOC)
         systemMessage.systemMessageType = .ParticipantsRemoved
         systemMessage.removedUsers = otherUsers
         systemMessage.sender = aSender
@@ -126,7 +126,7 @@ class ZMLocalNotificationForSystemMessageTests : ZMLocalNotificationForEventTest
     func testThatItCreatesANotificationForConnectionRequest(){
         
         // given
-        let systemMessage = ZMSystemMessage.insertNewObjectInManagedObjectContext(syncMOC)
+        let systemMessage = ZMSystemMessage.insertNewObject(in: syncMOC)
         systemMessage.systemMessageType = .ConnectionRequest
         systemMessage.sender = sender
         systemMessage.text = "Special User"

@@ -37,14 +37,14 @@ class EventDecoderTest: MessagingTest {
     }
     
     func dummyEvent() -> ZMUpdateEvent {
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation.remoteIdentifier = UUID.create()
         let payload = payloadForMessageInConversation(conversation, type: EventConversationAdd, data: ["foo": "bar"])
         let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
         return event
     }
     
-    func insert(events: [ZMUpdateEvent], startIndex: Int64 = 0) {
+    func insert(_ events: [ZMUpdateEvent], startIndex: Int64 = 0) {
         eventMOC.performGroupedBlockAndWait {
             events.enumerate().forEach { index, event  in
                 let _ = StoredUpdateEvent.create(event, managedObjectContext: self.eventMOC, index: startIndex + index)

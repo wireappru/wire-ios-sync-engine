@@ -123,7 +123,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
         }
         
         XCTAssertTrue(pingBackStatus.hasNoticeNotificationIDs)
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = NSUUID()
         let eventPayload = self.payloadForMessageInConversation(conversation, type: EventConversationAdd, data: [])
         let event = ZMUpdateEvent(fromEventStreamPayload:eventPayload, uuid: nextUUID)
@@ -136,7 +136,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
         
         // then
         XCTAssertTrue(didPerformPingBackCalled)
-        XCTAssertEqual(receivedStatus, .Success)
+        XCTAssertEqual(receivedStatus, .success)
         XCTAssertEqual(receivedEventsWithID?.identifier, nextUUID)
         XCTAssertEqual(receivedFinalEvents, [event])
     }
@@ -168,7 +168,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
         
         // then
         XCTAssertTrue(didPerformPingBackCalled)
-        XCTAssertEqual(receivedStatus, .TryAgainLater)
+        XCTAssertEqual(receivedStatus, .tryAgainLater)
         XCTAssertEqual(receivedEventsWithID?.identifier, nextUUID)
         XCTAssertEqual(receivedFinalEvents, [])
     }

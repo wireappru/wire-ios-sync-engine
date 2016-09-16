@@ -79,9 +79,9 @@ class UserClientRequestStrategyTests: RequestStrategyTestBase {
 extension UserClientRequestStrategyTests {
 
     func createSelfClient(_ context: NSManagedObjectContext) -> UserClient {
-        let selfClient = UserClient.insertNewObjectInManagedObjectContext(context)
+        let selfClient = UserClient.insertNewObject(in: context)
         selfClient.remoteIdentifier = nil
-        selfClient.user = ZMUser.selfUserInContext(context)
+        selfClient.user = ZMUser.selfUser(in: context)
         return selfClient
     }
     
@@ -248,7 +248,7 @@ extension UserClientRequestStrategyTests {
         // given
         clientRegistrationStatus.mockPhase = .Unregistered
 
-        let selfUser = ZMUser.selfUserInContext(self.sut.managedObjectContext)
+        let selfUser = ZMUser.selfUser(in: self.sut.managedObjectContext)
         selfUser.emailAddress = "hello@example.com";
         
         let client = createSelfClient(sut.managedObjectContext)
@@ -281,7 +281,7 @@ extension UserClientRequestStrategyTests {
 
         let client = createSelfClient(sut.managedObjectContext)
         sut.notifyChangeTrackers(client)
-        let selfUser = ZMUser.selfUserInContext(self.sut.managedObjectContext)
+        let selfUser = ZMUser.selfUser(in: self.sut.managedObjectContext)
         selfUser.remoteIdentifier = UUID.create()
         
 
@@ -315,7 +315,7 @@ extension UserClientRequestStrategyTests {
         // given
         clientRegistrationStatus.mockPhase = .Registered
 
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
+        let client = UserClient.insertNewObject(in: self.sut.managedObjectContext)
         client.remoteIdentifier = UUID.create().transportString()
         self.sut.managedObjectContext.saveOrRollback()
         
@@ -343,7 +343,7 @@ extension UserClientRequestStrategyTests {
         // given
         clientRegistrationStatus.mockPhase = .Registered
         
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
+        let client = UserClient.insertNewObject(in: self.sut.managedObjectContext)
 
         // when
         client.remoteIdentifier = nil
@@ -359,7 +359,7 @@ extension UserClientRequestStrategyTests {
     
     func testThatItDoesNotReturnRequestIfNumberOfRemainingKeysIsAboveMinimum() {
         // given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
+        let client = UserClient.insertNewObject(in: self.sut.managedObjectContext)
         client.remoteIdentifier = UUID.create().transportString()
         self.sut.managedObjectContext.saveOrRollback()
         
@@ -377,7 +377,7 @@ extension UserClientRequestStrategyTests {
     
     func testThatItResetsNumberOfRemainingKeysAfterNewKeysUploaded() {
         // given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
+        let client = UserClient.insertNewObject(in: self.sut.managedObjectContext)
         client.remoteIdentifier = UUID.create().transportString()
         self.sut.managedObjectContext.saveOrRollback()
         
@@ -398,7 +398,7 @@ extension UserClientRequestStrategyTests {
 extension UserClientRequestStrategyTests {
     
     
-    func  payloadForClients() -> [[String: String!]] {
+    func  payloadForClients() -> [[String: String]] {
         let payload =  [
             [
                 "id" : UUID.create().transportString(),
@@ -461,7 +461,7 @@ extension UserClientRequestStrategyTests {
         let response = ZMTransportResponse(payload: payloadForOtherClients, HTTPstatus: 200, transportSessionError: nil)
         
         let identifier = UUID.create()
-        let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
+        let user = ZMUser.insertNewObject(in: syncMOC)
         user.remoteIdentifier = identifier
         
         // when
@@ -488,7 +488,7 @@ extension UserClientRequestStrategyTests {
         let payload = payloadForOtherClients(firstIdentifier, secondIdentifier)
         let response = ZMTransportResponse(payload: payload, HTTPstatus: 200, transportSessionError: nil)
         let identifier = UUID.create()
-        let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
+        let user = ZMUser.insertNewObject(in: syncMOC)
         user.remoteIdentifier = identifier
         
         // when
@@ -511,7 +511,7 @@ extension UserClientRequestStrategyTests {
         let payload = payloadForOtherClients(firstIdentifier)
         let response = ZMTransportResponse(payload: payload, HTTPstatus: 200, transportSessionError: nil)
         let identifier = UUID.create()
-        let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
+        let user = ZMUser.insertNewObject(in: syncMOC)
         user.mutableSetValueForKey("clients").addObject(localOnlyClient)
         user.remoteIdentifier = identifier
         XCTAssertEqual(user.clients.count, 1)
@@ -538,12 +538,12 @@ extension UserClientRequestStrategyTests {
         clientRegistrationStatus.mockPhase = .Unregistered
         clientUpdateStatus.mockPhase = .DeletingClients
         var clients = [
-            UserClient.insertNewObjectInManagedObjectContext(self.syncMOC),
-            UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+            UserClient.insertNewObject(in: self.syncMOC),
+            UserClient.insertNewObject(in: self.syncMOC)
         ]
         clients.forEach{
             $0.remoteIdentifier = "\($0.objectID)"
-            $0.user = ZMUser.selfUserInContext(self.syncMOC)
+            $0.user = ZMUser.selfUser(in: self.syncMOC)
         }
         self.syncMOC.saveOrRollback()
         
@@ -570,9 +570,9 @@ extension UserClientRequestStrategyTests {
         var client : UserClient!
         
         self.syncMOC.performGroupedBlockAndWait{
-            client =  UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+            client =  UserClient.insertNewObject(in: self.syncMOC)
             client.remoteIdentifier = "\(client.objectID)"
-            client.user = ZMUser.selfUserInContext(self.syncMOC)
+            client.user = ZMUser.selfUser(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             
             let response = ZMTransportResponse(payload: [:], HTTPstatus: 200, transportSessionError: nil)
@@ -663,7 +663,7 @@ extension UserClientRequestStrategyTests {
     func testThatItAddsAnIgnoredSelfUserClientWhenReceivingAPush() {
         
         // given
-        let selfUser = ZMUser.selfUserInContext(self.syncMOC)
+        let selfUser = ZMUser.selfUser(in: self.syncMOC)
         let (selfClient, _) = createClients()
         let clientId = "94766bd92f56923d"
         let clientLabel = "iPhone 23sd Plus Air Pro C"
@@ -678,7 +678,7 @@ extension UserClientRequestStrategyTests {
             "transient" : false
         ]
         
-        let events = ZMUpdateEvent.eventsArrayFromPushChannelData(payload)
+        let events = ZMUpdateEvent.eventsArray(fromPushChannelData: payload)
         guard let event = events!.first else {
             XCTFail()
             return
@@ -702,7 +702,7 @@ extension UserClientRequestStrategyTests {
     func testThatItAddsASelfUserClientWhenDownloadingAClientEvent() {
         
         // given
-        let selfUser = ZMUser.selfUserInContext(self.syncMOC)
+        let selfUser = ZMUser.selfUser(in: self.syncMOC)
         let clientId = "94766bd92f56923d"
         
         XCTAssertEqual(selfUser.clients.count, 0)
@@ -724,7 +724,7 @@ extension UserClientRequestStrategyTests {
     func testThatItDoesNotAddASelfUserClientWhenReceivingAPushIfTheClientExistsAlready() {
         
         // given
-        let selfUser = ZMUser.selfUserInContext(self.syncMOC)
+        let selfUser = ZMUser.selfUser(in: self.syncMOC)
         let existingClient = self.createSelfClient()
         
         XCTAssertEqual(selfUser.clients.count, 1)
@@ -757,7 +757,7 @@ extension UserClientRequestStrategyTests {
     func testThatItDeletesASelfClientWhenReceivingAPush() {
         
         // given
-        let selfUser = ZMUser.selfUserInContext(self.syncMOC)
+        let selfUser = ZMUser.selfUser(in: self.syncMOC)
         let existingClient1 = self.createSelfClient()
         let existingClient2 = self.createClientForUser(selfUser, createSessionWithSelfUser:false)
         
@@ -791,7 +791,7 @@ extension UserClientRequestStrategyTests {
     func testThatItInvalidatesTheCurrentSelfClientAndWipeCryptoBoxWhenReceivingAPush() {
         
         // given
-        let selfUser = ZMUser.selfUserInContext(syncMOC)
+        let selfUser = ZMUser.selfUser(in: syncMOC)
         let existingClient = createSelfClient()
 
         var fingerprint : Data?

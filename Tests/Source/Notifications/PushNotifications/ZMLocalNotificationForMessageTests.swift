@@ -159,7 +159,7 @@ enum FileType {
             name = "audioFile"
             fileExtension = "m4a"
         }
-        return Bundle(forClass: ZMLocalNotificationForMessageTests.self).URLForResource(name, withExtension: fileExtension)!
+        return Bundle(for: ZMLocalNotificationForMessageTests.self).url(forResource: name, withExtension: fileExtension)!
     }
     
     var testData : Data {

@@ -29,15 +29,15 @@ class SessionBaseTest : MessagingTest {
         super.setUp()
         let convID = UUID.create()
         let senderID = UUID.create()
-        sender = ZMUser.insertNewObjectInManagedObjectContext(uiMOC)
+        sender = ZMUser.insertNewObject(in: uiMOC)
         sender.remoteIdentifier = senderID
-        otherUser = ZMUser.insertNewObjectInManagedObjectContext(uiMOC)
+        otherUser = ZMUser.insertNewObject(in: uiMOC)
         otherUser.remoteIdentifier = UUID.create()
         
         conversation = ZMConversation.insertGroupConversationIntoManagedObjectContext(uiMOC, withParticipants: [sender, otherUser])
         conversation.remoteIdentifier = convID
         
-        selfUser = ZMUser.selfUserInContext(uiMOC)
+        selfUser = ZMUser.selfUser(in: uiMOC)
         selfUser.remoteIdentifier = UUID.create()
         
     }

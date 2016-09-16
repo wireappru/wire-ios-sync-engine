@@ -77,7 +77,7 @@ class FileUploadRequestStrategyTests: MessagingTest {
     
     /// Creates a message that should generate request
     func createMessage(_ name: String, uploadState: ZMAssetUploadState = .UploadingPlaceholder, inConversation: ZMConversation? = nil, thumbnail: Data? = nil, url: NSURL = testDataURL) -> ZMAssetClientMessage {
-        let conversation = inConversation ?? ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let conversation = inConversation ?? ZMConversation.insertNewObject(in: self.syncMOC)
         conversation!.remoteIdentifier = UUID.create()
         // This is a video metadata since it's the only file type which supports thumbnails at the moment.
         let msg = conversation!.appendMessageWithFileMetadata(ZMVideoMetadata(fileURL: url, thumbnail: thumbnail)) as! ZMAssetClientMessage
@@ -87,11 +87,11 @@ class FileUploadRequestStrategyTests: MessagingTest {
     }
     
     func createOtherClientAndConversation() -> (UserClient, ZMConversation) {
-        let otherUser = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
+        let otherUser = ZMUser.insertNewObject(in: syncMOC)
         otherUser.remoteIdentifier = UUID.create()
         let otherClient = createClientForUser(otherUser, createSessionWithSelfUser: true)
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation.conversationType = .Group
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.conversationType = .group
         conversation.addParticipant(otherUser)
         XCTAssertTrue(syncMOC.saveOrRollback())
         
@@ -962,9 +962,9 @@ extension FileUploadRequestStrategyTests {
         let msg = createMessage("foo")
 
         // client and user
-        let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let user = ZMUser.insertNewObject(in: self.syncMOC)
         user.remoteIdentifier = UUID.create()
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         client.remoteIdentifier = "abc123123"
         client.user = user
         
@@ -1000,7 +1000,7 @@ extension FileUploadRequestStrategyTests {
         let clientID = "1234567abc"
         
         // user
-        let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let user = ZMUser.insertNewObject(in: self.syncMOC)
         user.remoteIdentifier = UUID.create()
         
         self.syncMOC.saveOrRollback()
@@ -1037,7 +1037,7 @@ extension FileUploadRequestStrategyTests {
         let clientID = "1234567abc"
         
         // user
-        let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let user = ZMUser.insertNewObject(in: self.syncMOC)
         user.remoteIdentifier = UUID.create()
         
         self.syncMOC.saveOrRollback()

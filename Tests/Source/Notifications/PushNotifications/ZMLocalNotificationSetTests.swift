@@ -55,7 +55,7 @@ class MockLocalNotification : ZMLocalNotification {
 class MockEventNotification : MockLocalNotification, EventNotification {
     var eventTypeUnderTest : ZMUpdateEventType?
     var ignoresSilencedState : Bool { return false }
-    var eventType : ZMUpdateEventType { return eventTypeUnderTest ?? .Unknown }
+    var eventType : ZMUpdateEventType { return eventTypeUnderTest ?? .unknown }
     unowned var application: Application
     unowned var managedObjectContext: NSManagedObjectContext
     required init?(events: [ZMUpdateEvent], conversation: ZMConversation?, managedObjectContext: NSManagedObjectContext, application: Application?) {
@@ -102,14 +102,14 @@ class ZMLocalNotificationSetTests : MessagingTest {
     
     func testThatItCancelsNotificationsOnlyForSpecificConversations(){
         // given
-        let conversation1 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conversation1 = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation1.remoteIdentifier = NSUUID()
         let localNote1 = UILocalNotification()
         localNote1.alertBody = "note1"
         let note1 = MockLocalNotification(conversationID: conversation1.remoteIdentifier)
         note1.add(localNote1)
         
-        let conversation2 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conversation2 = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation2.remoteIdentifier = NSUUID()
         let localNote2 = UILocalNotification()
         localNote2.alertBody = "note2"
@@ -131,7 +131,7 @@ class ZMLocalNotificationSetTests : MessagingTest {
     
     func testThatItOnlyCancelsCallNotificationsIfSpecified(){
         // given
-        let conversation1 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conversation1 = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation1.remoteIdentifier = NSUUID()
         let localNote1 = UILocalNotification()
         localNote1.alertBody = "note1"

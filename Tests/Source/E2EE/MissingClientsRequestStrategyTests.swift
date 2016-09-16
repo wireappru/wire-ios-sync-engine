@@ -68,16 +68,16 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
     func testThatItCreatesMissingClientsRequest() {
         
         // given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         
-        let missingUser = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let missingUser = ZMUser.insertNewObject(in: self.syncMOC)
         missingUser.remoteIdentifier = UUID.create()
         
-        let firstMissingClient = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let firstMissingClient = UserClient.insertNewObject(in: self.syncMOC)
         firstMissingClient.remoteIdentifier = NSString.createAlphanumericalString()
         firstMissingClient.user = missingUser
         
-        let secondMissingClient = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let secondMissingClient = UserClient.insertNewObject(in: self.syncMOC)
         secondMissingClient.remoteIdentifier = NSString.createAlphanumericalString()
         secondMissingClient.user = missingUser
         
@@ -106,9 +106,9 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         
         let client = createSelfClient()
         
-        let missingClient = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
+        let missingClient = UserClient.insertNewObject(in: self.sut.managedObjectContext)
         missingClient.remoteIdentifier = NSString.createAlphanumericalString()
-        let missingUser = ZMUser.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
+        let missingUser = ZMUser.insertNewObject(in: self.sut.managedObjectContext)
         missingUser.remoteIdentifier = UUID.create()
         missingClient.user = missingUser
         
@@ -432,7 +432,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
     }
     
     func assertRequestEqualsExpectedRequest(_ request: ZMTransportRequest?) {
-        let client = ZMUser.selfUserInContext(self.sut.managedObjectContext).selfClient()
+        let client = ZMUser.selfUser(in: self.sut.managedObjectContext).selfClient()
         let expectedRequest = sut.requestsFactory.fetchMissingClientKeysRequest(client!.missingClients!).transportRequest
         
         AssertOptionalNotNil(request, "Should return request if there is inserted UserClient object") { request in
@@ -473,7 +473,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
     }
     
     func messageThatMissesRecipient(_ missingRecipient: UserClient) -> ZMClientMessage {
-        let message = ZMClientMessage.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let message = ZMClientMessage.insertNewObject(in: self.syncMOC)
         let data = ZMGenericMessage(text: self.name, nonce: UUID.create().transportString()).data()
         message.addData(data)
         message.missesRecipient(missingRecipient)
@@ -527,7 +527,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
     func testThatItDoesNotResetKeyForMissingClientIfThereIsAMissingClient(){
         // given
         let client = self.createSelfClient()
-        client.missesClient(UserClient.insertNewObjectInManagedObjectContext(self.syncMOC))
+        client.missesClient(UserClient.insertNewObject(in: self.syncMOC))
         client.setLocallyModifiedKeys(Set(arrayLiteral: ZMUserClientMissingKey))
         XCTAssertTrue(client.keysThatHaveLocalModifications.contains(ZMUserClientMissingKey))
         

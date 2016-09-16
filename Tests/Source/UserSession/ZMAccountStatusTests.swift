@@ -45,8 +45,8 @@ class ZMAccountStatusTests : MessagingTest {
     
     func testThatIfItLaunchesWithoutCookieButWithHistoryItSetsAccountStateToDeactivatedAccount(){
         // given
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
 
         let cookieStorage = MockCookieStorage()
         cookieStorage.shouldReturnCookie = false
@@ -73,8 +73,8 @@ class ZMAccountStatusTests : MessagingTest {
     
     func testThatIfItLaunchesWithCookieAndHistoryItSetsAccountStateToExistingAccount(){
         // given
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
         
         let cookieStorage = MockCookieStorage()
         cookieStorage.shouldReturnCookie = true
@@ -89,8 +89,8 @@ class ZMAccountStatusTests : MessagingTest {
     
     func testThatWhenInitialSyncCompletesItSetsAccountStateToExistingAcccount(){
         // given
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
         
         let cookieStorage = MockCookieStorage()
         cookieStorage.shouldReturnCookie = true
@@ -119,8 +119,8 @@ class ZMAccountStatusTests : MessagingTest {
     
     func testThatWhenAuthenticationSucceedsOnOldAccountItDoesNotSwitchToNewDeviceExistingAccount() {
         // given
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
         
         let cookieStorage = MockCookieStorage()
         cookieStorage.shouldReturnCookie = true
@@ -166,13 +166,13 @@ class ZMAccountStatusTests : MessagingTest {
         ZMUserSessionAuthenticationNotification.notifyAuthenticationDidSucceed()
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
         
-        let oneOnOne = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        oneOnOne.conversationType = .OneOnOne
-        let group = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        group.conversationType = .Group
-        let connection = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let oneOnOne = ZMConversation.insertNewObject(in: self.uiMOC)
+        oneOnOne.conversationType = .oneOnOne
+        let group = ZMConversation.insertNewObject(in: self.uiMOC)
+        group.conversationType = .group
+        let connection = ZMConversation.insertNewObject(in: self.uiMOC)
         connection.conversationType = .Connection
-        let selfConv = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let selfConv = ZMConversation.insertNewObject(in: self.uiMOC)
         selfConv.conversationType = .Self
         
         XCTAssertEqual(self.sut.currentAccountState, AccountState.NewDeviceExistingAccount)
@@ -202,13 +202,13 @@ class ZMAccountStatusTests : MessagingTest {
         let cookieStorage = MockCookieStorage()
         cookieStorage.shouldReturnCookie = false
         
-        let oneOnOne = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        oneOnOne.conversationType = .OneOnOne
-        let group = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        group.conversationType = .Group
-        let connection = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let oneOnOne = ZMConversation.insertNewObject(in: self.uiMOC)
+        oneOnOne.conversationType = .oneOnOne
+        let group = ZMConversation.insertNewObject(in: self.uiMOC)
+        group.conversationType = .group
+        let connection = ZMConversation.insertNewObject(in: self.uiMOC)
         connection.conversationType = .Connection
-        let selfConv = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let selfConv = ZMConversation.insertNewObject(in: self.uiMOC)
         selfConv.conversationType = .Self
         
         self.sut = ZMAccountStatus(managedObjectContext: self.uiMOC, cookieStorage: cookieStorage)
@@ -250,8 +250,8 @@ class ZMAccountStatusTests : MessagingTest {
     func testThatItSwitchesToOldDeviceDeactivatedAccountWhneAuthenticationFails() {
     
         // given
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
+        ZMConversation.insertNewObject(in: self.uiMOC)
         
         let cookieStorage = MockCookieStorage()
         cookieStorage.shouldReturnCookie = true

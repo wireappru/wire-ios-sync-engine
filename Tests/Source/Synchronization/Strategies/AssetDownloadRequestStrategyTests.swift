@@ -52,7 +52,7 @@ class AssetDownloadRequestStrategyTests: MessagingTest {
     }
     
     fileprivate func createConversation() -> ZMConversation {
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation.remoteIdentifier = UUID.create()
         return conversation
     }
@@ -176,8 +176,8 @@ extension AssetDownloadRequestStrategyTests {
         // given
         let plainTextData = Data.secureRandomData(ofLength: 500)
         let key = Data.randomEncryptionKey()
-        let encryptedData = plainTextData?.zmEncryptPrefixingPlainTextIV(key: key!)
-        let sha = encryptedData?.zmSHA256Digest()
+        let encryptedData = plainTextData.zmEncryptPrefixingPlainTextIV(key: key)
+        let sha = encryptedData.zmSHA256Digest()
         
         
         let message = self.createFileTransferMessage(self.conversation)
@@ -284,8 +284,8 @@ extension AssetDownloadRequestStrategyTests {
         // given
         let plainTextData = Data.secureRandomData(ofLength: 500)
         let key = Data.randomEncryptionKey()
-        let encryptedData = plainTextData?.zmEncryptPrefixingPlainTextIV(key: key!)
-        let sha = encryptedData?.zmSHA256Digest()
+        let encryptedData = plainTextData.zmEncryptPrefixingPlainTextIV(key: key)
+        let sha = encryptedData.zmSHA256Digest()
         
         
         let message = self.createFileTransferMessage(self.conversation)

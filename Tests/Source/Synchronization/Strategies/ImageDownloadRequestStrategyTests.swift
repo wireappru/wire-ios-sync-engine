@@ -36,7 +36,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     }
     
     func createImageMessage(withAssetId assetId: NSUUID?) -> ZMAssetClientMessage {
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation!.remoteIdentifier = UUID.create()
         
         let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.create())
@@ -69,7 +69,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     }
     
     func createFileMessage() -> ZMAssetClientMessage {
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation!.remoteIdentifier = UUID.create()
         
         let nonce = UUID.create()

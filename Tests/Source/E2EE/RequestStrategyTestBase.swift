@@ -62,9 +62,9 @@ class RequestStrategyTestBase : MessagingTest {
         }
         XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.5))
         
-        let client = UserClient.insertNewObjectInManagedObjectContext(syncMOC)
+        let client = UserClient.insertNewObject(in: syncMOC)
         client.remoteIdentifier = mockClient.identifier
-        let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
+        let user = ZMUser.insertNewObject(in: syncMOC)
         user.remoteIdentifier = UUID.uuid(transport: mockUser.identifier)
         client.user = user
         return client

@@ -48,14 +48,14 @@ class UserClientRequestFactoryTests: MessagingTest {
     func expectedKeyPayloadForClientPreKeys(_ client : UserClient) -> [[String : AnyObject]] {
         let generatedKeys = (client.keysStore as! FakeKeysStore).lastGeneratedKeys
         let expectedPrekeys : [[String: AnyObject]] = generatedKeys.map { (key: (id: UInt16, prekey: String)) in
-            return ["key": key.prekey, "id": NSNumber(unsignedShort: key.id)]
+            return ["key": key.prekey, "id": NSNumber(value: key.id)]
         }
         return expectedPrekeys
     }
     
     func testThatItCreatesRegistrationRequestWithEmailCorrectly() {
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
         
         //when
@@ -88,7 +88,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     
     func testThatItCreatesRegistrationRequestWithPhoneCredentialsCorrectly() {
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         
         //when
         let request : ZMUpstreamRequest
@@ -132,7 +132,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     
     func testThatItReturnsNilForRegisterClientRequestIfCanNotGeneratePreKyes() {
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         (client.keysStore as! FakeKeysStore).failToGeneratePreKeys = true
         
         let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
@@ -145,7 +145,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     
     func testThatItReturnsNilForRegisterClientRequestIfCanNotGenerateLastPreKey() {
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         (client.keysStore as! FakeKeysStore).failToGenerateLastPreKey = true
 
         let credentials = ZMEmailCredentials(email: "some@example.com", password: "123")
@@ -159,7 +159,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     func testThatItCreatesUpdateClientRequestCorrectlyWhenStartingFromPrekey0() {
         
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         client.remoteIdentifier = UUID.create().transportString()
         
         //when
@@ -183,7 +183,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     func testThatItCreatesUpdateClientRequestCorrectlyWhenStartingFromPrekey400() {
         
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         client.remoteIdentifier = UUID.create().transportString()
         client.preKeysRangeMax = 400
         
@@ -209,7 +209,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     func testThatItReturnsNilForUpdateClientRequestIfCanNotGeneratePreKeys() {
         
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         (client.keysStore as! FakeKeysStore).failToGeneratePreKeys = true
 
         client.remoteIdentifier = UUID.create().transportString()
@@ -222,7 +222,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     
     func testThatItDoesNotReturnRequestIfClientIsNotSynced() {
         //given
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         
         // when
         do {
@@ -240,7 +240,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         let email = "foo@example.com"
         let password = "gfsgdfgdfgdfgdfg"
         let credentials = ZMEmailCredentials(email: email, password: password)
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let client = UserClient.insertNewObject(in: self.syncMOC)
         client.remoteIdentifier = "\(client.objectID)"
         self.syncMOC.saveOrRollback()
         

@@ -44,7 +44,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItAddsACallTimer() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             let sut = ZMCallTimer(managedObjectContext: self.syncMOC)
             
@@ -60,7 +60,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItAddsOnlyOneCallTimerPerConversation() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             let sut = ZMCallTimer(managedObjectContext: self.syncMOC)
             
@@ -76,8 +76,8 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItCanAddMoreThanOneCallTimer() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation1 = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-            let conversation2 = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation1 = ZMConversation.insertNewObject(in: self.syncMOC)
+            let conversation2 = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             let sut = ZMCallTimer(managedObjectContext: self.syncMOC)
             
@@ -94,7 +94,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItTearsDownACallTimer() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             let testClient = TestClient()
             
@@ -118,7 +118,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItRemovesTheCallTimerAfterItFired() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             let sut = ZMCallTimer(managedObjectContext: self.syncMOC)
             
@@ -135,7 +135,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatCallsTimerDidFireOnVoiceChannel() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
 
             let testClient = TestClient()
@@ -159,7 +159,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItCancelsAndRemovesTheTimer() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
 
             let testClient = TestClient()
@@ -187,7 +187,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItDoesNotRemovesAndCancelsATimerWhenDeletingAConversation() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             let objectID = conversation.objectID
             
@@ -220,7 +220,7 @@ class ZMCallTimerTests : MessagingTest {
     func testThatItDoesNotCancelAndRemovesTheTimerWhenRefreshingAConversation() {
         self.syncMOC.performBlockAndWait { () -> Void in
             // given
-            let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            let conversation = ZMConversation.insertNewObject(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
             let objectID = conversation.objectID
             

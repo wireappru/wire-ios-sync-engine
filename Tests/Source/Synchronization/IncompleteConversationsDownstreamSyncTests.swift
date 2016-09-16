@@ -117,8 +117,8 @@ extension IncompleteConversationsDownstreamSyncTests {
     func testThatWhenCallingNextRequestItAsksForAConversationToTheHighPriorityIncompleteConvCache() {
     
         // given
-        let conv1 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        let conv2 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv1 = ZMConversation.insertNewObject(in: self.uiMOC)
+        let conv2 = ZMConversation.insertNewObject(in: self.uiMOC)
         let range1 = ZMEventIDRange(eventIDs: [ZMEventID(major: 15, minor: 100)])
         let range2 = ZMEventIDRange(eventIDs: [ZMEventID(major: 10, minor: 100)])
         let dummyRequest = ZMTransportRequest(getFromPath: "Dummy")
@@ -163,7 +163,7 @@ extension IncompleteConversationsDownstreamSyncTests {
         }
         
         // given
-        let conv = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv = ZMConversation.insertNewObject(in: self.uiMOC)
         let range = ZMEventIDRange()
         let dummyRequest = ZMTransportRequest(getFromPath: "Dummy")
         self.historySynchronizationStatusStub.shouldDownloadFullHistory = true
@@ -189,7 +189,7 @@ extension IncompleteConversationsDownstreamSyncTests {
     func testThatItDoesNotReturnARequestForTheSameConversationIfOneIsStillRunning() {
         
         // given
-        let conv = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv = ZMConversation.insertNewObject(in: self.uiMOC)
         let range = ZMEventIDRange()
         let dummyRequest = ZMTransportRequest(getFromPath: "Dummy")
         let sut = createSut()
@@ -219,7 +219,7 @@ extension IncompleteConversationsDownstreamSyncTests {
     func testThatItDoesReturnARequestForTheSameConversationIfTheLastRequestWasSuccessful() {
         
         // given
-        let conv = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv = ZMConversation.insertNewObject(in: self.uiMOC)
         let range1 = ZMEventIDRange(eventIDs: [ZMEventID(major: 15, minor: 100)])
         let range2 = ZMEventIDRange(eventIDs: [ZMEventID(major: 10, minor: 100)])
         let dummyRequest1 = ZMTransportRequest(getFromPath: "dummy1")
@@ -263,7 +263,7 @@ extension IncompleteConversationsDownstreamSyncTests {
     func testThatConversationIsStillIsTheListOfBeingFetchedIfServerRespondToBackoff() {
         
         // given
-        let conv = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv = ZMConversation.insertNewObject(in: self.uiMOC)
         let range = ZMEventIDRange()
         let dummyRequest = ZMTransportRequest(getFromPath: "Dummy")
         let sut = createSut()
@@ -302,7 +302,7 @@ extension IncompleteConversationsDownstreamSyncTests {
     func testThatItCallsTheTranscoderWithTheTransportResult() {
         
         // given
-        let conv = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv = ZMConversation.insertNewObject(in: self.uiMOC)
         let range = ZMEventIDRange()
         let dummyRequest = ZMTransportRequest(getFromPath: "Dummy")
         let response = ZMTransportResponse(payload: ["Foo"], HTTPstatus: 205, transportSessionError: nil)
@@ -346,8 +346,8 @@ extension IncompleteConversationsDownstreamSyncTests {
 
         
         // given
-        let conv1 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        let conv2 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv1 = ZMConversation.insertNewObject(in: self.uiMOC)
+        let conv2 = ZMConversation.insertNewObject(in: self.uiMOC)
         let range = ZMEventIDRange(eventIDs: [ZMEventID(major: 15, minor: 100)])
         self.historySynchronizationStatusStub.shouldDownloadFullHistory = true
         
@@ -382,8 +382,8 @@ extension IncompleteConversationsDownstreamSyncTests {
         }
         
         // given
-        let conv1 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        let conv2 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv1 = ZMConversation.insertNewObject(in: self.uiMOC)
+        let conv2 = ZMConversation.insertNewObject(in: self.uiMOC)
         let range = ZMEventIDRange(eventIDs: [ZMEventID(major: 15, minor: 100)])
         self.historySynchronizationStatusStub.shouldDownloadFullHistory = true
         
@@ -416,8 +416,8 @@ extension IncompleteConversationsDownstreamSyncTests {
         
         // given
         let startDate = Date()
-        let conv1 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
-        let conv2 = ZMConversation.insertNewObjectInManagedObjectContext(self.uiMOC)
+        let conv1 = ZMConversation.insertNewObject(in: self.uiMOC)
+        let conv2 = ZMConversation.insertNewObject(in: self.uiMOC)
         let range = ZMEventIDRange(eventIDs: [ZMEventID(major: 15, minor: 100)])
         self.historySynchronizationStatusStub.shouldDownloadFullHistory = true
         

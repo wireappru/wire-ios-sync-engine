@@ -93,8 +93,7 @@ class EventsWithIdentifierTests: ZMTBaseTest {
             "payload": [messageAddPayload(), messageAddPayload()]
         ]
         
-        
-        events = ZMUpdateEvent.eventsArrayFromPushChannelData(pushChannelData)
+        events = ZMUpdateEvent.eventsArray(fromPushChannelData: pushChannelData)
         sut = EventsWithIdentifier(events: events, identifier: identifier, isNotice:true)
     }
     
@@ -274,11 +273,11 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
     }
     
     func testThatItCallsTheHandlerAfterPingBackRequestCompletedSuccessfully() {
-        checkThatItCallsTheHandlerAfterPingBackRequestCompleted(.Success)
+        checkThatItCallsTheHandlerAfterPingBackRequestCompleted(.success)
     }
     
     func testThatItCallsTheHandlerAfterPingBackRequestCompletedUnsuccessfully_Permanent() {
-        checkThatItCallsTheHandlerAfterPingBackRequestCompleted(.PermanentError)
+        checkThatItCallsTheHandlerAfterPingBackRequestCompleted(.permanentError)
     }
     
     func checkThatItCallsTheHandlerAfterPingBackRequestCompleted(_ status: ZMTransportResponseStatus) {

@@ -23,7 +23,7 @@ import ZMCMockTransport
 class FakeBackgroundActivityFactory : BackgroundActivityFactory {
     var nameToHandler : [String : ((Void) -> Void)] = [:]
     
-    override func backgroundActivity(withName name: String, expirationHandler handler: ((Void) -> Void)) -> ZMBackgroundActivity? {
+    override func backgroundActivity(withName name: String, expirationHandler handler: @escaping ((Void) -> Void)) -> ZMBackgroundActivity? {
         nameToHandler[name] = handler
         return ZMBackgroundActivity()
     }

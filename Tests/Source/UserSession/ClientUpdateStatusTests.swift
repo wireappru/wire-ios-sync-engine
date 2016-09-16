@@ -55,9 +55,9 @@ class ClientUpdateStatusTests: MessagingTest {
     func insertNewClient(_ isSelfClient: Bool) -> UserClient! {
         var client : UserClient!
         self.syncMOC.performGroupedBlockAndWait { () -> Void in
-            client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+            client = UserClient.insertNewObject(in: self.syncMOC)
             client.remoteIdentifier = isSelfClient ? "selfIdentifier" : "identifier"
-            client.user = ZMUser.selfUserInContext(self.syncMOC)
+            client.user = ZMUser.selfUser(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
         }
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))

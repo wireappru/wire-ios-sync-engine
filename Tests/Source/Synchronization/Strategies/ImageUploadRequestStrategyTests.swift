@@ -48,7 +48,7 @@ class ImageUploadRequestStrategyTests: MessagingTest {
     /// MARK - Helpers
     
     func createImageMessage() -> ZMAssetClientMessage {
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
         conversation!.remoteIdentifier = UUID.create()
         
         let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.create())

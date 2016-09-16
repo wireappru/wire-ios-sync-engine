@@ -174,7 +174,7 @@ class PingBackRequestStrategyTests: MessagingTest {
         
         // then
         XCTAssertTrue(didPerformPingBackCalled)
-        XCTAssertEqual(receivedStatus, .Success)
+        XCTAssertEqual(receivedStatus, .success)
         XCTAssertEqual(receivedEventsWithID?.identifier, nextUUID)
     }
     
@@ -202,7 +202,7 @@ class PingBackRequestStrategyTests: MessagingTest {
         
         // then
         XCTAssertEqual(didPerformPingBackCallCount, 1)
-        XCTAssertEqual(receivedStatus, .TryAgainLater)
+        XCTAssertEqual(receivedStatus, .tryAgainLater)
         XCTAssertEqual(receivedEventsWithID?.identifier, nextUUID)
         
         XCTAssertTrue(pingBackStatus.hasNotificationIDs)
@@ -212,7 +212,7 @@ class PingBackRequestStrategyTests: MessagingTest {
         XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.5))
         
         XCTAssertEqual(didPerformPingBackCallCount, 2)
-        XCTAssertEqual(receivedStatus, .Success)
+        XCTAssertEqual(receivedStatus, .success)
         XCTAssertEqual(receivedEventsWithID?.identifier, nextUUID)
     }
     
@@ -241,7 +241,7 @@ class PingBackRequestStrategyTests: MessagingTest {
         
         // then
         XCTAssertTrue(didPerformPingBackCalled)
-        XCTAssertEqual(receivedStatus, .PermanentError)
+        XCTAssertEqual(receivedStatus, .permanentError)
         XCTAssertEqual(receivedEventsWithID?.identifier, nextUUID)
     }
 }
