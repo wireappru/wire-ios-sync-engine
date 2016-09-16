@@ -33,8 +33,8 @@ extension ClientMessageRequestFactoryTests {
         //given
         createSelfClient()
         let message = createClientTextMessage(true)
-        let conversationId = NSUUID.create()
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let conversationId = UUID.create()
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationId
         
         //when
@@ -54,14 +54,14 @@ extension ClientMessageRequestFactoryTests {
         //given
         createSelfClient()
         let message = createClientTextMessage(true)
-        let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
-        user.remoteIdentifier = UUID.createUUID()
-        let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
-        client.remoteIdentifier = UUID.createUUID().transportString()
+        let user = ZMUser.insertNewObject(in: self.syncMOC)
+        user.remoteIdentifier = UUID.create()
+        let client = UserClient.insertNewObject(in: self.syncMOC)
+        client.remoteIdentifier = UUID.create().transportString()
         client.user = user
         message.sender = user
-        let conversationId = NSUUID.create()
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        let conversationId = UUID.create()
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationId
         let confirmationMessage = message.confirmReception()
         
@@ -84,9 +84,9 @@ extension ClientMessageRequestFactoryTests {
             //given
             let imageData = self.verySmallJPEGData()
             let format = ZMImageFormat.medium
-            let conversationId = NSUUID.create()
+            let conversationId = UUID.create()
             let message = self.createImageMessageWithImageData(imageData, format: format, processed: true, stored: false, encrypted: true, moc: self.syncMOC)
-            message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
             message.visibleInConversation?.remoteIdentifier = conversationId
             
             //when
@@ -108,10 +108,10 @@ extension ClientMessageRequestFactoryTests {
             // given
             let imageData = self.verySmallJPEGData()
             let format = ZMImageFormat.medium
-            let conversationId = NSUUID.create()
+            let conversationId = UUID.create()
             let message = self.createImageMessageWithImageData(imageData, format: format, processed: false, stored: false, encrypted: true, moc: self.syncMOC)
-            message.assetId = NSUUID.createUUID()
-            message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+            message.assetId = UUID.create()
+            message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
             message.visibleInConversation?.remoteIdentifier = conversationId
             
             //when
@@ -135,9 +135,9 @@ extension ClientMessageRequestFactoryTests {
     func testThatItCreatesRequestToUploadAFileMessage_Placeholder() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, _) = createAssetFileMessage(false, encryptedDataOnDisk: false)
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -155,9 +155,9 @@ extension ClientMessageRequestFactoryTests {
     func testThatItCreatesRequestToUploadAFileMessage_Placeholder_UploadedDataPresent() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, _) = createAssetFileMessage(true, encryptedDataOnDisk: true)
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -175,9 +175,9 @@ extension ClientMessageRequestFactoryTests {
     func testThatItCreatesRequestToUploadAFileMessage_FileData() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, _) = createAssetFileMessage(true)
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -193,11 +193,11 @@ extension ClientMessageRequestFactoryTests {
     func testThatItCreatesRequestToReuploadFileMessageMetaData_WhenAssetIdIsPresent() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, _) = createAssetFileMessage()
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
-        message.assetId = .createUUID()
+        message.assetId = UUID.create()
         
         // when
         let sut = ClientMessageRequestFactory()
@@ -214,11 +214,11 @@ extension ClientMessageRequestFactoryTests {
     func testThatTheRequestToReuploadAFileMessageDoesNotContainTheBinaryFileData() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, nonce) = createAssetFileMessage()
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
-        message.assetId = .createUUID()
+        message.assetId = UUID.create()
         
         // when
         let sut = ClientMessageRequestFactory()
@@ -234,10 +234,10 @@ extension ClientMessageRequestFactoryTests {
     func testThatItDoesNotCreatesRequestToReuploadFileMessageMetaData_WhenAssetIdIsPresent_Placeholder() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, _) = createAssetFileMessage()
-        message.assetId = .createUUID()
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.assetId = UUID.create()
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -254,9 +254,9 @@ extension ClientMessageRequestFactoryTests {
     func testThatItWritesTheMultiPartRequestDataToDisk() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, data, nonce) = createAssetFileMessage()
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -276,9 +276,9 @@ extension ClientMessageRequestFactoryTests {
     func testThatItSetsTheDataMD5() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, data, nonce) = createAssetFileMessage(true)
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -299,9 +299,9 @@ extension ClientMessageRequestFactoryTests {
         // given
         createSelfClient()
         let imageData = verySmallJPEGData()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let message = createImageMessageWithImageData(imageData, format: .Medium, processed: true, stored: false, encrypted: true, moc: syncMOC)
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -315,9 +315,9 @@ extension ClientMessageRequestFactoryTests {
     func testThatItReturnsNilWhenThereIsNoEncryptedDataToUploadOnDisk() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, _) = createAssetFileMessage(encryptedDataOnDisk: false)
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -331,9 +331,9 @@ extension ClientMessageRequestFactoryTests {
     func testThatItStoresTheUploadDataInTheCachesDirectoryAndMarksThemAsNotBeingBackedUp() {
         // given
         createSelfClient()
-        let conversationID = NSUUID.create()
+        let conversationID = UUID.create()
         let (message, _, nonce) = createAssetFileMessage()
-        message.visibleInConversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
+        message.visibleInConversation = ZMConversation.insertNewObject(in: self.syncMOC)
         message.visibleInConversation?.remoteIdentifier = conversationID
         
         // when
@@ -379,9 +379,9 @@ extension ClientMessageRequestFactoryTests {
         return documentsURL.appendingPathComponent("file.dat")
     }
     
-    func createAssetFileMessage(_ withUploaded: Bool = true, encryptedDataOnDisk: Bool = true) -> (ZMAssetClientMessage, NSData, NSUUID) {
+    func createAssetFileMessage(_ withUploaded: Bool = true, encryptedDataOnDisk: Bool = true) -> (ZMAssetClientMessage, Data, UUID) {
         let data = createTestFile(testURL)
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let metadata = ZMFileMetadata(fileURL: testURL)
         let message = ZMAssetClientMessage(
             fileMetadata: metadata,
@@ -393,9 +393,9 @@ extension ClientMessageRequestFactoryTests {
         XCTAssertNotNil(message)
         
         if withUploaded {
-            let otrKey = NSData.randomEncryptionKey()
-            let sha256 = NSData.randomEncryptionKey()
-            let uploadedMessage = ZMGenericMessage.genericMessage(withUploadedOTRKey: otrKey, sha256: sha256, messageID: nonce.transportString())
+            let otrKey = Data.randomEncryptionKey()
+            let sha256 = Data.randomEncryptionKey()
+            let uploadedMessage = ZMGenericMessage.genericMessage(withUploadedOTRKey: otrKey, sha256: sha256, messageID: nonce.transportString()!)
             XCTAssertNotNil(uploadedMessage)
             message.addGenericMessage(uploadedMessage)
         }
@@ -415,7 +415,7 @@ extension ClientMessageRequestFactoryTests {
     
     func assertRequest(_ request: ZMTransportRequest?, forImageMessage message: ZMAssetClientMessage, conversationId: UUID, encrypted: Bool, expectedPath: String, expectedPayload: [String: NSObject]?, format: ZMImageFormat)
     {
-        let imageData = message.imageAssetStorage!.imageDataForFormat(format, encrypted: encrypted)!
+        let imageData = message.imageAssetStorage!.imageData(for: format, encrypted: encrypted)!
         
         AssertOptionalNotNil(request, "ClientRequestFactory should create requet to post medium asset message") { request in
             XCTAssertEqual(request.method, ZMTransportRequestMethod.MethodPOST)

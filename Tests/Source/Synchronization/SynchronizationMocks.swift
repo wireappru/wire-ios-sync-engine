@@ -117,7 +117,7 @@ open class FakeKeysStore: UserClientKeysStore {
     override open func generateMoreKeys(_ count: UInt16, start: UInt16) throws -> [(id: UInt16, prekey: String)] {
 
         if self.failToGeneratePreKeys {
-            let error = NSError(domain: "cryptobox.error", code: 0, userInfo: ["reason" : "using fake store with simulated fail"])
+            let error = Error(domain: "cryptobox.error", code: 0, userInfo: ["reason" : "using fake store with simulated fail"])
             throw error
         }
         else {
@@ -129,7 +129,7 @@ open class FakeKeysStore: UserClientKeysStore {
     
     override open func lastPreKey() throws -> String {
         if self.failToGenerateLastPreKey {
-            let error = NSError(domain: "cryptobox.error", code: 0, userInfo: ["reason" : "using fake store with simulated fail"])
+            let error = Error(domain: "cryptobox.error", code: 0, userInfo: ["reason" : "using fake store with simulated fail"])
             throw error
         }
         else {

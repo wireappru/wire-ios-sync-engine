@@ -27,18 +27,18 @@ class SessionBaseTest : MessagingTest {
     
     override func setUp() {
         super.setUp()
-        let convID = NSUUID.create()
-        let senderID = NSUUID.create()
-        sender = ZMUser.insertNewObjectInManagedObjectContext(uiMOC)
+        let convID = UUID.create()
+        let senderID = UUID.create()
+        sender = ZMUser.insertNewObject(in: uiMOC)
         sender.remoteIdentifier = senderID
-        otherUser = ZMUser.insertNewObjectInManagedObjectContext(uiMOC)
-        otherUser.remoteIdentifier = NSUUID.createUUID()
+        otherUser = ZMUser.insertNewObject(in: uiMOC)
+        otherUser.remoteIdentifier = UUID.create()
         
         conversation = ZMConversation.insertGroupConversationIntoManagedObjectContext(uiMOC, withParticipants: [sender, otherUser])
         conversation.remoteIdentifier = convID
         
-        selfUser = ZMUser.selfUserInContext(uiMOC)
-        selfUser.remoteIdentifier = NSUUID.createUUID()
+        selfUser = ZMUser.selfUser(in: uiMOC)
+        selfUser.remoteIdentifier = UUID.create()
         
     }
 }

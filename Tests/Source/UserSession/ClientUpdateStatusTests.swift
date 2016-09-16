@@ -55,9 +55,9 @@ class ClientUpdateStatusTests: MessagingTest {
     func insertNewClient(_ isSelfClient: Bool) -> UserClient! {
         var client : UserClient!
         self.syncMOC.performGroupedBlockAndWait { () -> Void in
-            client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
+            client = UserClient.insertNewObject(in: self.syncMOC)
             client.remoteIdentifier = isSelfClient ? "selfIdentifier" : "identifier"
-            client.user = ZMUser.selfUserInContext(self.syncMOC)
+            client.user = ZMUser.selfUser(in: self.syncMOC)
             self.syncMOC.saveOrRollback()
         }
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
@@ -282,7 +282,7 @@ class ClientUpdateStatusTests: MessagingTest {
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([client, selfClient])
         
-        let error = NSError(domain: "ClientManagement", code: Int(ClientUpdateError.InvalidCredentials.rawValue), userInfo: nil)
+        let error = Error(domain: "ClientManagement", code: Int(ClientUpdateError.InvalidCredentials.rawValue), userInfo: nil)
         self.receivedNotifications.removeAll()
 
         // when

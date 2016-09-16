@@ -99,10 +99,10 @@ class MissingClientsMapTests: MessagingTest {
     }
     
     func createClient(_ forUser: ZMUser? = nil) -> UserClient {
-        let client = UserClient.insertNewObjectInManagedObjectContext(syncMOC)
-        client.remoteIdentifier = UUID.createUUID().transportString()
-        let user: ZMUser = forUser ?? ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
-        user.remoteIdentifier = forUser?.remoteIdentifier ?? UUID.createUUID()
+        let client = UserClient.insertNewObject(in: syncMOC)
+        client.remoteIdentifier = UUID.create().transportString()
+        let user: ZMUser = forUser ?? ZMUser.insertNewObject(in: syncMOC)
+        user.remoteIdentifier = forUser?.remoteIdentifier ?? UUID.create()
         client.user = user
         return client
     }

@@ -106,8 +106,8 @@ class LinkPreviewPreprocessorTests: MessagingTest {
     
     func testThatItSetsTheStateToDoneIfTheMessageDoesNotHaceTextMessageData() {
         // given
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation.remoteIdentifier = .createUUID()
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = UUID.create()
         let message = conversation.appendKnock() as! ZMClientMessage
         
         // when
@@ -120,8 +120,8 @@ class LinkPreviewPreprocessorTests: MessagingTest {
     // MARK: - Helper
     
     func createMessage(_ state: ZMLinkPreviewState = .WaitingToBeProcessed) -> ZMClientMessage {
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation.remoteIdentifier = .createUUID()
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation.remoteIdentifier = UUID.create()
         let message = conversation.appendMessageWithText(name!) as! ZMClientMessage
         message.linkPreviewState = state
         return message

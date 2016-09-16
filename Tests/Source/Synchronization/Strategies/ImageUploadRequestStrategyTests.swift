@@ -48,10 +48,10 @@ class ImageUploadRequestStrategyTests: MessagingTest {
     /// MARK - Helpers
     
     func createImageMessage() -> ZMAssetClientMessage {
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation!.remoteIdentifier = UUID.createUUID()
+        let conversation = ZMConversation.insertNewObject(in: syncMOC)
+        conversation!.remoteIdentifier = UUID.create()
         
-        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.createUUID())
+        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.create())
         syncMOC.saveOrRollback()
         
         return message
@@ -179,7 +179,7 @@ class ImageUploadRequestStrategyTests: MessagingTest {
             message.uploadState = .UploadingPlaceholder
             XCTAssertTrue(message.hasLocalModificationsForKey(key))
             
-            let responsePayload = ["time" : NSDate().transportString()]
+            let responsePayload = ["time" : Date().transportString()]
             let response = ZMTransportResponse(payload: responsePayload, HTTPstatus: 200, transportSessionError: nil)
             
             // when
@@ -199,7 +199,7 @@ class ImageUploadRequestStrategyTests: MessagingTest {
             let message = self.createImageMessage()
             message.uploadState = .UploadingPlaceholder
             
-            let responsePayload = ["time" : NSDate().transportString()]
+            let responsePayload = ["time" : Date().transportString()]
             let response = ZMTransportResponse(payload: responsePayload, HTTPstatus: 200, transportSessionError: nil)
             
             // when
@@ -217,11 +217,11 @@ class ImageUploadRequestStrategyTests: MessagingTest {
             // given
             let key = ZMAssetClientMessageUploadedStateKey
             let message = self.createImageMessage()
-            let assetId = NSUUID.createUUID()
+            let assetId = UUID.create()
             message.uploadState = .UploadingFullAsset
             XCTAssertTrue(message.hasLocalModificationsForKey(key))
             
-            let responsePayload = ["time" : NSDate().transportString()]
+            let responsePayload = ["time" : Date().transportString()]
             let responseHeader = ["Location" : assetId.transportString()]
             let response = ZMTransportResponse(payload: responsePayload, HTTPstatus: 200, transportSessionError: nil, headers: responseHeader)
             
@@ -240,10 +240,10 @@ class ImageUploadRequestStrategyTests: MessagingTest {
         syncMOC.performGroupedBlock {
             // given
             let message = self.createImageMessage()
-            let assetId = NSUUID.createUUID()
+            let assetId = UUID.create()
             message.uploadState = .UploadingFullAsset
             
-            let responsePayload = ["time" : NSDate().transportString()]
+            let responsePayload = ["time" : Date().transportString()]
             let responseHeader = ["Location" : assetId.transportString()]
             let response = ZMTransportResponse(payload: responsePayload, HTTPstatus: 200, transportSessionError: nil, headers: responseHeader)
             

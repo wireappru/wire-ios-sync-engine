@@ -27,7 +27,7 @@ class ConversationTests_Confirmation: ConversationTestsBase {
             
             let fromClient = user1.clients.anyObject() as! MockUserClient
             let toClient = selfUser.clients.anyObject() as! MockUserClient
-            let textMessage = ZMGenericMessage(text: "Hello", nonce: UUID.createUUID().transportString())
+            let textMessage = ZMGenericMessage(text: "Hello", nonce: UUID.create().transportString())
             let conversation = conversationForMockConversation(selfToUser1Conversation)
             
             let requestPath = "/conversations/\(conversation.remoteIdentifier.transportString())/otr/messages?report_missing=\(user1.identifier)"
@@ -81,7 +81,7 @@ class ConversationTests_Confirmation: ConversationTestsBase {
             
             let fromClient = user1.clients.anyObject() as! MockUserClient
             let toClient = selfUser.clients.anyObject() as! MockUserClient
-            let confirmationMessage = ZMGenericMessage(confirmation: message.nonce.transportString(), type: .DELIVERED, nonce:UUID.createUUID().transportString())
+            let confirmationMessage = ZMGenericMessage(confirmation: message.nonce.transportString(), type: .DELIVERED, nonce:UUID.create().transportString())
             
             // when
             mockTransportSession.performRemoteChanges { session in
@@ -115,7 +115,7 @@ class ConversationTests_Confirmation: ConversationTestsBase {
             
             let fromClient = user1.clients.anyObject() as! MockUserClient
             let toClient = selfUser.clients.anyObject() as! MockUserClient
-            let confirmationMessage = ZMGenericMessage(confirmation: message.nonce.transportString(), type: .DELIVERED, nonce:UUID.createUUID().transportString())
+            let confirmationMessage = ZMGenericMessage(confirmation: message.nonce.transportString(), type: .DELIVERED, nonce:UUID.create().transportString())
             
             let convObserver = ConversationChangeObserver(conversation: conversation)
             let messageObserver = MessageChangeObserver(message: message)

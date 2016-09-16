@@ -80,7 +80,7 @@ class DeleteAccountRequestStrategyTests: MessagingTest {
         self.uiMOC.setPersistentStoreMetadata(NSNumber(bool: true), forKey: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NotificationCenter.defaultCenter().addObserverForName("ZMUserSessionAuthenticationNotificationName", object: nil, queue: .mainQueue()) { _ in
+        let _ = NotificationCenter.default.addObserverForName("ZMUserSessionAuthenticationNotificationName", object: nil, queue: .mainQueue()) { _ in
             notificationExpectation.fulfill()
         }
         

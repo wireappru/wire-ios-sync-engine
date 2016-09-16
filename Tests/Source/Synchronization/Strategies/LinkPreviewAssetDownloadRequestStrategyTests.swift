@@ -40,10 +40,10 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
 
     func testThatItGeneratesARequestForAWhitelistedMessageWithNoImageInCache() {
         // given
-        let message = ZMClientMessage.insertNewObjectInManagedObjectContext(syncMOC)
-        let assetID = NSUUID.create().transportString()!
+        let message = ZMClientMessage.insertNewObject(in: syncMOC)
+        let assetID = UUID.create().transportString()!
         let linkPreview = createLinkPreviewAndKeys(assetID).preview
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString()!)
         message.addData(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDsForObjects([message])
@@ -60,8 +60,8 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     }
     
     func testThatItDoesNotGenerateARequestForAMessageWithoutALinkPreview() {
-        let message = ZMClientMessage.insertNewObjectInManagedObjectContext(syncMOC)
-        let genericMessage = ZMGenericMessage(text: name!, nonce: UUID.createUUID().transportString()!)
+        let message = ZMClientMessage.insertNewObject(in: syncMOC)
+        let genericMessage = ZMGenericMessage(text: name!, nonce: UUID.create().transportString()!)
         message.addData(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDsForObjects([message])
         
@@ -76,10 +76,10 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     
     func testThatItDoesNotGenerateARequestForAMessageWithImageInCache() {
         // given
-        let message = ZMClientMessage.insertNewObjectInManagedObjectContext(syncMOC)
-        let assetID = NSUUID.create().transportString()!
+        let message = ZMClientMessage.insertNewObject(in: syncMOC)
+        let assetID = UUID.create().transportString()!
         let linkPreview = createLinkPreviewAndKeys(assetID).preview
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString()!)
         message.addData(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDsForObjects([message])
@@ -95,10 +95,10 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     
     func testThatItDoesNotGenerateARequestForAMessageWithoutArticleLinkPreview() {
         // given
-        let message = ZMClientMessage.insertNewObjectInManagedObjectContext(syncMOC)
-        let assetID = NSUUID.create().transportString()!
+        let message = ZMClientMessage.insertNewObject(in: syncMOC)
+        let assetID = UUID.create().transportString()!
         let linkPreview = createLinkPreviewAndKeys(assetID, article: false).preview
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString()!)
         message.addData(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDsForObjects([message])
@@ -115,13 +115,13 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     // MARK: - Response Handling
     
     func testThatItDecryptsTheImageDataInTheRequestResponseAndDeletesTheEncryptedVersion() {
-        let message = ZMClientMessage.insertNewObjectInManagedObjectContext(syncMOC)
-        let assetID = NSUUID.create().transportString()!
-        let data = NSData.secureRandomData(ofLength: 256)
-        let otrKey = NSData.randomEncryptionKey()
-        let encrypted = data?.zmEncryptPrefixingPlainTextIV(key: otrKey!)
+        let message = ZMClientMessage.insertNewObject(in: syncMOC)
+        let assetID = UUID.create().transportString()!
+        let data = Data.secureRandomData(ofLength: 256)
+        let otrKey = Data.randomEncryptionKey()
+        let encrypted = data.zmEncryptPrefixingPlainTextIV(key: otrKey)
         let (linkPreview, _, _) = createLinkPreviewAndKeys(assetID, otrKey: otrKey, sha256: encrypted.zmSHA256Digest())
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString()!)
         message.addData(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDsForObjects([message])
@@ -146,10 +146,10 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     }
     
     func testThatItDoesNotDecyptTheImageDataInTheRequestResponseWhenTheResponseIsNotSuccesful() {
-        let message = ZMClientMessage.insertNewObjectInManagedObjectContext(syncMOC)
-        let assetID = NSUUID.create().transportString()!
+        let message = ZMClientMessage.insertNewObject(in: syncMOC)
+        let assetID = UUID.create().transportString()!
         let (linkPreview, _, _) = createLinkPreviewAndKeys(assetID)
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString()!)
         message.addData(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDsForObjects([message])
@@ -174,16 +174,16 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     func testThatItNotifiesTheObserversWhenTheImageHasBeenDownloaded() {
         // given
         fireSyncCompletedNotification()
-        let conversation = ZMConversation.insertNewObjectInManagedObjectContext(uiMOC)
+        let conversation = ZMConversation.insertNewObject(in: uiMOC)
         let message = conversation.appendMessageWithText("Foo") as! ZMClientMessage
         let observer = MessageChangeObserver(message: message)
         defer { observer.tearDown() }
-        let assetID = NSUUID.create().transportString()!
-        let data = NSData.secureRandomData(ofLength: 256)
-        let otrKey = NSData.randomEncryptionKey()
-        let encrypted = data?.zmEncryptPrefixingPlainTextIV(key: otrKey!)
+        let assetID = UUID.create().transportString()!
+        let data = Data.secureRandomData(ofLength: 256)
+        let otrKey = Data.randomEncryptionKey()
+        let encrypted = data.zmEncryptPrefixingPlainTextIV(key: otrKey)
         let (linkPreview, _, _) = createLinkPreviewAndKeys(assetID, otrKey: otrKey, sha256: encrypted.zmSHA256Digest())
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let genericMessage = ZMGenericMessage(text: "Link preview", linkPreview: linkPreview, nonce: nonce.transportString()!)
         message.addData(genericMessage.data())
         uiMOC.saveOrRollback()
@@ -206,7 +206,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     
     // MARK: - Helper
     
-    fileprivate func createLinkPreviewAndKeys(_ assetID: String, article: Bool = true, otrKey: NSData? = nil, sha256: NSData? = nil) -> (preview: ZMLinkPreview, otrKey: NSData?, sha256: NSData?) {
+    fileprivate func createLinkPreviewAndKeys(_ assetID: String, article: Bool = true, otrKey: Data? = nil, sha256: Data? = nil) -> (preview: ZMLinkPreview, otrKey: Data?, sha256: Data?) {
         let URL = "http://www.example.com"
         
         if article {

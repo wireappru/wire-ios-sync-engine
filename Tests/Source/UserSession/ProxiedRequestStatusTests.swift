@@ -21,7 +21,7 @@ import XCTest
 
 class ProxiedRequestsStatusTests: MessagingTest {
     
-    fileprivate var sut: ProxiedRequestsStatus!
+    private var sut: ProxiedRequestsStatus!
     
     override func setUp() {
         super.setUp()
@@ -40,7 +40,7 @@ class ProxiedRequestsStatusTests: MessagingTest {
         let path = "foo/bar"
         let url = URL(string: path, relativeTo: nil)!
         
-        let callback: (Data?, HTTPURLResponse?, NSError?) -> Void = { (_, _, _) -> Void in
+        let callback: (Data?, HTTPURLResponse?, Error?) -> Void = { (_, _, _) -> Void in
             exp.fulfill()
         }
         
