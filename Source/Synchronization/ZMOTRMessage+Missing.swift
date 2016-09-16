@@ -51,7 +51,7 @@ extension ZMOTRMessage {
         // In case the self client got deleted remotely we will receive an event through the push channel and log out.
         // If we for some reason miss the push the BE will repond with a 403 and 'unknown-client' label to our
         // next sending attempt and we will logout and delete the current selfClient then
-        if response.HTTPStatus == ClientNotAuthorizedResponseStatus,
+        if response.httpStatus == ClientNotAuthorizedResponseStatus,
             let payload = response.payload as? [String:AnyObject],
             let label = payload[ErrorLabel] as? String ,
             label == UnknownClientLabel
@@ -80,8 +80,8 @@ extension ZMOTRMessage {
         let allMissingClients = Set(missingMap.flatMap { pair -> [UserClient] in
             
             // user
-            let userID = NSUUID.uuidWithTransportString(pair.0)
-            let user = ZMUser(remoteID: userID, createIfNeeded: true, inContext: self.managedObjectContext!)!
+            guard let userID = UUID(uuidString: pair.0) else { return []}
+            let user = ZMUser(remoteID: userID, createIfNeeded: true, in: self.managedObjectContext!)!
             
             // client
             guard let clientIDs = pair.1 as? [String] else { fatal("Missing client ID is not parsed properly") }
@@ -101,7 +101,7 @@ extension ZMOTRMessage {
     fileprivate func registersNewMissingClients(_ missingClients: Set<UserClient>) {
         guard missingClients.count > 0 else { return }
         
-        let selfClient = ZMUser.selfUserInContext(self.managedObjectContext!).selfClient()!
+        let selfClient = ZMUser.selfUser(in: self.managedObjectContext!).selfClient()!
         selfClient.missesClients(missingClients)
         self.missesRecipients(missingClients)
         
@@ -115,8 +115,8 @@ extension ZMOTRMessage {
         let allDeletedClients = Set(deletedMap.flatMap { pair -> [UserClient] in
             
             // user
-            let userID = NSUUID.uuidWithTransportString(pair.0)
-            guard let user = ZMUser(remoteID: userID, createIfNeeded: false, inContext: self.managedObjectContext!) else { return [] }
+            guard let userID = UUID(uuidString: pair.0) else { return [] }
+            guard let user = ZMUser(remoteID: userID, createIfNeeded: false, in: self.managedObjectContext!) else { return [] }
             
             // clients
             guard let clientIDs = pair.1 as? [String] else { fatal("Deleted client ID is not parsed properly") }
@@ -139,13 +139,13 @@ extension ZMConversation {
     /// and we should refetch
     fileprivate func checkIfMissingActiveParticipant(_ user: ZMUser) {
         // are we out of sync?
-        guard !self.activeParticipants.containsObject(user) else { return }
+        guard !self.activeParticipants.contains(user) else { return }
         
         self.needsToBeUpdatedFromBackend = true
-        if(self.conversationType == .OneOnOne || self.conversationType == .Connection) {
+        if(self.conversationType == .oneOnOne || self.conversationType == .connection) {
             if(user.connection == nil) {
                 if(self.connection == nil) {
-                    user.connection = ZMConnection.insertNewObjectInManagedObjectContext(self.managedObjectContext)
+                    user.connection = ZMConnection.insertNewObject(in: self.managedObjectContext!)
                     self.connection = user.connection
                 } else {
                     user.connection = self.connection

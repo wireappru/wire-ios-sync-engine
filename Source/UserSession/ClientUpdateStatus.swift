@@ -122,7 +122,7 @@ public final class ClientUpdateStatus: NSObject {
             if needsToVerifySelfClient {
                 do {
                     excludingSelfClient = try filterSelfClientIfValid(excludingSelfClient)
-                    ZMClientUpdateNotification.notifyFetchingClientsCompletedWithUserClients(excludingSelfClient)
+                    ZMClientUpdateNotification.notifyFetchingClientsCompleted(with: excludingSelfClient)
                 }
                 catch let error as NSError {
                     ZMClientUpdateNotification.notifyFetchingClientsDidFail(error)
@@ -135,7 +135,7 @@ public final class ClientUpdateStatus: NSObject {
     }
     
     func filterSelfClientIfValid(_ clients: [UserClient]) throws -> [UserClient] {
-        guard let selfClient = ZMUser.selfUserInContext(self.syncManagedObjectContext).selfClient()
+        guard let selfClient = ZMUser.selfUser(in: self.syncManagedObjectContext).selfClient()
         else {
             throw ClientUpdateError.errorForType(.selfClientIsInvalid)()
         }
@@ -209,14 +209,14 @@ public final class ClientUpdateStatus: NSObject {
     }
     
     var selfUserClientsExcludingSelfClient : [UserClient] {
-        let selfUser = ZMUser.selfUserInContext(self.syncManagedObjectContext);
+        let selfUser = ZMUser.selfUser(in: self.syncManagedObjectContext);
         let selfClient = selfUser.selfClient()
         let remainingClients = selfUser.clients.filter{$0 != selfClient && !$0.isZombieObject}
         return remainingClients
     }
     
     var hasClientsToDelete : Bool {
-        let selfUser = ZMUser.selfUserInContext(self.syncManagedObjectContext)
+        let selfUser = ZMUser.selfUser(in: self.syncManagedObjectContext)
         let undeletedClients = selfUser.clients.filter{$0.markedToDelete}
         return (undeletedClients.count > 0)
     }

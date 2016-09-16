@@ -52,7 +52,7 @@ import ZMTransport
     // MARK: - ZMSingleRequestTranscoder
     
     public func request(for sync: ZMSingleRequestSync!) -> ZMTransportRequest! {
-        let request = ZMTransportRequest(path: type(of: self).path, method: .methodDELETE, payload: [:], shouldCompress: true)
+        let request = ZMTransportRequest(path: type(of: self).path, method: .methodDELETE, payload: ([:] as ZMTransportData), shouldCompress: true)
         return request
     }
     

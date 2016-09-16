@@ -52,7 +52,7 @@ public final class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestS
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(didRequestToDownloadImage),
-            name: ZMAssetClientMessage.ImageDownloadNotificationName,
+            name: NSNotification.Name(rawValue: ZMAssetClientMessage.ImageDownloadNotificationName),
             object: nil
         )
     }
@@ -77,44 +77,44 @@ public final class ImageDownloadRequestStrategy : ZMObjectSyncStrategy, RequestS
 
 extension ImageDownloadRequestStrategy : ZMDownstreamTranscoder {
     
-    public func requestForFetchingObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let message = object as? ZMAssetClientMessage, let conversation = message.conversation else { return nil }
         
-        if let existingData = managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .Medium, encrypted: false) {
+        if let existingData = managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .medium, encrypted: false) {
             updateMediumImage(forMessage: message, imageData: existingData)
             managedObjectContext.enqueueDelayedSave()
             return nil
         } else {
             if message.imageMessageData != nil {
                 guard let assetId = message.assetId?.transportString() else { return nil }
-                return requestFactory.requestToGetAsset(assetId, inConversation: conversation.remoteIdentifier, isEncrypted: message.isEncrypted)
+                return requestFactory.requestToGetAsset(assetId, inConversation: conversation.remoteIdentifier!, isEncrypted: message.isEncrypted)
             } else if (message.fileMessageData != nil) {
                 guard let assetId = message.fileMessageData?.thumbnailAssetID else { return nil }
-                return requestFactory.requestToGetAsset(assetId, inConversation: conversation.remoteIdentifier, isEncrypted: message.isEncrypted)
+                return requestFactory.requestToGetAsset(assetId, inConversation: conversation.remoteIdentifier!, isEncrypted: message.isEncrypted)
             }
         }
         
         return nil
     }
     
-    public func updateObject(_ object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
+    public func update(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         guard let message = object as? ZMAssetClientMessage else { return }
-        updateMediumImage(forMessage: message, imageData: response.rawData)
+        updateMediumImage(forMessage: message, imageData: response.rawData!)
     }
     
-    public func deleteObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
+    public func delete(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
         guard let message = object as? ZMAssetClientMessage else { return }
-        message.managedObjectContext?.deleteObject(message)
+        message.managedObjectContext?.delete(message)
     }
     
     fileprivate func updateMediumImage(forMessage message: ZMAssetClientMessage, imageData: Data) {
-        message.imageAssetStorage?.updateMessageWithImageData(imageData, forFormat: .Medium)
+        _ = message.imageAssetStorage?.updateMessage(withImageData: imageData, for: .medium)
         
         let uiMOC = managedObjectContext.zm_userInterface
         
         uiMOC?.performGroupedBlock { 
-            guard let message = try? uiMOC.existingObjectWithID(message.objectID) else { return }
-            uiMOC.globalManagedObjectContextObserver.notifyNonCoreDataChangeInManagedObject(message)
+            guard let message = try? uiMOC?.existingObject(with: message.objectID) else { return }
+            uiMOC?.globalManagedObjectContextObserver.notifyNonCoreDataChangeInManagedObject(message!)
         }
     }
     

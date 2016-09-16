@@ -93,7 +93,7 @@
 
 - (void)leaveOnAVSError
 {
-    [self leaveWithReason:ZMCallStateReasonToLeaveAVSError];
+    [self leaveWithReason:ZMCallStateReasonToLeaveAvsError];
 }
 
 - (void)leaveWithReason:(ZMCallStateReasonToLeave)reasonToLeave

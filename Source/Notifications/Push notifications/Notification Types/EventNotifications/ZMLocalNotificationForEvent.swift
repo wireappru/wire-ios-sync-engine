@@ -100,7 +100,7 @@ open class ZMLocalNotificationForEvent : ZMLocalNotification, EventNotification 
         self.application = application ?? UIApplication.shared
         self.events = events
         if let senderUUID = events.last?.senderUUID() {
-            self.sender = ZMUser(remoteID: senderUUID, createIfNeeded: false, inContext: managedObjectContext)
+            self.sender = ZMUser(remoteID: senderUUID, createIfNeeded: false, in: managedObjectContext)
         } else {
             self.sender = nil
         }
@@ -119,11 +119,11 @@ open class ZMLocalNotificationForEvent : ZMLocalNotification, EventNotification 
             notification.alertBody = ZMPushStringDefault.localized()
             notification.soundName = ZMLocalNotificationNewMessageSoundName()
         } else {
-            notification.alertBody = configureAlertBody(conversation).stringByEscapingPercentageSymbols()
+            notification.alertBody = configureAlertBody(conversation).escapingPercentageSymbols()
             notification.soundName = soundName
             notification.category = category
         }
-        notification.setupUserInfo(conversation, forEvent: lastEvent)
+        notification.setupUserInfo(conversation, for: lastEvent)
         return notification
     }
     
@@ -164,14 +164,14 @@ open class ZMLocalNotificationForEvent : ZMLocalNotification, EventNotification 
         guard eventType == lastEvent.type && eventType != .unknown else {return false}
         
         // The sender is not the selfUser or it is a call event (we want to keep track of which calls we joined and cancel notifications if we joined)
-        if let sender = sender , (sender.isSelfUser && lastEvent.type != .CallState) { return false }
+        if let sender = sender , (sender.isSelfUser && lastEvent.type != .callState) { return false }
 
         if let conversation = conversation {
             if conversation.isSilenced && !ignoresSilencedState {
                 return false
             }
             if let timeStamp = lastEvent.timeStamp(),
-               let lastRead = conversation.lastReadServerTimeStamp , lastRead.compare(timeStamp) != .OrderedAscending {
+               let lastRead = conversation.lastReadServerTimeStamp , lastRead.compare(timeStamp) != .orderedAscending {
                 // don't show notifications that have already been read
                 return false
             }

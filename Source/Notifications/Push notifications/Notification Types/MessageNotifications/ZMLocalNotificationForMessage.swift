@@ -111,20 +111,20 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
         let conversation = message.conversation
         switch contentType {
         case .text(let content):
-            return ZMPushStringMessageAdd.localizedStringWithUser(sender, conversation: conversation, text:content)
+            return ZMPushStringMessageAdd.localizedString(with: sender, conversation: conversation, text:content)
         case .image:
-            return ZMPushStringImageAdd.localizedStringWithUser(sender, conversation: conversation)
+            return ZMPushStringImageAdd.localizedString(with: sender, conversation: conversation)
         case .video:
-            return ZMPushStringVideoAdd.localizedStringWithUser(sender, conversation: conversation)
+            return ZMPushStringVideoAdd.localizedString(with: sender, conversation: conversation)
         case .audio:
-            return ZMPushStringAudioAdd.localizedStringWithUser(sender, conversation: conversation)
+            return ZMPushStringAudioAdd.localizedString(with: sender, conversation: conversation)
         case .fileUpload:
-            return ZMPushStringFileAdd.localizedStringWithUser(sender, conversation: conversation)
+            return ZMPushStringFileAdd.localizedString(with: sender, conversation: conversation)
         case .location:
-            return ZMPushStringLocationAdd.localizedStringWithUser(sender, conversation: conversation)
+            return ZMPushStringLocationAdd.localizedString(with: sender, conversation: conversation)
         case .knock:
             let knockCount = NSNumber(value: eventCount)
-            return ZMPushStringKnock.localizedStringWithUser(sender, conversation:conversation, count:knockCount)
+            return ZMPushStringKnock.localizedString(with: sender, conversation:conversation, count:knockCount)
         default:
             return ""
         }
@@ -132,7 +132,7 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
     
     class func canCreateNotification(_ message : ZMOTRMessage, contentType: ZMLocalNotificationContentType) -> Bool {
         switch contentType {
-        case .undefined, .System:
+        case .undefined, .system:
             return false
         default:
            return shouldCreateNotification(message)
@@ -147,7 +147,7 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
         else { return nil }
 
         switch (otherContentType) {
-        case (.Knock):
+        case (.knock):
             eventCount = eventCount+1
             cancelNotifications()
             let note = configureNotification(message)

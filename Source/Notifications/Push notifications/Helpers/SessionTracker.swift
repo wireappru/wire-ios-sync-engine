@@ -228,7 +228,7 @@ public final class Session : NSObject, NSCoding, NSCopying {
                 if session.callEnded {
                     return
                 }
-                session.changeState(event, managedObjectContext: managedObjectContext)
+                _ = session.changeState(event, managedObjectContext: managedObjectContext)
                 return
             }
             else if let sequence = event.callingSequence , session.lastSequence < sequence {
@@ -245,7 +245,7 @@ public final class Session : NSObject, NSCoding, NSCopying {
     
     func insertNewSession(_ event: ZMUpdateEvent, sessionID: String, managedObjectContext: NSManagedObjectContext) {
         let call = Session(sessionID: sessionID, conversationID: event.conversationUUID()!, initiatorID: event.senderUUID()!)
-        call.changeState(event, managedObjectContext: managedObjectContext)
+        _ = call.changeState(event, managedObjectContext: managedObjectContext)
         sessions.append(call)
     }
     

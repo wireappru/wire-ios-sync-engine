@@ -110,20 +110,20 @@ extension AddressBookSearch {
             return self.limitedContactsRange().lazy
         }
         let predicate = NSPredicate(format: "SELF.name CONTAINS[cd] %@", query)
-        return AnyGenerator(limitedContactsRange().lazy.filter {
-            return predicate.evaluateWithObject($0)
-        }.generate()).lazy
+        return AnyIterator(limitedContactsRange().lazy.filter {
+            return predicate.evaluate(with: $0)
+        }.makeIterator()).lazy
     }
 }
 
 extension AddressBookSearch {
     
     /// Returns an iterator on contacts within the range limit
-    fileprivate func limitedContactsRange() -> AnyGenerator<ZMAddressBookContact> {
+    fileprivate func limitedContactsRange() -> AnyIterator<ZMAddressBookContact> {
         guard let addressBook = self.addressBook else {
-            return AnyGenerator(Array<ZMAddressBookContact>().generate())
+            return AnyIterator(Array<ZMAddressBookContact>().makeIterator())
         }
-        return addressBook.iterate().elements(0..<maximumSearchRange).lazy.generate()
+        return addressBook.iterate().elements(0..<maximumSearchRange).lazy.makeIterator()
     }
     
 }

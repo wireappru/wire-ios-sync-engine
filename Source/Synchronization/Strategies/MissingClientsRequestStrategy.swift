@@ -31,13 +31,13 @@ struct MissingClientsRequestUserInfoKeys {
 }
 
 public extension UserClient {
-    public override class func predicateForObjectsThatNeedToBeUpdatedUpstream() -> NSPredicate! {
+    public override class func predicateForObjectsThatNeedToBeUpdatedUpstream() -> NSPredicate {
         let baseModifiedPredicate = super.predicateForObjectsThatNeedToBeUpdatedUpstream()
         let remoteIdentifierPresentPredicate = NSPredicate(format: "\(ZMUserClientRemoteIdentifierKey) != nil")
         let notDeletedPredicate = NSPredicate(format: "\(ZMUserClientMarkedToDeleteKey) == NO")
 
         let modifiedPredicate = NSCompoundPredicate(andPredicateWithSubpredicates:[
-            baseModifiedPredicate,
+            baseModifiedPredicate!,
             notDeletedPredicate,
             remoteIdentifierPresentPredicate
             ])
@@ -49,7 +49,7 @@ public extension UserClient {
 // Register new client, update it with new keys, deletes clients.
 @objc
 public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObjectStrategy, ZMUpstreamTranscoder {
-        
+    
     weak var clientRegistrationStatus: ZMClientRegistrationStatus?
     weak var apnsConfirmationStatus: BackgroundAPNSConfirmationStatus?
 
@@ -64,7 +64,7 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
         self.clientRegistrationStatus = clientRegistrationStatus
         super.init(managedObjectContext: managedObjectContext)
         
-        self.modifiedSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), updatePredicate: modifiedPredicate(), filter: nil, keysToSync: [ZMUserClientMissingKey], managedObjectContext: managedObjectContext)
+        self.modifiedSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: modifiedPredicate(), filter: nil, keysToSync: [ZMUserClientMissingKey], managedObjectContext: managedObjectContext)
     }
     
     func modifiedPredicate() -> NSPredicate {
@@ -96,7 +96,7 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
         return false
     }
     
-    public func shouldCreateRequestToSyncObject(_ managedObject: ZMManagedObject, forKeys keys: Set<String>, withSync sync: AnyObject) -> Bool {
+    public func shouldCreateRequest(toSyncObject managedObject: ZMManagedObject, forKeys keys: Set<String>, withSync sync: Any) -> Bool {
         
         var keysToSync = keys
         if keys.contains(ZMUserClientMissingKey),
@@ -109,7 +109,7 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
         return (keysToSync.count > 0)
     }
     
-    public func requestForUpdatingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>) -> ZMUpstreamRequest? {
+    public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>) -> ZMUpstreamRequest? {
         guard let client = managedObject as? UserClient
         else { fatal("Called requestForUpdatingObject() on \(managedObject) to sync keys: \(keys)") }
         
@@ -121,13 +121,13 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
         
         let request = requestsFactory.fetchMissingClientKeysRequest(missing)
         if let confStatus = apnsConfirmationStatus , confStatus.needsToSyncMessages {
-            request.transportRequest.forceToVoipSession()
+            request?.transportRequest.forceToVoipSession()
         }
         return request
     }
     
     /// Returns whether synchronization of this object needs additional requests
-    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
+    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
         
         if keysToParse.contains(ZMUserClientMissingKey) {
             return processResponseForUpdatingMissingClients(managedObject, requestUserInfo: requestUserInfo, responsePayload: response.payload)
@@ -214,7 +214,7 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
         responsePayload payload: ZMTransportData!) -> Bool {
         
         guard let dictionary = payload.asDictionary() as? [String : [String : AnyObject]],
-            let selfClient = ZMUser.selfUserInContext(managedObjectContext).selfClient()
+            let selfClient = ZMUser.selfUser(in: managedObjectContext).selfClient()
             else {
                 zmLog.error("Response payload for client-keys is not a valid [String : [String : AnyObject]]")
                 return false
@@ -231,7 +231,7 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
         
         /// for each user ID
         for (userIdString, clients) in dictionary {
-            guard let _ = NSUUID.withTransport(userIdString) else {
+            guard let _ = UUID(uuidString: userIdString) else {
                 zmLog.error("\(userIdString) is not a valid UUID")
                 continue
             }
@@ -275,7 +275,7 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
                 message.doesNotMissRecipient(client)
             }
             else {
-                client.mutableSetValue(forKey: "messagesMissingRecipient").removeObject($0)
+                client.mutableSetValue(forKey: "messagesMissingRecipient").remove($0)
             }
         }
     }
@@ -283,9 +283,12 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
     
     // MARK - Unused functions
     
-    public func requestForInsertingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>?) -> ZMUpstreamRequest? {
+    
+    public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?) -> ZMUpstreamRequest? {
         return nil
     }
+    
+    
     
     public func updateInsertedObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse) {
         // no op

@@ -27,7 +27,7 @@ final class StoredUpdateEvent: NSManagedObject {
     @NSManaged var uuidString: String?
     @NSManaged var debugInformation: String?
     @NSManaged var isTransient: Bool
-    @NSManaged var payload: NSDictionary
+    @NSManaged var payload: NSDictionary // TODO check if it can be Dictionary
     @NSManaged var source: Int16
     @NSManaged var sortIndex: Int64
     
@@ -41,7 +41,7 @@ final class StoredUpdateEvent: NSManagedObject {
         guard let storedEvent = StoredUpdateEvent.insertNewObject(managedObjectContext) else { return nil }
         storedEvent.debugInformation = event.debugInformation
         storedEvent.isTransient = event.isTransient
-        storedEvent.payload = event.payload
+        storedEvent.payload = event.payload as NSDictionary
         storedEvent.source = Int16(event.source.rawValue)
         storedEvent.sortIndex = index
         storedEvent.uuidString = (event.uuid as NSUUID).transportString()
@@ -51,20 +51,20 @@ final class StoredUpdateEvent: NSManagedObject {
     /// Returns stored events sorted by and up until (including) the defined `stopIndex`
     /// Returns a maximum of `batchSize` events at a time
     public static func nextEvents(_ context: NSManagedObjectContext, batchSize: Int) -> [StoredUpdateEvent] {
-        let fetchRequest = NSFetchRequest(entityName: self.entityName)
+        let fetchRequest = NSFetchRequest<StoredUpdateEvent>(entityName: self.entityName)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: StoredUpdateEvent.SortIndexKey, ascending: true)]
         fetchRequest.fetchLimit = batchSize
         fetchRequest.returnsObjectsAsFaults = false
-        let result = context.executeFetchRequestOrAssert(fetchRequest)
-        return result as? [StoredUpdateEvent] ?? []
+        let result = context.fetchOrAssert(request: fetchRequest)
+        return result
     }
     
     /// Returns the highest index of all stored events
     public static func highestIndex(_ context: NSManagedObjectContext) -> Int64 {
-        let fetchRequest = NSFetchRequest(entityName: self.entityName)
+        let fetchRequest = NSFetchRequest<StoredUpdateEvent>(entityName: self.entityName)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: StoredUpdateEvent.SortIndexKey, ascending: false)]
         fetchRequest.fetchBatchSize = 1
-        let result = context.executeFetchRequestOrAssert(fetchRequest)
+        let result = context.fetchOrAssert(request: fetchRequest)
         return result.first?.sortIndex ?? 0
     }
     

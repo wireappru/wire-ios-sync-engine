@@ -29,8 +29,8 @@ public enum NotificationFunnelState {
     
     var attributes: [String: NSObject] {
         var attributes = customTrackingAttributes
-        attributes["state_description"] = stateDescription
-        attributes["state_index"] = stateIndex
+        attributes["state_description"] = stateDescription as NSObject?
+        attributes["state_index"] = stateIndex as NSObject?
         return attributes
     }
     
@@ -55,7 +55,7 @@ public enum NotificationFunnelState {
         case .operationLoop(serverTimestamp: let timestamp, notificationsEnabled: let enabled, background: let background, currentDate: let date):
             let difference = Int(round(date.timeIntervalSince(timestamp) * TimeInterval.millisecondsPerSecond)) // In milliseconds
             let clusterized = IntegerClusterizer.voipTimeDifferenceClusterizer.clusterize(difference)
-            return ["server_timestamp_difference": clusterized, "background": background, "allowed_notifications": enabled]
+            return ["server_timestamp_difference": clusterized as NSObject, "background": background as NSObject, "allowed_notifications": enabled as NSObject]
         case .pingBackStrategy(notice: let notice):
             return ["notice": notice as NSObject]
         default:
@@ -108,10 +108,10 @@ extension TimeInterval {
             print(date.timeIntervalSince(lastTimestamp))
             let difference = round(date.timeIntervalSince(lastTimestamp) * TimeInterval.millisecondsPerSecond) // In milliseconds
             let clusterized = IntegerClusterizer.apnsPerformanceClusterizer.clusterize(Int(difference))
-            attributes["time_since_last"] = clusterized
+            attributes["time_since_last"] = clusterized as NSObject?
         }
 
-        attributes["notification_identifier"] = identifier.transportString()
+        attributes["notification_identifier"] = identifier.transportString() as NSObject?
         timestampsByNotificationID[identifier] = currentDate ?? Date()
         analytics.tagEvent(notificationEventName, attributes: attributes)
         
@@ -161,7 +161,8 @@ public extension APNSPerformanceTracker {
     }
     
     @objc static func trackAPNSInUserSession(_ analytics: AnalyticsType?, authenticated: Bool, isInBackground: Bool) {
-        analytics?.tagEvent(notificationUserSessionEventName, attributes: ["authenticated": authenticated, "background": isInBackground ? "background" : "active"])
+        analytics?.tagEvent(notificationUserSessionEventName, attributes: ["authenticated": NSNumber(value: authenticated),
+                                                                           "background": (isInBackground ? "background" : "active") as NSString])
     }
     
     @objc static func trackReceivedNotification(_ analytics: AnalyticsType?) {

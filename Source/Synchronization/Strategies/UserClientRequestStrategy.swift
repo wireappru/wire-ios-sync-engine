@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -50,7 +50,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
     fileprivate var insertSyncFilter: NSPredicate {
         return NSPredicate { [unowned self] object, _ -> Bool in
             guard let client = object as? UserClient else { return false }
-            return client.user == ZMUser.selfUserInContext(self.managedObjectContext)
+            return client.user == ZMUser.selfUser(in: self.managedObjectContext)
         }
     }
     
@@ -68,15 +68,15 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         let deletePredicate = NSPredicate(format: "\(ZMUserClientMarkedToDeleteKey) == YES")
         let modifiedPredicate = self.modifiedPredicate()
 
-        self.modifiedSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), updatePredicate: modifiedPredicate, filter: nil, keysToSync: [ZMUserClientNumberOfKeysRemainingKey, ZMUserClientNeedsToUpdateSignalingKeysKey], managedObjectContext: context)
-        self.deleteSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), updatePredicate: deletePredicate, filter: nil, keysToSync: [ZMUserClientMarkedToDeleteKey], managedObjectContext: context)
+        self.modifiedSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: modifiedPredicate, filter: nil, keysToSync: [ZMUserClientNumberOfKeysRemainingKey, ZMUserClientNeedsToUpdateSignalingKeysKey], managedObjectContext: context)
+        self.deleteSync = ZMUpstreamModifiedObjectSync(transcoder: self, entityName: UserClient.entityName(), update: deletePredicate, filter: nil, keysToSync: [ZMUserClientMarkedToDeleteKey], managedObjectContext: context)
         self.insertSync = ZMUpstreamInsertedObjectSync(transcoder: self, entityName: UserClient.entityName(), filter: insertSyncFilter, managedObjectContext: context)
         
         self.fetchAllClientsSync = ZMSingleRequestSync(singleRequestTranscoder: self, managedObjectContext: context)
         
         self.userClientsSync = ZMRemoteIdentifierObjectSync(transcoder: self, managedObjectContext: self.managedObjectContext)
         
-        self.userClientsObserverToken = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: ZMNeedsToUpdateUserClientsNotificationName), object: nil, queue: .main()) { [unowned self] note in
+        self.userClientsObserverToken = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: ZMNeedsToUpdateUserClientsNotificationName), object: nil, queue: .main) { [unowned self] note in
 
             let objectID = note.userInfo?[ZMNeedsToUpdateUserClientsNotificationUserObjectIDKey] as? NSManagedObjectID
             self.managedObjectContext.performGroupedBlock {
@@ -154,7 +154,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         return requestsFactory.fetchClientsRequest()
     }
     
-    public func requestForUpdatingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>) -> ZMUpstreamRequest? {
+    public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>) -> ZMUpstreamRequest? {
         if let managedObject = managedObject as? UserClient {
             guard let clientUpdateStatus = self.clientUpdateStatus else { fatal("clientUpdateStatus is not set") }
             
@@ -190,7 +190,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         }
     }
     
-    public func requestForInsertingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>?) -> ZMUpstreamRequest? {
+    public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?) -> ZMUpstreamRequest? {
         if let managedObject = managedObject as? UserClient {
             guard let authenticationStatus = self.authenticationStatus else { fatal("authenticationStatus is not set") }
             let request = try? requestsFactory.registerClientRequest(managedObject, credentials: clientRegistrationStatus?.emailCredentials, authenticationStatus: authenticationStatus)
@@ -201,7 +201,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         }
     }
     
-    public func shouldRetryToSyncAfterFailedToUpdateObject(_ managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
+    public func shouldRetryToSyncAfterFailed(toUpdate managedObject: ZMManagedObject, request upstreamRequest: ZMUpstreamRequest, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
         if keysToParse.contains(ZMUserClientNumberOfKeysRemainingKey) {
             return false
         }
@@ -223,7 +223,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         else if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
             let error = self.errorFromFailedDeleteResponse(response)
             if error.code == ClientUpdateError.clientToDeleteNotFound.rawValue {
-                self.managedObjectContext.deleteObject(managedObject)
+                self.managedObjectContext.delete(managedObject)
                 self.managedObjectContext.saveOrRollback()
             }
             clientUpdateStatus?.failedToDeleteClient(managedObject as! UserClient, error: error)
@@ -245,7 +245,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         if let client = managedObject as? UserClient {
             
             guard
-                let payload = response.payload.asDictionary() as? [String : AnyObject],
+                let payload = response.payload as? [String : AnyObject],
                 let remoteIdentifier = payload["id"] as? String
             else {
                 zmLog.warn("Unexpected backend response for inserted client")
@@ -254,8 +254,8 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
             
             client.remoteIdentifier = remoteIdentifier
             client.numberOfKeysRemaining = Int32(requestsFactory.keyCount)
-            UserClient.createOrUpdateClient(payload, context: self.managedObjectContext)
-            clientRegistrationStatus?.didRegisterClient(client)
+            _ = UserClient.createOrUpdateClient(payload, context: self.managedObjectContext)
+            clientRegistrationStatus?.didRegister(client)
         }
         else {
             fatal("Called updateInsertedObject() on \(managedObject)")
@@ -265,7 +265,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
     public func errorFromFailedDeleteResponse(_ response: ZMTransportResponse!) -> NSError {
         var errorCode: ClientUpdateError = .none
         if let response = response , response.result == .permanentError {
-            if let errorLabel = response.payload.asDictionary()["label"] as? String {
+            if let errorLabel = response.payload?.asDictionary()?["label"] as? String { // TODO jacob
                 switch errorLabel {
                 case "client-not-found":
                     errorCode = .clientToDeleteNotFound
@@ -285,11 +285,11 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         var errorCode: ZMUserSessionErrorCode = .unkownError
         if let response = response , response.result == .permanentError {
 
-            if let errorLabel = response.payload.asDictionary()["label"] as? String {
+            if let errorLabel = response.payload?.asDictionary()?["label"] as? String { // TODO jacob
                 switch errorLabel {
                 case "missing-auth":
-                    let selfUserHasEmail = (ZMUser.selfUserInContext(self.managedObjectContext).emailAddress != nil )
-                    errorCode = selfUserHasEmail ? .NeedsPasswordToRegisterClient : .NeedsToRegisterEmailToRegisterClient
+                    let selfUserHasEmail = (ZMUser.selfUser(in: self.managedObjectContext).emailAddress != nil )
+                    errorCode = selfUserHasEmail ? .needsPasswordToRegisterClient : .needsToRegisterEmailToRegisterClient
                     break
                 case "too-many-clients":
                     errorCode = .canNotRegisterMoreClients
@@ -309,10 +309,10 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
         
         switch (response.result) {
         case .success:
-            if let payload = response.payload.asArray() as? [[String: AnyObject]] {
+            if let payload = response.payload?.asArray() as? [[String: AnyObject]] { // TODO jacob
                 func createSelfUserClient(_ clientInfo: [String: AnyObject]) -> UserClient? {
                     let client = UserClient.createOrUpdateClient(clientInfo, context: self.managedObjectContext)
-                    client?.user = ZMUser.selfUserInContext(self.managedObjectContext)
+                    client?.user = ZMUser.selfUser(in: self.managedObjectContext)
                     return client
                 }
                 
@@ -330,7 +330,7 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
     }
     
     /// Returns whether synchronization of this object needs additional requests
-    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
+    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
         
         if keysToParse.contains(ZMUserClientMarkedToDeleteKey) {
             return processResponseForDeletingClients(managedObject, requestUserInfo: requestUserInfo, responsePayload: response.payload)
@@ -384,13 +384,13 @@ public final class UserClientRequestStrategy: ZMObjectSyncStrategy, ZMContextCha
             return
         }
         
-        let selfUser = ZMUser.selfUserInContext(self.managedObjectContext)
+        let selfUser = ZMUser.selfUser(in: self.managedObjectContext)
         
         switch event.type {
         case .userClientAdd:
             if let client = UserClient.createOrUpdateClient(clientInfo, context: self.managedObjectContext) {
                 client.user = selfUser
-                selfUser.selfClient()?.addNewClientToIgnored(client, causedBy: .None)
+                selfUser.selfClient()?.addNewClientToIgnored(client, causedBy: .none)
             }
         case .userClientRemove:
             let selfClientId = selfUser.selfClient()?.remoteIdentifier
@@ -431,12 +431,12 @@ extension UserClientRequestStrategy: ZMRemoteIdentifierObjectTranscoder {
     public func didReceive(_ response: ZMTransportResponse!, remoteIdentifierObjectSync sync: ZMRemoteIdentifierObjectSync!, forRemoteIdentifiers remoteIdentifiers: Set<UUID>!) {
         
         guard let identifier = remoteIdentifiers.first,
-              let user = ZMUser(remoteID: identifier, createIfNeeded: true, inContext: managedObjectContext),
-              let selfClient = ZMUser.selfUserInContext(managedObjectContext).selfClient()
+              let user = ZMUser(remoteID: identifier, createIfNeeded: true, in: managedObjectContext),
+              let selfClient = ZMUser.selfUser(in: managedObjectContext).selfClient()
         else { return }
         
         // Create clients from the response
-        guard let arrayPayload = response.payload.asArray() else { return }
+        guard let arrayPayload = response.payload?.asArray() else { return } // TODO jacob
         let clients: [UserClient] = arrayPayload.flatMap {
             guard let dict = $0 as? [String: AnyObject], let identifier = dict["id"] as? String else { return nil }
             let client = UserClient.fetchUserClient(withRemoteId: identifier, forUser:user, createIfNeeded: true)
@@ -445,7 +445,7 @@ extension UserClientRequestStrategy: ZMRemoteIdentifierObjectTranscoder {
         }
         
         // Remove clients that have not been included in the response
-        let deletedClients = Set(user.clients).subtract(Set(clients))
+        let deletedClients = Set(user.clients).subtracting(Set(clients))
         deletedClients.forEach {
             $0.deleteClientAndEndSession()
         }

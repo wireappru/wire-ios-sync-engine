@@ -32,8 +32,8 @@ import Foundation
         
         let downloadFilter = NSPredicate { object, _ in
             guard let message = object as? ZMClientMessage, let genericMessage = message.genericMessage , genericMessage.hasText() else { return false }
-            guard let preview = genericMessage.text.linkPreview?.first, let remote: ZMAssetRemoteData = preview.remote  else { return false }
-            guard nil == managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .Medium, encrypted: false) else { return false }
+            guard let preview = genericMessage.text.linkPreview?.first as? ZMLinkPreview, let remote: ZMAssetRemoteData = preview.remote  else { return false }
+            guard nil == managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .medium, encrypted: false) else { return false }
             return remote.hasAssetId()
         }
         
@@ -55,7 +55,7 @@ import Foundation
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(didWhitelistAssetDownload),
-            name: ZMClientMessageLinkPreviewImageDownloadNotificationName,
+            name: NSNotification.Name(rawValue: ZMClientMessageLinkPreviewImageDownloadNotificationName),
             object: nil
         )
     }
@@ -64,7 +64,7 @@ import Foundation
         managedObjectContext.performGroupedBlock { [weak self] in
             guard let `self` = self else { return }
             guard let objectID = note.object as? NSManagedObjectID else { return }
-            guard let message = try? self.managedObjectContext.existingObjectWithID(objectID) as? ZMClientMessage else { return }
+            guard let message = try? self.managedObjectContext.existingObject(with: objectID) as? ZMClientMessage else { return }
             self.assetDownstreamObjectSync.whiteListObject(message)
             ZMOperationLoop.notifyNewRequestsAvailable(self)
         }
@@ -79,22 +79,22 @@ import Foundation
         guard response.result == .success else { return }
         let cache = managedObjectContext.zm_imageAssetCache
         
-        guard let remote = message.genericMessage?.text.linkPreview.first?.remote else { return }
-        cache.storeAssetData(message.nonce, format: .Medium, encrypted: true, data: response.rawData)
-        let success = cache.decryptFileIfItMatchesDigest(
+        guard let remote = (message.genericMessage?.text.linkPreview.first as AnyObject).remote else { return }
+        cache?.storeAssetData(message.nonce, format: .medium, encrypted: true, data: response.rawData!)
+        let success = cache?.decryptFileIfItMatchesDigest(
             message.nonce,
-            format: .Medium,
-            encryptionKey: remote.otrKey,
-            sha256Digest: remote.sha256
+            format: .medium,
+            encryptionKey: (remote?.otrKey)!,
+            sha256Digest: (remote?.sha256)!
         )
         
-        guard success else { return }
+        guard success! else { return }
         
         let uiMOC = managedObjectContext.zm_userInterface
         let objectID = message.objectID
         uiMOC?.performGroupedBlock {
-            guard let uiMessage = try? uiMOC.existingObjectWithID(objectID) else { return }
-            uiMOC.globalManagedObjectContextObserver.notifyNonCoreDataChangeInManagedObject(uiMessage)
+            guard let uiMessage = try? uiMOC?.existingObject(with: objectID) else { return }
+            uiMOC?.globalManagedObjectContextObserver.notifyNonCoreDataChangeInManagedObject(uiMessage!)
         }
     }
 
@@ -111,25 +111,25 @@ extension LinkPreviewAssetDownloadRequestStrategy: ZMContextChangeTrackerSource 
 
 extension LinkPreviewAssetDownloadRequestStrategy: ZMDownstreamTranscoder {
     
-    public func requestForFetchingObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
+    public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let message = object as? ZMClientMessage else { fatal("Unable to generate request for \(object)") }
         let linkPreview = message.genericMessage?.text.linkPreview.first
-        guard let remoteData = linkPreview?.remote else { return nil }
+        guard let remoteData = (linkPreview as AnyObject).remote else { return nil }
 
         // Protobuf initializes the token to an empty string when set to nil
-        let token = remoteData.hasAssetToken() && remoteData.assetToken != "" ? remoteData.assetToken : nil
-        let request = assetRequestFactory.requestToGetAsset(withKey: remoteData.assetId, token: token)
-        request?.addCompletionHandler(ZMCompletionHandler(onGroupQueue: managedObjectContext) { response in
+        let token = (remoteData?.hasAssetToken())! && remoteData?.assetToken != "" ? remoteData?.assetToken : nil
+        let request = assetRequestFactory.requestToGetAsset(withKey: (remoteData?.assetId)!, token: token)
+        request?.add(ZMCompletionHandler(on: managedObjectContext) { response in
             self.handleResponse(response, forMessage: message)
         })
         return request
     }
     
-    public func deleteObject(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
+    public func delete(_ object: ZMManagedObject!, downstreamSync: ZMObjectSync!) {
         // no-op
     }
     
-    public func updateObject(_ object: ZMManagedObject!, withResponse response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
+    public func update(_ object: ZMManagedObject!, with response: ZMTransportResponse!, downstreamSync: ZMObjectSync!) {
         // no-op
     }
     

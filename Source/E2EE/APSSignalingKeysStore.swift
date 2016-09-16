@@ -74,7 +74,7 @@ public final class APSSignalingKeysStore: NSObject {
         ZMKeychain.deleteAllKeychainItems(withAccountName: self.decryptionKeyAccountName)
     }
     
-    public func decryptDataDictionary(_ payload: NSDictionary) -> NSDictionary? {
+    public func decryptDataDictionary(_ payload: [AnyHashable : Any]!) -> [AnyHashable : Any]! {
         return self.apsDecoder.decodeAPSPayload(payload)
     }
 }

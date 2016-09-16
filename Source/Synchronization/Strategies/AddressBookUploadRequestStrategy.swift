@@ -118,13 +118,13 @@ extension AddressBookUploadRequestStrategy : RequestStrategy, ZMSingleRequestTra
             .enumerated()
             .map { (index, hashes) -> [String:AnyObject] in
                 return [
-                    "card_id" : "\(encodedChunk.includedContacts.lowerBound + UInt(index))",
+                    "card_id" : "\(encodedChunk.includedContacts.lowerBound + UInt(index))" as AnyObject,
                     "contact" : hashes as AnyObject
                 ]
         }
         let payload = ["cards" : contactCards, "self" : []]
         self.tracker.tagAddressBookUploadStarted(encodedChunk.numberOfTotalContacts)
-        return ZMTransportRequest(path: onboardingEndpoint, method: .methodPOST, payload: payload, shouldCompress: true)
+        return ZMTransportRequest(path: onboardingEndpoint, method: .methodPOST, payload: payload as ZMTransportData?, shouldCompress: true)
     }
     
     public func didReceive(_ response: ZMTransportResponse!, forSingleRequest sync: ZMSingleRequestSync!) {

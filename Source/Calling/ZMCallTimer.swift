@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -100,9 +100,9 @@ public final class ZMCallTimer : NSObject, ZMTimerClient {
     public func addAndStartTimer(_ conversation: ZMConversation) {
         let objectID = conversation.objectID
         if conversationIDToTimerMap[objectID] == nil && !conversation.callTimedOut {
-            let timeOut = (testTimeout > 0) ? testTimeout : conversation.conversationType == .Group ? ZMVoiceChannelTimerTimeOutGroup : ZMVoiceChannelTimerTimeOutOneOnOne
+            let timeOut = (testTimeout > 0) ? testTimeout : conversation.conversationType == .group ? ZMVoiceChannelTimerTimeOutGroup : ZMVoiceChannelTimerTimeOutOneOnOne
             let timer = ZMTimer(target: self)
-            timer.fireAtDate(Date().dateByAddingTimeInterval(timeOut))
+            timer?.fire(at: Date().addingTimeInterval(timeOut))
             conversationIDToTimerMap[objectID] = timer
         }
     }

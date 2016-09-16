@@ -44,8 +44,8 @@ final public class ZMLocalNotificationForReaction : ZMLocalNotificationForEvent,
         
         // fetch message that was reacted to and make sure the sender of the original message is the selfUser
         guard let conversation = conversation,
-            let message = ZMMessage.fetchMessageWithNonce(UUID(UUIDString: receivedMessage.reaction.messageId), forConversation: conversation, inManagedObjectContext: self.managedObjectContext)
-            , message.sender == ZMUser.selfUserInContext(self.managedObjectContext)
+            let message = ZMMessage.fetch(withNonce: UUID(uuidString: receivedMessage.reaction.messageId), for: conversation, in: self.managedObjectContext),
+            message.sender == ZMUser.selfUser(in: self.managedObjectContext)
             else { return false }
         
         emoji = receivedMessage.reaction.emoji
@@ -61,7 +61,7 @@ final public class ZMLocalNotificationForReaction : ZMLocalNotificationForEvent,
     
     public func copyByAddingEvent(_ event: ZMUpdateEvent, conversation: ZMConversation) -> ZMLocalNotificationForReaction? {
         guard canAddEvent(event, conversation: conversation),
-              let otherMessage = ZMGenericMessage(fromUpdateEvent:event) , otherMessage.hasReaction()
+              let otherMessage = ZMGenericMessage(from:event) , otherMessage.hasReaction()
         else { return nil }
         
         // If new event is an "unlike" from the same sender we want to cancel the previous notification
@@ -77,7 +77,7 @@ final public class ZMLocalNotificationForReaction : ZMLocalNotificationForEvent,
     }
     
     override func configureAlertBody(_ conversation: ZMConversation?) -> String {
-        return ZMPushStringReaction.localizedStringWithUser(self.sender, conversation: conversation, emoji: self.emoji!)
+        return ZMPushStringReaction.localizedString(with: self.sender, conversation: conversation, emoji: self.emoji!)
     }
 }
 

@@ -76,13 +76,13 @@ extension NSManagedObjectContext {
     fileprivate static func storeURL(forAppGroupIdentifier appGroupdIdentifier: String?) -> URL? {
         let fileManager = FileManager.default
         
-        guard let identifier = Bundle.mainBundle().bundleIdentifier ?? Bundle(forClass: ZMUser.self).bundleIdentifier else { return nil }
+        guard let identifier = Bundle.main.bundleIdentifier ?? Bundle(for: ZMUser.self).bundleIdentifier else { return nil }
         let groupIdentifier = appGroupdIdentifier ?? "group.\(identifier)"
-        let directoryInContainer = fileManager.containerURLForSecurityApplicationGroupIdentifier(groupIdentifier)
+        let directoryInContainer = fileManager.containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
         
         let directory: URL
         
-        if directoryInContainer != .None {
+        if directoryInContainer != .none {
             directory = directoryInContainer!
         }
         else {
@@ -106,24 +106,26 @@ extension NSManagedObjectContext {
             }
         }
         
-        let _storeURL = directory.URLByAppendingPathComponent(identifier)
+        var _storeURL = directory.appendingPathComponent(identifier)
         
-        if !fileManager.fileExistsAtPath(_storeURL.path!) {
+        if !fileManager.fileExists(atPath: _storeURL.path) {
             do {
-                try fileManager.createDirectoryAtURL(_storeURL, withIntermediateDirectories: true, attributes: nil)
+                try fileManager.createDirectory(at: _storeURL, withIntermediateDirectories: true, attributes: nil)
             } catch {
                 assertionFailure("Failed to get or create directory \(error)")
             }
         }
         
         do {
-            try _storeURL.setResourceValue(1, forKey: URLResourceKey.isExcludedFromBackupKey)
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            try _storeURL.setResourceValues(values)
         } catch {
-            assertionFailure("Error excluding \(_storeURL.path!) from backup: \(error)")
+            assertionFailure("Error excluding \(_storeURL.path) from backup: \(error)")
         }
         
         let storeFileName = "ZMEventModel.sqlite"
-        return _storeURL.URLByAppendingPathComponent(storeFileName)
+        return _storeURL.appendingPathComponent(storeFileName)
     }
 }
 

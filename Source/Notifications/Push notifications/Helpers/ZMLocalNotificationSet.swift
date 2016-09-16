@@ -134,7 +134,7 @@ public extension ZMLocalNotificationSet {
             if let note = note as? ZMLocalNotificationForEvent , note is CopyableEventNotification {
                 if let copied = (note as! CopyableEventNotification).copyByAddingEvent(event, conversation: conversation) as? ZMLocalNotificationForEvent {
                     if note.shouldBeDiscarded {
-                        remove(note)
+                        _ = remove(note)
                     }
                     else {
                         replaceObject(note, newObject: copied)

@@ -65,7 +65,7 @@ extension ProxiedRequestType {
             request.expire(afterInterval: ProxiedRequestStrategy.RequestExpirationTime)
             request.add(ZMCompletionHandler(on: self.managedObjectContext.zm_userInterface, block: {
                 response in
-                    callback?(response.rawData, response.rawResponse, response.transportSessionError)
+                    callback?(response.rawData, response.rawResponse, response.transportSessionError as NSError?)
             }))
             return request
         }

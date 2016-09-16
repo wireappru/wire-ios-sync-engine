@@ -28,7 +28,7 @@ public final class MissingClientsRequestFactory {
     
     public func fetchMissingClientKeysRequest(_ missingClients: Set<UserClient>) -> ZMUpstreamRequest! {
         let map = MissingClientsMap(Array(missingClients), pageSize: pageSize)
-        let request = ZMTransportRequest(path: "/users/prekeys", method: ZMTransportRequestMethod.MethodPOST, payload: map.payload)
+        let request = ZMTransportRequest(path: "/users/prekeys", method: ZMTransportRequestMethod.methodPOST, payload: map.payload as ZMTransportData?)
         return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientMissingKey), transportRequest: request, userInfo: map.userInfo)
     }
     

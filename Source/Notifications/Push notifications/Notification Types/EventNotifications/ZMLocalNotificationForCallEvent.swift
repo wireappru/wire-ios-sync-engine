@@ -129,17 +129,17 @@ final public class ZMLocalNotificationForCallEvent : ZMLocalNotificationForEvent
             let baseString = session.isVideo ? ZMPushStringVideoCallStarts : ZMPushStringCallStarts
             return baseString.localizedString(with: sender, conversation: conversation, count: nil)
         case .sessionEnded:
-            let sessions = sessionTracker.missedSessionsFor(conversation!.remoteIdentifier)
+            let sessions = sessionTracker.missedSessionsFor(conversation!.remoteIdentifier!)
             let missedSessionsInConversation = sessions.count
             
-            var sender = ZMUser(remoteID: session.initiatorID, createIfNeeded: false, inContext: managedObjectContext)
-            if conversation!.conversationType == .Group {
+            var sender = ZMUser(remoteID: session.initiatorID, createIfNeeded: false, in: managedObjectContext)
+            if conversation!.conversationType == .group {
                 let missedSessionsFromSender = sessions.filter{$0.initiatorID == session.initiatorID}.count
                 if missedSessionsInConversation != missedSessionsFromSender {
                     sender = nil
                 }
             }
-            return ZMPushStringCallMissed.localizedStringWithUser(sender, conversation: conversation, count: missedSessionsInConversation)
+            return ZMPushStringCallMissed.localizedString(with: sender, conversation: conversation, count: NSNumber(value: missedSessionsInConversation))
         default :
             return ""
         }

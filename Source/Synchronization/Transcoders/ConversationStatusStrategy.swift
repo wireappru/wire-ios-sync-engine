@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -26,7 +26,7 @@ public final class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextC
     let lastReadKey = "lastReadServerTimeStamp"
     let clearedKey = "clearedTimeStamp"
     
-    public func objectsDidChange(_ objects: Set<NSObject>) {
+    public func objectsDidChange(_ objects: Set<NSManagedObject>) {
         var didUpdateConversation = false
         objects.forEach{
             if let conv = $0 as? ZMConversation {
@@ -50,12 +50,13 @@ public final class ConversationStatusStrategy : ZMObjectSyncStrategy, ZMContextC
         }
     }
     
-    public func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
-        let request = NSFetchRequest<ZMConversation>(entityName: ZMConversation.entityName())
+    public func fetchRequestForTrackedObjects() -> NSFetchRequest<NSFetchRequestResult>? {
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: ZMConversation.entityName())
         return request
     }
-
-    public func addTrackedObjects(_ objects: Set<NSObject>) {
+    
+    public func addTrackedObjects(_ objects: Set<NSManagedObject>) {
         objectsDidChange(objects)
     }
+    
 }

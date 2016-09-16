@@ -42,7 +42,7 @@ final public class ZMLocalNotificationForSystemMessage : ZMLocalNotification, No
         else {return nil}
         
         self.senderUUID = sender.remoteIdentifier!
-        self.application = application ?? UIApplication.sharedApplication()
+        self.application = application ?? UIApplication.shared
         super.init(conversationID: message.conversation?.remoteIdentifier)
         
         let notification = configureNotification(message)
@@ -51,39 +51,39 @@ final public class ZMLocalNotificationForSystemMessage : ZMLocalNotification, No
     
     public func configureAlertBody(_ message: ZMSystemMessage) -> String {
         switch message.systemMessageType {
-        case .ParticipantsRemoved, .ParticipantsAdded:
+        case .participantsRemoved, .participantsAdded:
             return alertBodyForParticipantEvents(message)
-        case .ConversationNameChanged:
-            return ZMPushStringConversationRename.localizedStringWithUser(message.sender, count:nil, text:message.text)
-        case .ConnectionRequest:
-            return ZMPushStringConnectionRequest.localizedStringWithUserName(message.text)
+        case .conversationNameChanged:
+            return ZMPushStringConversationRename.localizedString(with: message.sender, count:nil, text:message.text)
+        case .connectionRequest:
+            return ZMPushStringConnectionRequest.localizedString(withUserName: message.text)
         default:
             return ""
         }
     }
     
     func alertBodyForParticipantEvents(_ message: ZMSystemMessage) -> String {
-        let isLeaveEvent = (message.systemMessageType == .ParticipantsRemoved)
+        let isLeaveEvent = (message.systemMessageType == .participantsRemoved)
         let isCopy = (userCount != 0)
         let users = isLeaveEvent ? message.removedUsers : message.addedUsers
         
-        userCount = userCount + users.count
+        userCount = userCount + (users?.count)! // TODO jacob
         if isCopy {
             let key = isLeaveEvent ? ZMPushStringMemberLeaveMany : ZMPushStringMemberJoinMany
-            return key.localizedStringWithUser(nil, conversation: message.conversation, otherUser: nil)
+            return key.localizedString(with: nil, conversation: message.conversation, otherUser: nil)
         }
         
         var user: ZMUser?
-        var key : NSString = isLeaveEvent ? ZMPushStringMemberLeaveMany : ZMPushStringMemberJoinMany
+        var key : NSString = (isLeaveEvent ? ZMPushStringMemberLeaveMany : ZMPushStringMemberJoinMany) as NSString
         if userCount == 1 {
-            if (users.first == message.sender) {
+            if (users?.first == message.sender) {
                 key = ZMPushStringMemberLeaveSender as NSString
             } else {
-                user = users.first
-                key = isLeaveEvent ? ZMPushStringMemberLeave : ZMPushStringMemberJoin
+                user = users?.first
+                key = (isLeaveEvent ? ZMPushStringMemberLeave : ZMPushStringMemberJoin) as NSString
             }
         }
-        return key.localizedStringWithUser(message.sender, conversation: message.conversation, otherUser: user)
+        return key.localizedString(with: message.sender, conversation: message.conversation, otherUser: user)
     }
     
     class func canCreateNotification(_ message : ZMSystemMessage) -> Bool {
@@ -100,7 +100,7 @@ final public class ZMLocalNotificationForSystemMessage : ZMLocalNotification, No
         else { return nil }
         
         switch (contentType, otherContentType){
-        case (.System(let type), .System) where type == .ParticipantsAdded || type == .ParticipantsRemoved:
+        case (.system(let type), .system) where type == .participantsAdded || type == .participantsRemoved:
             cancelNotifications()
             let note = configureNotification(message)
             notifications.append(note)

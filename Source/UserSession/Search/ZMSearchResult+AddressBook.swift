@@ -44,12 +44,12 @@ extension ZMSearchResult {
                     localMatchedUsers.append(user)
                 }
             } else if let contact = match.contact , queryContacts.contains(contact)
-                && (match.user == nil || match.user?.connection?.status != .Blocked) {
+                && (match.user == nil || match.user?.connection?.status != .blocked) {
                 matchedUsers.append(ZMSearchUser(contact: contact, user: match.user, userSession: userSession))
             }
         }
         
-        matchedUsers.appendContentsOf(ZMSearchUser.usersWithUsers(localMatchedUsers, userSession: userSession) as [ZMSearchUser])
+        matchedUsers.append(contentsOf: ZMSearchUser.users(with: localMatchedUsers, userSession: userSession) as [ZMSearchUser])
         
         return ZMSearchResult(usersInContacts: matchedUsers, usersInDirectory: self.usersInDirectory, groupConversations: self.groupConversations)
     }

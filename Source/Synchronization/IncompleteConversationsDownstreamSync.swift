@@ -93,9 +93,9 @@
         let request = encoder.requestForFetchingRange(conversationAndGap.gapRange, conversation: conversationAndGap.conversation)
         request.setDebugInformationTranscoder(encoder as! NSObject)
         
-        request.addCompletionHandler(ZMCompletionHandler(onGroupQueue: self.managedObjectContext, block: { [weak self] in
+        request.add(ZMCompletionHandler(on: self.managedObjectContext, block: { [weak self] in
             guard let strongSelf = self, let parser = strongSelf.responseParser else { return }
-            if $0.result != ZMTransportResponseStatus.TryAgainLater {
+            if $0.result != ZMTransportResponseStatus.tryAgainLater {
                 parser.updateRange(conversationAndGap.gapRange, conversation: conversationAndGap.conversation, response: $0)
             }
             strongSelf.conversationsBeingFetched.remove(conversationAndGap.conversation)
@@ -129,7 +129,7 @@
     fileprivate func resetCooldown() {
         self.lastLowPriorityDownloadDate = Date()
         // This timer is needed to make sure that once the cooldown has passed, a new request is triggered
-        DispatchQueue.global(priority: 0).asyncAfter(deadline: DispatchTime.now() + Double(Int64(UInt64(lowPriorityRequestsCooldownInterval) * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: DispatchTime.now() + Double(Int64(UInt64(lowPriorityRequestsCooldownInterval) * NSEC_PER_SEC)) / Double(NSEC_PER_SEC)) {
                 [weak self] in
                 self?.managedObjectContext.performGroupedBlock {
                     ZMOperationLoop.notifyNewRequestsAvailable(self)
@@ -139,18 +139,18 @@
     
     /// Finds a conversation in the given cache that is not currently being downloaded and gets the first gap in that conversation
     fileprivate func highPriorityConversationAndGap() -> (conversation: ZMConversation, gapRange: ZMEventIDRange)? {
-        if  let firstObject = conversationsCache.incompleteWhitelistedConversations.firstObjectNotInSet(self.conversationsBeingFetched),
+        if  let firstObject = conversationsCache.incompleteWhitelistedConversations.firstObjectNot(in: self.conversationsBeingFetched),
             let conversation = firstObject as? ZMConversation,
-            let gap = conversationsCache.gapForConversation(conversation) {
+            let gap = conversationsCache.gap(for: conversation) {
             return (conversation, gap)
         }
         return nil
     }
         
      fileprivate func lowPriorityConversationAndGap() -> (conversation: ZMConversation, gapRange: ZMEventIDRange)? {
-        if let firstObject = conversationsCache.incompleteNonWhitelistedConversations.firstObjectNotInSet(self.conversationsBeingFetched),
+        if let firstObject = conversationsCache.incompleteNonWhitelistedConversations.firstObjectNot(in: self.conversationsBeingFetched),
             let conversation = firstObject as? ZMConversation,
-            let gap = conversationsCache.gapForConversation(conversation) {
+            let gap = conversationsCache.gap(for: conversation) {
                 return (conversation, gap)
         }
         return nil

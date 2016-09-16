@@ -89,7 +89,7 @@ extension ZMLocalNotificationDispatcher {
         for note in messageNotifications.notifications where note is ZMLocalNotificationForMessage {
             if (note as! ZMLocalNotificationForMessage).isNotificationFor(messageID) {
                 note.uiNotifications.forEach{(sharedApplicationForSwift as! Application).cancelLocalNotification($0)}
-                messageNotifications.remove(note);
+                _ = messageNotifications.remove(note);
             }
         }
     }

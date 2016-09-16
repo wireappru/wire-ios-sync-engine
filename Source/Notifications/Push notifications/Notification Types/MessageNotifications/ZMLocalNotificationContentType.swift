@@ -79,7 +79,7 @@ public func ==(rhs: ZMLocalNotificationContentType, lhs: ZMLocalNotificationCont
     switch (rhs, lhs) {
     case (.text(let left), .text(let right)):
         return left == right
-    case (.System(let lType), .System(let rType)):
+    case (.system(let lType), .system(let rType)):
         return lType == rType
     case (.image, .image), (.video, .video), (.audio, .audio), (.location, .location), (.fileUpload, .fileUpload), (.knock, .knock):
         return true

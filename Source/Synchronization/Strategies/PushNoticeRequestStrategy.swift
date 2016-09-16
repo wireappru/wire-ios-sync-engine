@@ -81,17 +81,17 @@ extension PushNoticeRequestStrategy: ZMSingleRequestTranscoder {
         let basePath = "/notifications/\((nextNotificationID as NSUUID).transportString())"
         let clientComponent = URLQueryItem(name: "client", value: selfClientID)
         let fallbackComponent = URLQueryItem(name: "cancel_fallback", value: "true")
-        let path = URLComponents(string: basePath)
+        var path = URLComponents(string: basePath)
         path!.queryItems = [clientComponent, fallbackComponent]
         
-        let request = ZMTransportRequest(path: path!.string, method: .methodGET, payload: nil)
+        let request = ZMTransportRequest(path: path!.string!, method: .methodGET, payload: nil)
         request.forceToVoipSession()
 
         let completion = ZMCompletionHandler(on: managedObjectContext)  { [weak self] response in
             let success = response.result == .success
             var events : [ZMUpdateEvent] = []
             if success {
-                events = ZMUpdateEvent.eventsArray(from: response.payload, source: ZMUpdateEventSource.pushNotification) ?? []
+                events = ZMUpdateEvent.eventsArray(from: response.payload!, source: ZMUpdateEventSource.pushNotification) ?? []
             }
             self?.pingBackStatus?.didFetchNoticeNotification(nextEventsWithID, responseStatus: response.result, events: events)
         }

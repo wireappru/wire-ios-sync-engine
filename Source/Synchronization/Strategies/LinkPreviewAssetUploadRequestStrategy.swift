@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -65,20 +65,20 @@ public final class LinkPreviewAssetUploadRequestStrategy : ZMObjectSyncStrategy,
         
         let linkPreviewPreprocessor = LinkPreviewPreprocessor(linkPreviewDetector: LinkPreviewDetectorHelper.test_debug_linkPreviewDetector()!, managedObjectContext: managedObjectContext)
 
-        let imageFetchPredicate = NSPredicate(format: "%K == %d",ZMClientMessageLinkPreviewStateKey, ZMLinkPreviewState.Downloaded.rawValue)
+        let imageFetchPredicate = NSPredicate(format: "%K == %d",ZMClientMessageLinkPreviewStateKey, ZMLinkPreviewState.downloaded.rawValue)
         let needsProccessing = NSPredicate { object, _ in
             guard let message = object as? ZMClientMessage else { return false }
-            return nil != managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .Original, encrypted: false)
+            return nil != managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .original, encrypted: false)
         }
         
         let previewImagePreprocessor = ZMImagePreprocessingTracker(
             managedObjectContext:       managedObjectContext,
             imageProcessingQueue:       OperationQueue(),
-            fetchPredicate:             imageFetchPredicate,
+            fetch:             imageFetchPredicate,
             needsProcessingPredicate:   needsProccessing,
             entityClass:                ZMClientMessage.self
         )
-        self.init(authenticationStatus:authenticationStatus, linkPreviewPreprocessor: linkPreviewPreprocessor, previewImagePreprocessor:  previewImagePreprocessor, managedObjectContext: managedObjectContext)
+        self.init(authenticationStatus:authenticationStatus, linkPreviewPreprocessor: linkPreviewPreprocessor, previewImagePreprocessor:  previewImagePreprocessor!, managedObjectContext: managedObjectContext)
     }
     
     init(authenticationStatus: AuthenticationStatusProvider, linkPreviewPreprocessor: LinkPreviewPreprocessor, previewImagePreprocessor: ZMImagePreprocessingTracker, managedObjectContext: NSManagedObjectContext)
@@ -92,7 +92,7 @@ public final class LinkPreviewAssetUploadRequestStrategy : ZMObjectSyncStrategy,
         self.assetUpstreamSync = ZMUpstreamModifiedObjectSync(
             transcoder: self,
             entityName: ZMClientMessage.entityName(),
-            updatePredicate: predicateForAssetUpload,
+            update: predicateForAssetUpload,
             filter: filterForAssetUpload,
             keysToSync: [ZMClientMessageLinkPreviewStateKey],
             managedObjectContext: managedObjectContext)
@@ -122,15 +122,15 @@ public final class LinkPreviewAssetUploadRequestStrategy : ZMObjectSyncStrategy,
 
 extension LinkPreviewAssetUploadRequestStrategy : ZMUpstreamTranscoder {
     
-    public func requestForUpdatingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>) -> ZMUpstreamRequest? {
+    public func request(forUpdating managedObject: ZMManagedObject, forKeys keys: Set<String>) -> ZMUpstreamRequest? {
         guard let message = managedObject as? ZMClientMessage else { return nil }
         guard keys.contains(ZMClientMessageLinkPreviewStateKey) else { return nil }
 
-        guard let imageData = managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .Medium, encrypted: true) else { return nil }
+        guard let imageData = managedObjectContext.zm_imageAssetCache.assetData(message.nonce, format: .medium, encrypted: true) else { return nil }
         return ZMUpstreamRequest(keys: [ZMClientMessageLinkPreviewStateKey], transportRequest: requestFactory.upstreamRequestForAsset(withData: imageData))
     }
     
-    public func requestForInsertingObject(_ managedObject: ZMManagedObject, forKeys keys: Set<NSObject>?) -> ZMUpstreamRequest? {
+    public func request(forInserting managedObject: ZMManagedObject, forKeys keys: Set<String>?) -> ZMUpstreamRequest? {
         return nil
     }
     
@@ -138,21 +138,21 @@ extension LinkPreviewAssetUploadRequestStrategy : ZMUpstreamTranscoder {
         return false
     }
     
-    public func objectToRefetchForFailedUpdateOfObject(_ managedObject: ZMManagedObject) -> ZMManagedObject? {
+    public func objectToRefetchForFailedUpdate(of managedObject: ZMManagedObject) -> ZMManagedObject? {
         return nil
     }
     
-    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<NSObject>) -> Bool {
+    public func updateUpdatedObject(_ managedObject: ZMManagedObject, requestUserInfo: [AnyHashable: Any]?, response: ZMTransportResponse, keysToParse: Set<String>) -> Bool {
         guard let message = managedObject as? ZMClientMessage else { return false }
-        guard let payload = response.payload.asDictionary(), let assetKey = payload["key"] as? String else { fatal("No asset ID present in payload: \(response.payload)") }
+        guard let payload = response.payload?.asDictionary(), let assetKey = payload["key"] as? String else { fatal("No asset ID present in payload: \(response.payload)") }
         
         if let linkPreview = message.genericMessage?.text.linkPreview.first as? ZMLinkPreview {
             let updatedPreview = linkPreview.update(withAssetKey: assetKey, assetToken: payload["token"] as? String)
-            let genericMessage = ZMGenericMessage(text: message.textMessageData?.messageText, linkPreview: updatedPreview, nonce: message.nonce.transportString())
-            message.addData(genericMessage.data())
-            message.linkPreviewState = .Uploaded
+            let genericMessage = ZMGenericMessage(text: (message.textMessageData?.messageText)!, linkPreview: updatedPreview, nonce: message.nonce.transportString())
+            message.add(genericMessage.data())
+            message.linkPreviewState = .uploaded
         } else {
-            message.linkPreviewState = .Done
+            message.linkPreviewState = .done
         }
 
         return false

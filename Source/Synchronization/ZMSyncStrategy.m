@@ -329,7 +329,7 @@ ZM_EMPTY_ASSERTING_INIT()
     [self appTerminated:nil];
     
     for (ZMObjectSyncStrategy *s in [self.allTranscoders arrayByAddingObjectsFromArray:self.requestStrategies]) {
-        if ([s respondsToSelector:@selector(tearDown)]) {
+        if ([s respondsToSelector:@selector((tearDown))]) { // todo jacob
             [s tearDown];
         }
     }

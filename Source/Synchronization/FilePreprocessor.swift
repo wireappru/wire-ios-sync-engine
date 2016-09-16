@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -46,18 +46,18 @@ It creates an encrypted version from the plain text version
         self.managedObjectContext = managedObjectContext
     }
     
-    public func objectsDidChange(_ object: Set<NSObject>) {
+    public func objectsDidChange(_ object: Set<NSManagedObject>) {
         object.flatMap(fileAssetToPreprocess)
             .filter {!self.objectsBeingProcessed.contains($0)}
             .forEach { self.startProcessing($0)}
     }
     
-    public func fetchRequestForTrackedObjects() -> NSFetchRequest<AnyObject>? {
-        let predicate = NSPredicate(format: "%K == NO && %K == %d", DeliveredKey, ZMAssetClientMessageTransferStateKey, ZMFileTransferState.Uploading.rawValue)
-        return ZMAssetClientMessage.sortedFetchRequestWithPredicate(predicate)
+    public func fetchRequestForTrackedObjects() -> NSFetchRequest<NSFetchRequestResult>? {
+        let predicate = NSPredicate(format: "%K == NO && %K == %d", DeliveredKey, ZMAssetClientMessageTransferStateKey, ZMFileTransferState.uploading.rawValue)
+        return ZMAssetClientMessage.sortedFetchRequest(with: predicate)
     }
     
-    public func addTrackedObjects(_ objects: Set<NSObject>) {
+    public func addTrackedObjects(_ objects: Set<NSManagedObject>) {
         objects.flatMap(fileAssetToPreprocess)
             .filter {!self.objectsBeingProcessed.contains($0)}
             .forEach { self.startProcessing($0)}
@@ -90,7 +90,7 @@ extension ZMAssetClientMessage {
     /// Returns whether the message needs an encrypted version of the file that is not there yet
     var needsEncryptedFile : Bool {
         return self.filename != nil
-            && self.transferState == .Uploading
+            && self.transferState == .uploading
             && self.imageMessageData == nil
             && !self.delivered
             && self.managedObjectContext != nil
@@ -99,8 +99,8 @@ extension ZMAssetClientMessage {
     
     /// Adds Uploaded generic message
     fileprivate func addUploadedGenericMessage(_ keys: ZMImageAssetEncryptionKeys) {
-        let msg = ZMGenericMessage.genericMessage(withUploadedOTRKey: keys.otrKey, sha256: keys.sha256, messageID: self.nonce.transportString())
-        self.addGenericMessage(msg)
+        let msg = ZMGenericMessage.genericMessage(withUploadedOTRKey: keys.otrKey, sha256: keys.sha256!, messageID: self.nonce.transportString())
+        self.add(msg)
     }
 }
 

@@ -41,7 +41,7 @@ public final class AssetRequestFactory : NSObject {
         let fileDataHeader = ["Content-MD5": (data as NSData).zmMD5Digest().base64String()]
         let metaData = try JSONSerialization.data(withJSONObject: ["public" : shareable, "retention" : retention.rawValue ], options: [])
 
-        return .multipartData(withItems: [
+        return NSData.multipartData(withItems: [
             ZMMultipartBodyItem(data: metaData, contentType: jsonContentType, headers: nil),
             ZMMultipartBodyItem(data: data, contentType: octetStreamContentType, headers: fileDataHeader),
             ], boundary: "frontier")

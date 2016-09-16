@@ -99,11 +99,21 @@ protocol AddressBookAccessor {
     func encodeWithCompletionHandler(_ groupQueue: ZMSGroupQueue,
                                      startingContactIndex: UInt,
                                      maxNumberOfContacts: UInt,
-                                     completion: (EncodedAddressBookChunk?)->()
+                                     completion: @escaping (EncodedAddressBookChunk?)->()
     )
 }
 
 extension AddressBook : AddressBookAccessor {
+    /// Encodes an arbitraty part the address book asynchronously. Will invoke the completion handler when done.
+    /// - parameter groupQueue: group queue to enter while executing, and where to invoke callback
+    /// - parameter completion: closure invoked when the address book encoding ended. It will receive nil parameter
+    ///     if there are no contacts to upload
+    /// - parameter maxNumberOfContacts: do not include more than this number of contacts
+    /// - parameter startingContactIndex: include contacts starting from this index in the address book
+//    internal func encodeWithCompletionHandler(_ groupQueue: ZMSGroupQueue, startingContactIndex: UInt, maxNumberOfContacts: UInt, completion: (EncodedAddressBookChunk?) -> ()) {
+//        <#code#>
+//    }
+
     
     /// Number of contacts in the address book
     var numberOfContacts : UInt {
@@ -111,13 +121,56 @@ extension AddressBook : AddressBookAccessor {
     }
     
     /// Returns a generator that will generate all elements of the address book
-    func iterate() -> LazySequence<AnyGenerator<ZMAddressBookContact>> {
-        return AnyGenerator(AddressBookIterator(
+    func iterate() -> LazySequence<AnyIterator<ZMAddressBookContact>> {
+        return AnyIterator(AddressBookIterator(
             phoneNumberNormalizer: { self.phoneNormalizer.normalize($0)?.validatedPhoneNumber },
             emailNormalizer: { $0.validatedEmail },
-            allPeople: self.allPeopleClosure(ref: self.ref)
+            allPeople: self.allPeopleClosure(self.ref)
         )).lazy
     }
+    
+    internal func encodeWithCompletionHandler(_ groupQueue: ZMSGroupQueue,
+                                              startingContactIndex: UInt,
+                                              maxNumberOfContacts: UInt,
+                                              completion: @escaping (EncodedAddressBookChunk?)->()
+        ) {
+        // here we are explicitly capturing self, this is executed on a queue that is
+        // never blocked indefinitely as this is the only function using it
+        groupQueue.dispatchGroup.async(on: addressBookProcessingQueue) {
+            
+//            let range = startingContactIndex..<(startingContactIndex+maxNumberOfContacts)
+            let range = Range(uncheckedBounds: (startingContactIndex, startingContactIndex+maxNumberOfContacts)) // TODO jacob
+            let cards = self.generateContactCards(range)
+            
+            guard cards.count > 0 || startingContactIndex > 0 else {
+                // this should happen if I have zero contacts
+                groupQueue.performGroupedBlock({
+                    completion(nil)
+                })
+                return
+            }
+            
+            let cardsRange = startingContactIndex..<(startingContactIndex+UInt(cards.count))
+            let encodedAB = EncodedAddressBookChunk(numberOfTotalContacts: self.numberOfContacts,
+                                                    otherContactsHashes: cards,
+                                                    includedContacts: cardsRange)
+            groupQueue.performGroupedBlock({
+                completion(encodedAB)
+            })
+        }
+    }
+    
+    /// Generate contact cards for the given range of contacts
+    fileprivate func generateContactCards(_ range: Range<UInt>) -> [[String]]
+    {
+        return self.iterate()
+            .elements(range)
+            .map { (contact: ZMAddressBookContact) -> [String] in
+                return (contact.emailAddresses.map { $0.base64EncodedSHADigest })
+                    + (contact.phoneNumbers.map { $0.base64EncodedSHADigest })
+        }
+    }
+    
 }
 
 /// Iterator for address book
@@ -241,7 +294,7 @@ extension String {
                 .joined(separator: "")) // remove all non-digit
         }
         
-        var number : AnyObject? = self
+        var number : AnyObject? = self as AnyObject?
         do {
             try ZMPhoneNumberValidator.validateValue(&number)
             return number as? String
@@ -252,7 +305,7 @@ extension String {
     
     /// Returns a normalized email or nil
     var validatedEmail : String? {
-        var email : AnyObject? = self
+        var email : AnyObject? = self as AnyObject?
         do {
             try ZMEmailAddressValidator.validateValue(&email)
             return email as? String
@@ -282,5 +335,60 @@ extension AddressBook {
     /// the standard function
     static fileprivate func customOrDefaultNumberOfPeopleClosure(_ custom: NumberOfPeopleClosure?) -> NumberOfPeopleClosure {
         return custom != nil ? custom! : { ABAddressBookGetPersonCount($0) }
+    }
+}
+
+// MARK: - Encoded address book chunk
+struct EncodedAddressBookChunk {
+    
+    /// Total number of contacts in the address book
+    let numberOfTotalContacts : UInt
+    
+    /// Data to upload for contacts other that the self user
+    let otherContactsHashes : [[String]]
+    
+    /// Contacts included in this chuck, according to AB order
+    let includedContacts : CountableRange<UInt>
+}
+
+
+// MARK: - Utilities
+extension String {
+    
+    /// Returns the base64 encoded string of the SHA hash of the string
+    var base64EncodedSHADigest : String {
+        return self.data(using: String.Encoding.utf8)!.zmSHA256Digest().base64EncodedString(options: [])
+    }
+    
+}
+
+
+/// Private AB processing queue
+private let addressBookProcessingQueue = DispatchQueue(label: "Address book processing", attributes: [])
+
+extension Sequence {
+    
+    /// Returns the elements of the sequence in the positions indicated by the range
+    func elements(_ range: Range<UInt>) -> AnyIterator<Self.Iterator.Element> {
+        
+        var generator = self.makeIterator()
+        var count : UInt = 0
+        
+        return AnyIterator {
+            
+            while count < range.lowerBound {
+                if generator.next() != nil {
+                    count += 1
+                    continue
+                } else {
+                    return nil
+                }
+            }
+            if count == range.upperBound {
+                return nil
+            }
+            count += 1
+            return generator.next()
+        }
     }
 }

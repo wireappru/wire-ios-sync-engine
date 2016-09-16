@@ -50,11 +50,10 @@ public extension NSString {
         keyComponents.append(convTypeKey)
 
         
-        if userName == nil || userName.isEmpty {
-            keyComponents.append(NoUserNameKey)
-        }
-        else {
+        if let userName = userName, !userName.isEmpty {
             arguments.append(userName)
+        } else {
+            keyComponents.append(NoUserNameKey)
         }
         
         if (conversation.conversationType != .oneOnOne) {
@@ -65,7 +64,7 @@ public extension NSString {
                 arguments.append(convName!)
             }
         }
-        let localizationString = keyComponents.reduce(self){$0.0.appendingPathExtension($0.1)!}
+        let localizationString = (self as String) + "." + keyComponents.joined(separator: ".")
         return LocalizationInfo(localizationString: localizationString as String, arguments: arguments)
     }
 }

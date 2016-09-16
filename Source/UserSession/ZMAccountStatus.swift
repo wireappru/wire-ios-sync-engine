@@ -46,8 +46,8 @@ public final class ZMAccountStatus : NSObject, ZMInitialSyncCompletionObserver, 
     public fileprivate (set) var currentAccountState : AccountState = .newDeviceNewAccount
     
     public lazy var hadHistoryBeforeLogin : Bool = {
-        let convRequest = NSFetchRequest.init(entityName:ZMConversation.entityName())
-        let convCount = self.managedObjectContext.countForFetchRequest(convRequest, error: nil)
+        let convRequest = NSFetchRequest<ZMConversation>(entityName:ZMConversation.entityName())
+        guard let convCount = try? self.managedObjectContext.count(for: convRequest) else { return false }
         let hasHistory = convCount > 1
         return hasHistory
     }()
@@ -83,16 +83,15 @@ public final class ZMAccountStatus : NSObject, ZMInitialSyncCompletionObserver, 
     }
     
     func appendMessage(_ state: AccountState){
-        let convRequest = NSFetchRequest.init(entityName:ZMConversation.entityName())
-        guard let conversations = managedObjectContext.executeFetchRequestOrAssert(convRequest) as? [ZMConversation]
-            else { return }
+        let convRequest = NSFetchRequest<ZMConversation>(entityName:ZMConversation.entityName())
+        let conversations = managedObjectContext.fetchOrAssert(request: convRequest)
         
         conversations.forEach{
-            guard $0.conversationType == .OneOnOne || $0.conversationType == .Group else { return }
+            guard $0.conversationType == .oneOnOne || $0.conversationType == .group else { return }
             switch state {
-            case .OldDeviceDeactivatedAccount:
+            case .oldDeviceDeactivatedAccount:
                 $0.appendContinuedUsingThisDeviceMessage()
-            case .NewDeviceExistingAccount:
+            case .newDeviceExistingAccount:
                 $0.appendStartedUsingThisDeviceMessage()
             default:
                 return
@@ -120,9 +119,9 @@ public final class ZMAccountStatus : NSObject, ZMInitialSyncCompletionObserver, 
         ZMUserSession.addInitalSyncCompletionObserver(self)
         self.authenticationToken = ZMUserSessionAuthenticationNotification.addObserver({ [weak self] (note) in
             switch note?.type {
-            case .authenticationNotificationAuthenticationDidSuceeded:
+            case .some(let type) where type == .authenticationNotificationAuthenticationDidSuceeded:
                 self?.didAuthenticate()
-            case .authenticationNotificationAuthenticationDidFail:
+            case .some(let type) where type == .authenticationNotificationAuthenticationDidFail:
                 self?.failedToAuthenticate()
             default:
                 return
