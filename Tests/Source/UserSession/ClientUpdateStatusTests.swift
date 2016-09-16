@@ -282,7 +282,7 @@ class ClientUpdateStatusTests: MessagingTest {
         self.sut.needsToFetchClients(andVerifySelfClient: true)
         self.sut.didFetchClients([client, selfClient])
         
-        let error = NSError(domain: "ClientManagement", code: Int(ClientUpdateError.InvalidCredentials.rawValue), userInfo: nil)
+        let error = Error(domain: "ClientManagement", code: Int(ClientUpdateError.InvalidCredentials.rawValue), userInfo: nil)
         self.receivedNotifications.removeAll()
 
         // when

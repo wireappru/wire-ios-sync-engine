@@ -22,19 +22,19 @@ import ZMCDataModel;
 
 @testable import zmessaging;
 
-open class MockKVStore : NSObject, ZMSynchonizableKeyValueStore {
+public final class MockKVStore : NSObject, ZMSynchonizableKeyValueStore {
     
     var keysAndValues = [String : AnyObject]()
     
-    @objc open override func setValue(_ value: AnyObject!, forKey key: String) {
+    @objc public override func setValue(_ value: AnyObject!, forKey key: String) {
         keysAndValues[key] = value
     }
     
-    @objc open override func valueForKey(_ key: String) -> AnyObject? {
+    @objc public override func valueForKey(_ key: String) -> AnyObject? {
         return keysAndValues[key]
     }
     
-    @objc open func enqueueDelayedSave(){
+    @objc public func enqueueDelayedSave() {
     
     }
 }

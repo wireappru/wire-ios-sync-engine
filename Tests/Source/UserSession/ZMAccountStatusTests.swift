@@ -24,9 +24,9 @@ class MockCookieStorage : NSObject, ZMCookieProvider {
     
     var shouldReturnCookie : Bool = false
     
-    var authenticationCookieData : NSData! {
+    var authenticationCookieData : Data! {
         if shouldReturnCookie {
-            return NSData()
+            return Data()
         }
         return nil
     }
@@ -178,7 +178,7 @@ class ZMAccountStatusTests : MessagingTest {
         XCTAssertEqual(self.sut.currentAccountState, AccountState.NewDeviceExistingAccount)
 
         // when
-        NSNotificationCenter.defaultCenter().postNotificationName("ZMInitialSyncCompletedNotification", object: nil)
+        NotificationCenter.default.post(name: "ZMInitialSyncCompletedNotification", object: nil)
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
 
         // then
@@ -215,7 +215,7 @@ class ZMAccountStatusTests : MessagingTest {
         XCTAssertEqual(self.sut.currentAccountState, AccountState.OldDeviceDeactivatedAccount)
         
         // when
-        NSNotificationCenter.defaultCenter().postNotificationName("ZMInitialSyncCompletedNotification", object: nil)
+        NotificationCenter.default.post(name: "ZMInitialSyncCompletedNotification", object: nil)
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
         
         // then
@@ -240,7 +240,7 @@ class ZMAccountStatusTests : MessagingTest {
         XCTAssertEqual(self.sut.currentAccountState, AccountState.NewDeviceNewAccount)
         
         // when
-        NSNotificationCenter.defaultCenter().postNotificationName("ZMInitialSyncCompletedNotification", object: nil)
+        NotificationCenter.default.post(name: "ZMInitialSyncCompletedNotification", object: nil)
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
         
         // then
@@ -260,7 +260,7 @@ class ZMAccountStatusTests : MessagingTest {
         XCTAssertEqual(self.sut.currentAccountState, AccountState.OldDeviceActiveAccount)
         
         // when
-        ZMUserSessionAuthenticationNotification.notifyAuthenticationDidFail(NSError(domain:"UserSession", code:0, userInfo: nil))
+        ZMUserSessionAuthenticationNotification.notifyAuthenticationDidFail(Error(domain:"UserSession", code:0, userInfo: nil))
         XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
         
         // then

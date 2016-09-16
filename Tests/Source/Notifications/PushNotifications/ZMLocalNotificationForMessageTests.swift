@@ -28,7 +28,7 @@ class ZMLocalNotificationForMessageTests : ZMLocalNotificationForEventTest {
     func textNotification(_ conversation: ZMConversation, sender: ZMUser, text: String? = nil) -> ZMLocalNotificationForMessage? {
         let message = conversation.appendMessageWithText(text ?? "Hello Hello!") as! ZMOTRMessage
         message.sender = sender
-        conversation.lastReadServerTimeStamp = NSDate()
+        conversation.lastReadServerTimeStamp = Date()
         message.serverTimestamp = conversation.lastReadServerTimeStamp.dateByAddingTimeInterval(20)
         
         return ZMLocalNotificationForMessage(message: message, application: self.application)
@@ -145,7 +145,7 @@ extension ZMLocalNotificationForMessageTests {
 enum FileType {
     case txt, video, audio
     
-    var testURL : NSURL {
+    var testURL : URL {
         var name : String
         var fileExtension : String
         switch self {
@@ -162,8 +162,8 @@ enum FileType {
         return Bundle(forClass: ZMLocalNotificationForMessageTests.self).URLForResource(name, withExtension: fileExtension)!
     }
     
-    var testData : NSData {
-        return NSData(contentsOf: testURL as URL)!
+    var testData : Data {
+        return try! Data(contentsOf: testURL)
     }
 }
 
@@ -172,8 +172,8 @@ extension ZMLocalNotificationForMessageTests {
 
     func messageForFile(_ mimeType: String, nonce: NSUUID){
         let dataBuilder = ZMAssetRemoteDataBuilder()
-        dataBuilder.setSha256(NSData.secureRandomDataOfLength(32))
-        dataBuilder.setOtrKey(NSData.secureRandomDataOfLength(32))
+        dataBuilder.setSha256(Data.secureRandomDataOfLength(32))
+        dataBuilder.setOtrKey(Data.secureRandomDataOfLength(32))
 
         let originalBuilder = ZMAssetOriginalBuilder()
         originalBuilder.setMimeType(mimeType)
@@ -192,7 +192,7 @@ extension ZMLocalNotificationForMessageTests {
     
     func assetNotification(_ fileType: FileType, conversation: ZMConversation, sender: ZMUser) -> ZMLocalNotificationForMessage? {
         let metadata = ZMFileMetadata(fileURL: fileType.testURL)
-        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: NSUUID.createUUID(), managedObjectContext: self.syncMOC)
+        let msg = ZMAssetClientMessage(fileMetadata: metadata, nonce: UUID.create(), managedObjectContext: self.syncMOC)
         msg.sender = sender
         msg.visibleInConversation = conversation
         

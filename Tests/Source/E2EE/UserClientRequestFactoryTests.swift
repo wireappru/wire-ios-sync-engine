@@ -160,7 +160,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         
         //given
         let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
-        client.remoteIdentifier = NSUUID.createUUID().transportString()
+        client.remoteIdentifier = UUID.create().transportString()
         
         //when
         let request = try! sut.updateClientPreKeysRequest(client)
@@ -184,7 +184,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         
         //given
         let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
-        client.remoteIdentifier = NSUUID.createUUID().transportString()
+        client.remoteIdentifier = UUID.create().transportString()
         client.preKeysRangeMax = 400
         
         //when
@@ -212,7 +212,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
         (client.keysStore as! FakeKeysStore).failToGeneratePreKeys = true
 
-        client.remoteIdentifier = NSUUID.createUUID().transportString()
+        client.remoteIdentifier = UUID.create().transportString()
         
         //when
         let request = try? sut.updateClientPreKeysRequest(client)
@@ -228,7 +228,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         do {
             _ = try sut.updateClientPreKeysRequest(client)
         }
-        catch let error as NSError {
+        catch let error as Error {
             XCTAssertNotNil(error, "Should not return request if client does not have remoteIdentifier")
         }
         

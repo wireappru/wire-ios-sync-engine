@@ -65,7 +65,7 @@ class RequestStrategyTestBase : MessagingTest {
         let client = UserClient.insertNewObjectInManagedObjectContext(syncMOC)
         client.remoteIdentifier = mockClient.identifier
         let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
-        user.remoteIdentifier = UUID.uuidWithTransportString(mockUser.identifier)
+        user.remoteIdentifier = UUID.uuid(transport: mockUser.identifier)
         client.user = user
         return client
     }

@@ -121,7 +121,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
     func testThatItCallsTheCompletionHandlerWhenTheRequestIsCompleted() {
         
         // given
-        let error = NSError(domain: "ZMTransportSession", code: 10, userInfo: nil)
+        let error = Error(domain: "ZMTransportSession", code: 10, userInfo: nil)
         let data = "Foobar".data(using: String.Encoding.utf8, allowLossyConversion: true)!
         let HTTPResponse = HTTPURLResponse(url: URL(string: "http://www.example.com/")!, statusCode:200, httpVersion:"HTTP/1.1", headerFields:[
                 "Content-Length": "\(data.count)",

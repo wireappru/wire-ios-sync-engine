@@ -37,7 +37,7 @@ class LinkPreviewAssetUploadRequestStrategyTests: MessagingTest {
     /// Creates a message that should generate request
     func createMessage(_ text: String, linkPreviewState: ZMLinkPreviewState = .WaitingToBeProcessed, linkPreview: LinkPreview) -> ZMClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-        conversation!.remoteIdentifier = UUID.createUUID()
+        conversation!.remoteIdentifier = UUID.create()
         
         let message = conversation.appendMessageWithText(text) as! ZMClientMessage
         message.linkPreviewState = linkPreviewState

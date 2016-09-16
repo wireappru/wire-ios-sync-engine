@@ -70,8 +70,8 @@ class APSSignalingKeyStoreTests: MessagingTest {
     
     func testThatItReturnsKeysStoredInKeyChain() {
         // given
-        let data1 = NSData.randomEncryptionKey()
-        let data2 = NSData.randomEncryptionKey()
+        let data1 = Data.randomEncryptionKey()
+        let data2 = Data.randomEncryptionKey()
         
         ZMKeychain.setData(data1, forAccount: APSSignalingKeysStore.verificationKeyAccountName)
         ZMKeychain.setData(data2, forAccount: APSSignalingKeysStore.decryptionKeyAccountName)

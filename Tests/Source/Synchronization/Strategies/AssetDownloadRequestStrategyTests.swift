@@ -53,13 +53,13 @@ class AssetDownloadRequestStrategyTests: MessagingTest {
     
     fileprivate func createConversation() -> ZMConversation {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation.remoteIdentifier = .createUUID()
+        conversation.remoteIdentifier = UUID.create()
         return conversation
     }
     
     fileprivate func createFileTransferMessage(_ conversation: ZMConversation) -> ZMAssetClientMessage {
         let message = conversation.appendMessageWithFileMetadata(ZMFileMetadata(fileURL: testDataURL)) as! ZMAssetClientMessage
-        message.assetId = UUID.createUUID()
+        message.assetId = UUID.create()
         message.fileMessageData?.transferState = .Downloading
         
         self.syncMOC.saveOrRollback()
@@ -117,7 +117,7 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItGeneratesNoRequestsIfMessageIsUploading() {
         // given
         let message = conversation.appendMessageWithFileMetadata(ZMFileMetadata(fileURL: testDataURL)) as! ZMAssetClientMessage
-        message.assetId = UUID.createUUID()
+        message.assetId = UUID.create()
         message.fileMessageData?.transferState = .Uploaded
         
         self.syncMOC.saveOrRollback()
@@ -174,8 +174,8 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItMarksDownloadAsSuccessIfSuccessfulDownloadAndDecryption() {
         
         // given
-        let plainTextData = NSData.secureRandomData(ofLength: 500)
-        let key = NSData.randomEncryptionKey()
+        let plainTextData = Data.secureRandomData(ofLength: 500)
+        let key = Data.randomEncryptionKey()
         let encryptedData = plainTextData?.zmEncryptPrefixingPlainTextIV(key: key!)
         let sha = encryptedData?.zmSHA256Digest()
         
@@ -282,8 +282,8 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItSendsTheNotificationIfSuccessfulDownloadAndDecryption() {
         
         // given
-        let plainTextData = NSData.secureRandomData(ofLength: 500)
-        let key = NSData.randomEncryptionKey()
+        let plainTextData = Data.secureRandomData(ofLength: 500)
+        let key = Data.randomEncryptionKey()
         let encryptedData = plainTextData?.zmEncryptPrefixingPlainTextIV(key: key!)
         let sha = encryptedData?.zmSHA256Digest()
         
@@ -305,7 +305,7 @@ extension AssetDownloadRequestStrategyTests {
         
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NotificationCenter.defaultCenter().addObserverForName(AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.default.addObserverForName(AssetDownloadRequestStrategyNotification.downloadFinishedNotificationName, object: nil, queue: .mainQueue()) { notification in
             XCTAssertNotNil(notification.userInfo![AssetDownloadRequestStrategyNotification.downloadStartTimestampKey])
             notificationExpectation.fulfill()
         }
@@ -328,7 +328,7 @@ extension AssetDownloadRequestStrategyTests {
         
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NotificationCenter.defaultCenter().addObserverForName(AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.default.addObserverForName(AssetDownloadRequestStrategyNotification.downloadFailedNotificationName, object: nil, queue: .mainQueue()) { notification in
             XCTAssertNotNil(notification.userInfo![AssetDownloadRequestStrategyNotification.downloadStartTimestampKey])
             notificationExpectation.fulfill()
         }

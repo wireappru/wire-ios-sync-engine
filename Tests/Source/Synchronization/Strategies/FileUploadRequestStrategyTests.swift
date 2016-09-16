@@ -76,9 +76,9 @@ class FileUploadRequestStrategyTests: MessagingTest {
     }
     
     /// Creates a message that should generate request
-    func createMessage(_ name: String, uploadState: ZMAssetUploadState = .UploadingPlaceholder, inConversation: ZMConversation? = nil, thumbnail: NSData? = nil, url: NSURL = testDataURL) -> ZMAssetClientMessage {
+    func createMessage(_ name: String, uploadState: ZMAssetUploadState = .UploadingPlaceholder, inConversation: ZMConversation? = nil, thumbnail: Data? = nil, url: NSURL = testDataURL) -> ZMAssetClientMessage {
         let conversation = inConversation ?? ZMConversation.insertNewObjectInManagedObjectContext(self.syncMOC)
-        conversation!.remoteIdentifier = UUID.createUUID()
+        conversation!.remoteIdentifier = UUID.create()
         // This is a video metadata since it's the only file type which supports thumbnails at the moment.
         let msg = conversation!.appendMessageWithFileMetadata(ZMVideoMetadata(fileURL: url, thumbnail: thumbnail)) as! ZMAssetClientMessage
         msg.uploadState = uploadState
@@ -88,7 +88,7 @@ class FileUploadRequestStrategyTests: MessagingTest {
     
     func createOtherClientAndConversation() -> (UserClient, ZMConversation) {
         let otherUser = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
-        otherUser.remoteIdentifier = .createUUID()
+        otherUser.remoteIdentifier = UUID.create()
         let otherClient = createClientForUser(otherUser, createSessionWithSelfUser: true)
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
         conversation.conversationType = .Group
@@ -407,7 +407,7 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // when
-        let assetId = NSUUID.create()
+        let assetId = UUID.create()
         let response = ZMTransportResponse(payload: [], HTTPstatus: 200, transportSessionError: nil, headers: ["Location": assetId.transportString()])
         request.completeWithResponse(response)
         XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.5))
@@ -522,12 +522,12 @@ extension FileUploadRequestStrategyTests {
         request.markStartOfUploadTimestamp()
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NotificationCenter.defaultCenter().addObserverForName(FileUploadRequestStrategyNotification.uploadFinishedNotificationName, object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.default.addObserverForName(FileUploadRequestStrategyNotification.uploadFinishedNotificationName, object: nil, queue: .mainQueue()) { notification in
             XCTAssertNotNil(notification.userInfo![FileUploadRequestStrategyNotification.requestStartTimestampKey])
             notificationExpectation.fulfill()
         }
         // when
-        let assetId = NSUUID.create()
+        let assetId = UUID.create()
         let response = ZMTransportResponse(payload: [], HTTPstatus: 200, transportSessionError: nil, headers: ["Location": assetId.transportString()])
         request.completeWithResponse(response)
         XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.5))
@@ -545,7 +545,7 @@ extension FileUploadRequestStrategyTests {
         request.markStartOfUploadTimestamp()
         let notificationExpectation = self.expectationWithDescription("Notification fired")
         
-        let _ = NotificationCenter.defaultCenter().addObserverForName(FileUploadRequestStrategyNotification.uploadFailedNotificationName, object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.default.addObserverForName(FileUploadRequestStrategyNotification.uploadFailedNotificationName, object: nil, queue: .mainQueue()) { notification in
             XCTAssertNotNil(notification.userInfo![FileUploadRequestStrategyNotification.requestStartTimestampKey])
             notificationExpectation.fulfill()
         }
@@ -935,7 +935,7 @@ extension FileUploadRequestStrategyTests {
     
     // MARK: - Decryption Helper
     
-    func decryptedMessage(fromRequestData data: NSData, forClient client: UserClient) -> ZMGenericMessage? {
+    func decryptedMessage(fromRequestData data: Data, forClient client: UserClient) -> ZMGenericMessage? {
         let otrMessage = ZMNewOtrMessage.builder().mergeFromData(data).build() as? ZMNewOtrMessage
         XCTAssertNotNil(otrMessage, "Unable to generate OTR message")
         let clientEntries = otrMessage?.recipients.flatMap { $0 as? ZMUserEntry }.flatMap { $0.clients }.flatten()
@@ -963,7 +963,7 @@ extension FileUploadRequestStrategyTests {
 
         // client and user
         let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
-        user.remoteIdentifier = UUID.createUUID()
+        user.remoteIdentifier = UUID.create()
         let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
         client.remoteIdentifier = "abc123123"
         client.user = user
@@ -1001,7 +1001,7 @@ extension FileUploadRequestStrategyTests {
         
         // user
         let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
-        user.remoteIdentifier = UUID.createUUID()
+        user.remoteIdentifier = UUID.create()
         
         self.syncMOC.saveOrRollback()
         XCTAssertEqual(user.clients.count, 0)
@@ -1038,7 +1038,7 @@ extension FileUploadRequestStrategyTests {
         
         // user
         let user = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
-        user.remoteIdentifier = UUID.createUUID()
+        user.remoteIdentifier = UUID.create()
         
         self.syncMOC.saveOrRollback()
         XCTAssertEqual(user.clients.count, 0)
@@ -1135,7 +1135,7 @@ extension FileUploadRequestStrategyTests {
     func testThatItDoesNotGeneratePreviewsForImageMessages() {
         // given
         let (_, conversation) = createOtherClientAndConversation()
-        let messageNonce = NSUUID.create()
+        let messageNonce = UUID.create()
         let message = conversation.appendOTRMessageWithImageData(mediumJPEGData(), nonce: messageNonce)
         
         // when

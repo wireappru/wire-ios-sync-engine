@@ -69,29 +69,29 @@ class OperationLoopNewRequestObserver {
 class EventsWithIdentifierTests: ZMTBaseTest {
     
     var sut: EventsWithIdentifier!
-    var identifier: NSUUID!
+    var identifier: UUID!
     var events: [ZMUpdateEvent]!
     
     func messageAddPayload() -> [String : AnyObject] {
         return [
-            "conversation": NSUUID.createUUID().transportString(),
-            "time": NSDate(),
+            "conversation": UUID.create().transportString(),
+            "time": Date(),
             "data": [
                 "content": "saf",
-                "nonce": NSUUID.createUUID().transportString(),
+                "nonce": UUID.create().transportString(),
             ],
-            "from": NSUUID.createUUID().transportString(),
+            "from": UUID.create().transportString(),
             "type": "conversation.message-add"
         ];
     }
     
     override func setUp() {
         super.setUp()
-        identifier = NSUUID.create()
+        identifier = UUID.create()
         let pushChannelData = [
             "id": identifier.transportString(),
             "payload": [messageAddPayload(), messageAddPayload()]
-        ] as [String : Any]
+        ]
         
         
         events = ZMUpdateEvent.eventsArrayFromPushChannelData(pushChannelData)
@@ -150,7 +150,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
     func testThatItSetsTheNotificationID() {
         // given
         XCTAssertFalse(sut.hasNotificationIDs)
-        let notificationID = NSUUID.create()
+        let notificationID = UUID.create()
         
         // when
         sut.didReceiveVoIPNotification(createEventsWithID(notificationID))
@@ -171,7 +171,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
     func testThatItReAddsTheNotificationIDWhenReceiving_TryAgainLater() {
         // given
         XCTAssertFalse(sut.hasNotificationIDs)
-        let notificationID = NSUUID.create()
+        let notificationID = UUID.create()
         let eventsWithID = createEventsWithID(notificationID)
         
         // when
@@ -212,7 +212,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
     func testThatItRemovesTheIDWhenThePingBackFailed() {
         // given
         XCTAssertFalse(sut.hasNotificationIDs)
-        let notificationID = NSUUID.create()
+        let notificationID = UUID.create()
         let eventsWithID = createEventsWithID(notificationID)
         
         // when
@@ -468,7 +468,7 @@ class BackgroundAPNSPingBackStatusTests: MessagingTest {
         
     }
     
-    func simulatePingBack() -> NSUUID {
+    func simulatePingBack() -> UUID {
         let nextEventsWithID = sut.nextNotificationEventsWithID()!
         sut.didPerfomPingBackRequest(nextEventsWithID, responseStatus: .Success)
         return nextEventsWithID.identifier
@@ -604,7 +604,7 @@ extension BackgroundAPNSPingBackStatus {
 }
 
 extension BackgroundAPNSPingBackStatusTests {
-    func createEventsWithID(_ identifier: NSUUID = NSUUID.createUUID(), events: [ZMUpdateEvent] = [ZMUpdateEvent()], isNotice: Bool = false) -> EventsWithIdentifier {
+    func createEventsWithID(_ identifier: UUID = UUID.create(), events: [ZMUpdateEvent] = [ZMUpdateEvent()], isNotice: Bool = false) -> EventsWithIdentifier {
         return EventsWithIdentifier(events: events, identifier: identifier, isNotice: isNotice)
     }
 }

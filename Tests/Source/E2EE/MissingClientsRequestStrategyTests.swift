@@ -71,7 +71,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         let client = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
         
         let missingUser = ZMUser.insertNewObjectInManagedObjectContext(self.syncMOC)
-        missingUser.remoteIdentifier = UUID.createUUID()
+        missingUser.remoteIdentifier = UUID.create()
         
         let firstMissingClient = UserClient.insertNewObjectInManagedObjectContext(self.syncMOC)
         firstMissingClient.remoteIdentifier = NSString.createAlphanumericalString()
@@ -109,7 +109,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         let missingClient = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
         missingClient.remoteIdentifier = NSString.createAlphanumericalString()
         let missingUser = ZMUser.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
-        missingUser.remoteIdentifier = UUID.createUUID()
+        missingUser.remoteIdentifier = UUID.create()
         missingClient.user = missingUser
         
         client.missesClient(missingClient)
@@ -474,7 +474,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
     
     func messageThatMissesRecipient(_ missingRecipient: UserClient) -> ZMClientMessage {
         let message = ZMClientMessage.insertNewObjectInManagedObjectContext(self.syncMOC)
-        let data = ZMGenericMessage(text: self.name, nonce: UUID.createUUID().transportString()).data()
+        let data = ZMGenericMessage(text: self.name, nonce: UUID.create().transportString()).data()
         message.addData(data)
         message.missesRecipient(missingRecipient)
         XCTAssertEqual(message.missingRecipients.count, 1)

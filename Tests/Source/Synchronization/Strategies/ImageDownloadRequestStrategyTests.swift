@@ -37,9 +37,9 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     
     func createImageMessage(withAssetId assetId: NSUUID?) -> ZMAssetClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation!.remoteIdentifier = UUID.createUUID()
+        conversation!.remoteIdentifier = UUID.create()
         
-        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.createUUID())
+        let message = conversation.appendOTRMessageWithImageData(verySmallJPEGData(), nonce: UUID.create())
         
         let imageData = message.imageAssetStorage?.originalImageData()
         let imageSize = ZMImagePreprocessor.sizeOfPrerotatedImageWithData(imageData)
@@ -70,9 +70,9 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     
     func createFileMessage() -> ZMAssetClientMessage {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation!.remoteIdentifier = UUID.createUUID()
+        conversation!.remoteIdentifier = UUID.create()
         
-        let nonce = NSUUID.create()
+        let nonce = UUID.create()
         let fileURL = Bundle(for: ImageDownloadRequestStrategyTests.self).url(forResource: "Lorem Ipsum", withExtension: "txt")!
         let metadata = ZMFileMetadata(fileURL: fileURL)
         let message = conversation!.appendOTRMessageWithFileMetadata(metadata, nonce: nonce)
@@ -97,7 +97,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
         var conversationId : UUID?
         
         self.syncMOC.performGroupedBlock {
-            assetId = NSUUID.createUUID()
+            assetId = UUID.create()
             let message = self.createImageMessage(withAssetId: assetId!)
             conversationId = message.conversation!.remoteIdentifier
             
@@ -141,7 +141,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
             let message = self.createFileMessage()
             message.transferState = .Uploaded
             message.delivered = true
-            message.assetId = NSUUID.createUUID()
+            message.assetId = UUID.create()
             
             // when
             let request = self.sut.nextRequest()
@@ -157,7 +157,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
         self.syncMOC.performGroupedBlock {
             // given
             let imageData = self.verySmallJPEGData()
-            let message = self.createImageMessage(withAssetId: NSUUID.createUUID())
+            let message = self.createImageMessage(withAssetId: UUID.create())
             message.isEncrypted = false
             let response = ZMTransportResponse(imageData: imageData, HTTPstatus: 200, transportSessionError: nil, headers: nil)
             
@@ -176,7 +176,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
     func testMessageIsDeleted_whenDownloadRequestFail() {
         self.syncMOC.performGroupedBlock { 
             // given
-            let message = self.createImageMessage(withAssetId: NSUUID.createUUID())
+            let message = self.createImageMessage(withAssetId: UUID.create())
             
             // when
             self.sut.deleteObject(message, downstreamSync: nil)

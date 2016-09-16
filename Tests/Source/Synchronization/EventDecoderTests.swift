@@ -38,9 +38,9 @@ class EventDecoderTest: MessagingTest {
     
     func dummyEvent() -> ZMUpdateEvent {
         let conversation = ZMConversation.insertNewObjectInManagedObjectContext(syncMOC)
-        conversation.remoteIdentifier = NSUUID.createUUID()
+        conversation.remoteIdentifier = UUID.create()
         let payload = payloadForMessageInConversation(conversation, type: EventConversationAdd, data: ["foo": "bar"])
-        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: NSUUID.createUUID())
+        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
         return event
     }
     

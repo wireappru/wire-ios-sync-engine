@@ -51,7 +51,7 @@ class UserClientRequestStrategyTests: RequestStrategyTestBase {
         authenticationStatus = MockAuthenticationStatus(cookie: cookie);
         clientUpdateStatus = ZMMockClientUpdateStatus(syncManagedObjectContext: self.syncMOC)
         sut = UserClientRequestStrategy(authenticationStatus:authenticationStatus, clientRegistrationStatus: clientRegistrationStatus, clientUpdateStatus:clientUpdateStatus, context: self.syncMOC)
-        NotificationCenter.defaultCenter.addObserver(self, selector: #selector(UserClientRequestStrategyTests.didReceiveAuthenticationNotification(_:)), name: "ZMUserSessionAuthenticationNotificationName", object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(UserClientRequestStrategyTests.didReceiveAuthenticationNotification(_:)), name: "ZMUserSessionAuthenticationNotificationName", object: nil)
     }
     
     
@@ -225,9 +225,9 @@ extension UserClientRequestStrategyTests {
         sut.notifyChangeTrackers(client)
         
         guard let request = self.sut.nextRequest() else { return XCTFail() }
-        let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String : Any]
+        let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"]
         let response = ZMTransportResponse(payload: responsePayload, HTTPstatus: 403, transportSessionError: nil)
-        let expectedError = NSError(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.NeedsToRegisterEmailToRegisterClient.rawValue), userInfo: nil)
+        let expectedError = Error(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.NeedsToRegisterEmailToRegisterClient.rawValue), userInfo: nil)
         
         // when
         request.completeWithResponse(response)
@@ -255,9 +255,9 @@ extension UserClientRequestStrategyTests {
         sut.notifyChangeTrackers(client)
         
         guard let request = self.sut.nextRequest() else { return XCTFail() }
-        let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String : Any]
+        let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"]
         let response = ZMTransportResponse(payload: responsePayload, HTTPstatus: 403, transportSessionError: nil)
-        let expectedError = NSError(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.NeedsPasswordToRegisterClient.rawValue), userInfo: nil)
+        let expectedError = Error(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.NeedsPasswordToRegisterClient.rawValue), userInfo: nil)
         
         // when
         request.completeWithResponse(response)
@@ -282,18 +282,18 @@ extension UserClientRequestStrategyTests {
         let client = createSelfClient(sut.managedObjectContext)
         sut.notifyChangeTrackers(client)
         let selfUser = ZMUser.selfUserInContext(self.sut.managedObjectContext)
-        selfUser.remoteIdentifier = UUID.createUUID()
+        selfUser.remoteIdentifier = UUID.create()
         
 
         guard let request = self.sut.nextRequest() else {
             XCTFail()
             return
         }
-        let responsePayload = ["code": 403, "message": "Too many clients", "label": "too-many-clients"] as [String : Any]
+        let responsePayload = ["code": 403, "message": "Too many clients", "label": "too-many-clients"]
         let response = ZMTransportResponse(payload: responsePayload, HTTPstatus: 403, transportSessionError: nil)
         
 
-        _ = NSError(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.CanNotRegisterMoreClients.rawValue), userInfo: nil)
+        _ = Error(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.CanNotRegisterMoreClients.rawValue), userInfo: nil)
         
         // when
         clientRegistrationStatus.mockPhase = nil
@@ -316,7 +316,7 @@ extension UserClientRequestStrategyTests {
         clientRegistrationStatus.mockPhase = .Registered
 
         let client = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
-        client.remoteIdentifier = UUID.createUUID().transportString()
+        client.remoteIdentifier = UUID.create().transportString()
         self.sut.managedObjectContext.saveOrRollback()
         
         client.numberOfKeysRemaining = Int32(self.sut.minNumberOfRemainingKeys - 1)
@@ -360,7 +360,7 @@ extension UserClientRequestStrategyTests {
     func testThatItDoesNotReturnRequestIfNumberOfRemainingKeysIsAboveMinimum() {
         // given
         let client = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
-        client.remoteIdentifier = UUID.createUUID().transportString()
+        client.remoteIdentifier = UUID.create().transportString()
         self.sut.managedObjectContext.saveOrRollback()
         
         client.numberOfKeysRemaining = Int32(self.sut.minNumberOfRemainingKeys)
@@ -378,7 +378,7 @@ extension UserClientRequestStrategyTests {
     func testThatItResetsNumberOfRemainingKeysAfterNewKeysUploaded() {
         // given
         let client = UserClient.insertNewObjectInManagedObjectContext(self.sut.managedObjectContext)
-        client.remoteIdentifier = UUID.createUUID().transportString()
+        client.remoteIdentifier = UUID.create().transportString()
         self.sut.managedObjectContext.saveOrRollback()
         
         client.numberOfKeysRemaining = Int32(self.sut.minNumberOfRemainingKeys - 1)
@@ -398,19 +398,19 @@ extension UserClientRequestStrategyTests {
 extension UserClientRequestStrategyTests {
     
     
-    func  payloadForClients() -> [[String:String?]] {
+    func  payloadForClients() -> [[String: String!]] {
         let payload =  [
             [
-                "id" : NSUUID.create().transportString(),
+                "id" : UUID.create().transportString(),
                 "type" : "permanent",
                 "label" : "client",
-                "time": (Date() as NSDate).transportString()
+                "time": Date().transportString()
             ],
             [
-                "id" : NSUUID.create().transportString(),
+                "id" : UUID.create().transportString(),
                 "type" : "permanent",
                 "label" : "client",
-                "time": (Date() as NSDate).transportString()
+                "time": Date().transportString()
             ]
         ]
         
@@ -446,7 +446,7 @@ extension UserClientRequestStrategyTests {
     func testThatItCreatesOtherUsersClientsCorrectly() {
         // given
         createClients()
-        let (firstIdentifier, secondIdentifier) = (NSUUID.create().transportString(), NSUUID.create().transportString())
+        let (firstIdentifier, secondIdentifier) = (UUID.create().transportString(), UUID.create().transportString())
         let payloadForOtherClients = [
             [
                 "id" : firstIdentifier,
@@ -460,7 +460,7 @@ extension UserClientRequestStrategyTests {
         
         let response = ZMTransportResponse(payload: payloadForOtherClients, HTTPstatus: 200, transportSessionError: nil)
         
-        let identifier = NSUUID.create()
+        let identifier = UUID.create()
         let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
         user.remoteIdentifier = identifier
         
@@ -484,10 +484,10 @@ extension UserClientRequestStrategyTests {
         // given
         let (selfClient, _) = createClients()
         XCTAssertEqual(selfClient.missingClients?.count, 0)
-        let (firstIdentifier, secondIdentifier) = (NSUUID.create().transportString(), NSUUID.create().transportString())
+        let (firstIdentifier, secondIdentifier) = (UUID.create().transportString(), UUID.create().transportString())
         let payload = payloadForOtherClients(firstIdentifier, secondIdentifier)
         let response = ZMTransportResponse(payload: payload, HTTPstatus: 200, transportSessionError: nil)
-        let identifier = NSUUID.create()
+        let identifier = UUID.create()
         let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
         user.remoteIdentifier = identifier
         
@@ -507,10 +507,10 @@ extension UserClientRequestStrategyTests {
         let (selfClient, localOnlyClient) = createClients()
         XCTAssertEqual(selfClient.missingClients?.count, 0)
         
-        let firstIdentifier = NSUUID.create().transportString()
+        let firstIdentifier = UUID.create().transportString()
         let payload = payloadForOtherClients(firstIdentifier)
         let response = ZMTransportResponse(payload: payload, HTTPstatus: 200, transportSessionError: nil)
-        let identifier = NSUUID.create()
+        let identifier = UUID.create()
         let user = ZMUser.insertNewObjectInManagedObjectContext(syncMOC)
         user.mutableSetValueForKey("clients").addObject(localOnlyClient)
         user.remoteIdentifier = identifier
@@ -643,7 +643,7 @@ extension UserClientRequestStrategyTests {
                 "client" : [
                     "id" : clientId,
                     "label" : label,
-                    "time" : (time as NSDate).transportString(),
+                    "time" : time.transportString(),
                     "type" : "permanent",
                 ],
                 "type" : "user.client-add"
@@ -676,7 +676,7 @@ extension UserClientRequestStrategyTests {
                 UserClientRequestStrategyTests.payloadForAddingClient(clientId, label: clientLabel, time: clientTime)
             ],
             "transient" : false
-        ] as [String : Any]
+        ]
         
         let events = ZMUpdateEvent.eventsArrayFromPushChannelData(payload)
         guard let event = events!.first else {
