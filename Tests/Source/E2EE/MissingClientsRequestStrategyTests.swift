@@ -425,7 +425,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
     func generateValidPrekeysStrings(_ selfClient: UserClient, howMany: UInt16) -> [String] {
         var prekeys : [String] = []
         selfClient.keysStore.encryptionContext.perform { (sessionsDirectory) in
-            let keysAndIds = try! sessionsDirectory.generatePrekeys((0...(howMany - 1)))
+            let keysAndIds = try! sessionsDirectory.generatePrekeys((0..<howMany))
             prekeys = keysAndIds.map { $0.prekey }
         }
         return prekeys

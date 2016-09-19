@@ -227,7 +227,7 @@ extension UserClientRequestStrategyTests {
         guard let request = self.sut.nextRequest() else { return XCTFail() }
         let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String : Any]
         let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil)
-        let expectedError = Error(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.NeedsToRegisterEmailToRegisterClient.rawValue), userInfo: nil)
+        let expectedError = NSError(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.needsToRegisterEmailToRegisterClient.rawValue), userInfo: nil)
         
         // when
         request.complete(with: response)
@@ -237,7 +237,7 @@ extension UserClientRequestStrategyTests {
         XCTAssertEqual(receivedAuthenticationNotifications.count, 1, "should only receive one notification")
         let note = receivedAuthenticationNotifications.first
         AssertOptionalNotNil(note, "Authentication should fail. Observers should be notified") { note in
-            XCTAssertEqual(note.error, expectedError)
+            XCTAssertEqual(note.error as NSError, expectedError)
             XCTAssertEqual(note.type, ZMUserSessionAuthenticationNotificationType.authenticationNotificationAuthenticationDidFail)
         }
     }
@@ -257,7 +257,8 @@ extension UserClientRequestStrategyTests {
         guard let request = self.sut.nextRequest() else { return XCTFail() }
         let responsePayload = ["code": 403, "message": "Re-authentication via password required", "label": "missing-auth"] as [String : Any]
         let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 403, transportSessionError: nil)
-        let expectedError = Error(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.NeedsPasswordToRegisterClient.rawValue), userInfo: nil)
+
+        let expectedError = NSError(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.needsPasswordToRegisterClient.rawValue), userInfo: nil)
         
         // when
         request.complete(with: response)
@@ -267,7 +268,7 @@ extension UserClientRequestStrategyTests {
         XCTAssertEqual(receivedAuthenticationNotifications.count, 1, "should only receive one notification")
         let note = receivedAuthenticationNotifications.first
         AssertOptionalNotNil(note, "Authentication should fail. Observers should be notified") { note in
-            XCTAssertEqual(note.error, expectedError)
+            XCTAssertEqual(note.error as NSError, expectedError)
             XCTAssertEqual(note.type, ZMUserSessionAuthenticationNotificationType.authenticationNotificationAuthenticationDidFail)
         }
     }
@@ -293,11 +294,11 @@ extension UserClientRequestStrategyTests {
         let response = ZMTransportResponse(payload: responsePayload as ZMTransportData?, httpStatus: 403, transportSessionError: nil)
         
 
-        _ = Error(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.CanNotRegisterMoreClients.rawValue), userInfo: nil)
+        _ = NSError(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.canNotRegisterMoreClients.rawValue), userInfo: nil)
         
         // when
         clientRegistrationStatus.mockPhase = nil
-        request.completeWithResponse(response)
+        request.complete(with: response)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         
         // then
@@ -423,7 +424,7 @@ extension UserClientRequestStrategyTests {
         
         // when
         _ = sut.nextRequest()
-        sut.didReceiveResponse(nextResponse, forSingleRequest: nil)
+        sut.didReceive(nextResponse, forSingleRequest: nil)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         
         // then
@@ -447,7 +448,7 @@ extension UserClientRequestStrategyTests {
         // given
         let _ = createClients()
         let (firstIdentifier, secondIdentifier) = (UUID.create().transportString(), UUID.create().transportString())
-        let payloadForOtherClients = [
+        let payload = [
             [
                 "id" : firstIdentifier,
                 "class" : "phone"
@@ -458,7 +459,7 @@ extension UserClientRequestStrategyTests {
             ]
         ]
         
-        let response = ZMTransportResponse(payload: payloadForOtherClients, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         
         let identifier = UUID.create()
         let user = ZMUser.insertNewObject(in: syncMOC)
@@ -467,7 +468,7 @@ extension UserClientRequestStrategyTests {
         // when
         clientRegistrationStatus.mockPhase = .registered
         _ = sut.nextRequest()
-        sut.didReceiveResponse(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers: Set(arrayLiteral: identifier))
+        sut.didReceive(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers: Set(arrayLiteral: identifier))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         
         // then
@@ -492,10 +493,10 @@ extension UserClientRequestStrategyTests {
         user.remoteIdentifier = identifier
         
         // when
-        clientRegistrationStatus.mockPhase = .Registered
+        clientRegistrationStatus.mockPhase = .registered
         _ = sut.nextRequest()
-        sut.didReceiveResponse(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers: Set(arrayLiteral: identifier))
-        XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.2))
+        sut.didReceive(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers: Set(arrayLiteral: identifier))
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         
         // then
         XCTAssertEqual(user.clients.count, 2)
@@ -512,15 +513,15 @@ extension UserClientRequestStrategyTests {
         let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         let identifier = UUID.create()
         let user = ZMUser.insertNewObject(in: syncMOC)
-        user.mutableSetValueForKey("clients").addObject(localOnlyClient)
+        user.mutableSetValue(forKey: "clients").add(localOnlyClient)
         user.remoteIdentifier = identifier
         XCTAssertEqual(user.clients.count, 1)
         
         // when
-        clientRegistrationStatus.mockPhase = .Registered
+        clientRegistrationStatus.mockPhase = .registered
         _ = sut.nextRequest()
-        sut.didReceiveResponse(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers: Set(arrayLiteral: identifier))
-        XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.2))
+        sut.didReceive(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers: Set(arrayLiteral: identifier))
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         
         // then
         XCTAssertEqual(user.clients.count, 1)
@@ -598,9 +599,9 @@ extension UserClientRequestStrategyTests {
         let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         
         //when
-        self.sut.didReceiveResponse(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers:Set(arrayLiteral: user!.remoteIdentifier!))
-        XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.2))
-        XCTAssertFalse(otherClient.deleted)
+        self.sut.didReceive(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers:Set(arrayLiteral: user!.remoteIdentifier!))
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
+        XCTAssertFalse(otherClient.isDeleted)
     }
     
     func testThatItAddsNewInsertedClientsToIgnoredClients() {
@@ -610,8 +611,8 @@ extension UserClientRequestStrategyTests {
         let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         
         //when
-        self.sut.didReceiveResponse(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers:Set(arrayLiteral: user!.remoteIdentifier!))
-        XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.2))
+        self.sut.didReceive(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers:Set(arrayLiteral: user!.remoteIdentifier!))
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         XCTAssertFalse(selfClient.trustedClients.contains(otherClient))
         XCTAssertTrue(selfClient.ignoredClients.contains(otherClient))
     }
@@ -625,9 +626,9 @@ extension UserClientRequestStrategyTests {
         let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         
         //when
-        self.sut.didReceiveResponse(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers:Set(arrayLiteral: user!.remoteIdentifier!))
-        XCTAssertTrue(waitForAllGroupsToBeEmptyWithTimeout(0.2))
-        XCTAssertTrue(otherClient.deleted)
+        self.sut.didReceive(response, remoteIdentifierObjectSync: nil, forRemoteIdentifiers:Set(arrayLiteral: user!.remoteIdentifier!))
+        XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
+        XCTAssertTrue(otherClient.isDeleted)
     }
 }
 
@@ -710,7 +711,7 @@ extension UserClientRequestStrategyTests {
         let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil)!
         
         // when
-        self.sut.processEvents([event], liveEvents:false, prefetchResult: .None)
+        self.sut.processEvents([event], liveEvents:false, prefetchResult: .none)
         
         // then
         XCTAssertEqual(selfUser.clients.count, 1)
@@ -881,7 +882,7 @@ extension UserClientRequestStrategyTests {
         XCTAssertNotNil(request)
         let badResponse = ZMTransportResponse(payload: ["label": "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
 
-        request?.completeWithResponse(badResponse)
+        request?.complete(with: badResponse)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.2))
         
         // and when

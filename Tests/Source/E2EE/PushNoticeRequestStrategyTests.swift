@@ -161,9 +161,9 @@ class PushNoticeRequestStrategyTests: MessagingTest {
         XCTAssertTrue(pingBackStatus.hasNoticeNotificationIDs)
         
         // when
-        let response = ZMTransportResponse(payload: nil, httpStatus: 401, transportSessionError: .tryAgainLaterError)
+        let response = ZMTransportResponse(payload: nil, httpStatus: 401, transportSessionError: NSError.tryAgainLaterError())
         let request = sut.nextRequest()
-        request?.completeWithResponse(response)
+        request?.complete(with: response)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then

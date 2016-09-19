@@ -31,7 +31,7 @@ class OperationLoopNewRequestObserver {
     fileprivate var newRequestNotification = "ZMOperationLoopNewRequestAvailable"
     
     init() {
-        notificationCenter.addObserverForName(Notification.Name(rawValue: newRequestNotification), object: nil, queue: .mainQueue()) { [weak self] note in
+        notificationCenter.addObserverForName(Notification.Name(rawValue: newRequestNotification), object: nil, queue: .main) { [weak self] note in
          self?.notifications.append(note)
         }
     }
@@ -56,8 +56,7 @@ class OperationLoopNewRequestObserver {
         return nil
     }
     
-    func performGroupedBlock(_ block : () -> Void)
-    {
+    func performGroupedBlock(_ block : @escaping () -> Void) {
         block()
     }
     
