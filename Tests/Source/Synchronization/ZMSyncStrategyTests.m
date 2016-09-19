@@ -782,8 +782,8 @@
     
     // expect
     for (id<ZMObjectStrategy> syncObject in self.syncObjects) {
-        [[[self.mockUpstreamSync1 stub] andReturn:self.fetchRequestForTrackedObjects1] fetchRequestForTrackedObjects];
-        [[[self.mockUpstreamSync2 stub] andReturn:self.fetchRequestForTrackedObjects2] fetchRequestForTrackedObjects];
+        [(ZMUpstreamModifiedObjectSync*)[[self.mockUpstreamSync1 stub] andReturn:self.fetchRequestForTrackedObjects1] fetchRequestForTrackedObjects];
+        [(ZMUpstreamModifiedObjectSync*)[[self.mockUpstreamSync2 stub] andReturn:self.fetchRequestForTrackedObjects2] fetchRequestForTrackedObjects];
         [[self.mockUpstreamSync1 expect] addTrackedObjects:[NSSet setWithObject:user]];
         [[self.mockUpstreamSync2 expect] addTrackedObjects:[NSSet setWithObject:conversation]];
         [self verifyMockLater:syncObject];
@@ -798,8 +798,8 @@
 {
     // given
     ZMTransportRequest *dummyRequest = [OCMockObject mockForClass:ZMTransportRequest.class];
-    [[self.mockUpstreamSync1 stub] fetchRequestForTrackedObjects];
-    [[self.mockUpstreamSync2 stub] fetchRequestForTrackedObjects];
+    [(ZMUpstreamModifiedObjectSync*)[self.mockUpstreamSync1 stub] fetchRequestForTrackedObjects];
+    [(ZMUpstreamModifiedObjectSync*)[self.mockUpstreamSync2 stub] fetchRequestForTrackedObjects];
 
     // expect
     [[[(id)self.stateMachine expect] andReturn:dummyRequest] nextRequest];

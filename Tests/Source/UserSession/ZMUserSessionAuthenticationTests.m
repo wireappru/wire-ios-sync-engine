@@ -183,7 +183,8 @@
     }] authenticationDidFail:OCMOCK_ANY];
     
     // when
-    self.authFailHandler(nil);
+    // TODO Sabine
+    //self.authFailHandler(nil);
     
     // then
     [self verifyMockLater:self.authenticationObserver];

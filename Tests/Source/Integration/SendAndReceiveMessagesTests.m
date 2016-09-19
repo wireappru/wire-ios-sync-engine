@@ -183,7 +183,7 @@
     
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [conversation appendMessageWithText:@"test"];
+        message = (id)[conversation appendMessageWithText:@"test"];
         [message setServerTimestamp:pastDate];
     }];
     WaitForAllGroupsToBeEmpty(0.5);
@@ -224,7 +224,7 @@
     // when
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [conversation appendMessageWithImageData:self.verySmallJPEGData];
+        message = (id)[conversation appendMessageWithImageData:self.verySmallJPEGData];
     }];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -260,7 +260,7 @@
     // when
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [conversation appendMessageWithText:@"oh hallo"];
+        message = (id)[conversation appendMessageWithText:@"oh hallo"];
     }];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -296,7 +296,7 @@
     // when
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [conversation appendKnock];
+        message = (id)[conversation appendKnock];
     }];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -320,7 +320,7 @@
     __block ZMMessage *message;
     [self.userSession performChanges:^{
         NSURL *imageFileURL = [self fileURLForResource:@"1900x1500" extension:@"jpg"];
-        message = [conversation appendMessageWithImageAtURL:imageFileURL];
+        message = (id)[conversation appendMessageWithImageAtURL:imageFileURL];
     }];
     WaitForAllGroupsToBeEmpty(5);
     
@@ -392,7 +392,7 @@
     // no pending pessages in conversation
     __block id<ZMConversationMessage> message;
     [self.userSession performChanges:^{
-        message = [conversation appendMessageWithText:@"bar"];
+        message = (id)[conversation appendMessageWithText:@"bar"];
     }];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -412,14 +412,14 @@
     
     __block ZMMessage *imageMessage;
     [self.userSession performChanges:^{
-        imageMessage = [conversation appendMessageWithImageData:[self verySmallJPEGData]];
+        imageMessage = (id)[conversation appendMessageWithImageData:[self verySmallJPEGData]];
     }];
     WaitForAllGroupsToBeEmpty(0.5);
     
     //when
     __block ZMMessage *textMessage;
     [self.userSession performChanges:^{
-        textMessage = [conversation appendMessageWithText:@"lalala"];
+        textMessage = (id)[conversation appendMessageWithText:@"lalala"];
     }];
     WaitForAllGroupsToBeEmpty(0.5);
     
@@ -460,9 +460,9 @@
     __block id<ZMConversationMessage> message;
     __block id<ZMConversationMessage> secondMessage;
     [self.userSession performChanges:^{
-        message = [conversation appendMessageWithText:@"foo1"];
+        message = (id)[conversation appendMessageWithText:@"foo1"];
         [self spinMainQueueWithTimeout:0.5];
-        secondMessage = [conversation appendMessageWithText:@"foo2"];
+        secondMessage = (id)[conversation appendMessageWithText:@"foo2"];
     }];
     
     XCTAssertTrue([self waitForCustomExpectationsWithTimeout:0.5f]);
@@ -517,9 +517,9 @@
     __block ZMMessage *secondMessage;
     
     [self.userSession performChanges:^{
-        message = [conversation appendMessageWithText:@"foo1"];
+        message = (id)[conversation appendMessageWithText:@"foo1"];
         [self spinMainQueueWithTimeout:0.1];
-        secondMessage = [conversation appendMessageWithText:@"foo2"];
+        secondMessage = (id)[conversation appendMessageWithText:@"foo2"];
     }];
     
     XCTAssertTrue([self waitForCustomExpectationsWithTimeout:0.5f]);
@@ -571,8 +571,8 @@
     __block ZMMessage *message;
     __block ZMMessage *secondMessage;
     [self.userSession performChanges:^{
-        message = [conversation appendMessageWithText:@"lalala"];
-        secondMessage = [anotherConversation appendMessageWithText:@"lalala"];
+        message = (id)[conversation appendMessageWithText:@"lalala"];
+        secondMessage = (id)[anotherConversation appendMessageWithText:@"lalala"];
     }];
     
     //expect
@@ -861,7 +861,7 @@
     // when
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
         if ([request.path containsString:@"/notifications"]) {
-            return [ZMTransportResponse responseWithPayload:nil HTTPstatus:404 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:nil HTTPStatus:404 transportSessionError:nil];
         }
         return nil;
     };
@@ -939,7 +939,7 @@
     
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
         if ([request.path hasPrefix:@"/notifications?"]) {
-            return [ZMTransportResponse responseWithPayload:payload HTTPstatus:404 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:404 transportSessionError:nil];
         }
         return nil;
     };
@@ -1238,7 +1238,7 @@
     [ZMMessage setDefaultExpirationTime:0.1]; //We don't want to wait 60 seconds
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [groupConversation appendMessageWithText:@"lalala"];
+        message = (id)[groupConversation appendMessageWithText:@"lalala"];
     }];
     XCTAssertTrue([groupConversation.managedObjectContext saveOrRollback]);
     
@@ -1276,7 +1276,7 @@
     [ZMMessage setDefaultExpirationTime:0.1]; //We don't want to wait 60 seconds
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [groupConversation appendMessageWithText:@"lalala"];
+        message = (id)[groupConversation appendMessageWithText:@"lalala"];
     }];
     XCTAssertTrue([groupConversation.managedObjectContext saveOrRollback]);
     
@@ -1322,7 +1322,7 @@
     [ZMMessage setDefaultExpirationTime:0.1]; //We don't want to wait 60 seconds
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [groupConversation appendMessageWithText:@"lalala"];
+        message = (id)[groupConversation appendMessageWithText:@"lalala"];
     }];
     XCTAssertTrue([groupConversation.managedObjectContext saveOrRollback]);
     
@@ -1402,7 +1402,7 @@
     
     __block ZMMessage *message;
     [self.userSession performChanges:^{
-        message = [groupConversation appendMessageWithText:@"lalala"];
+        message = (id)[groupConversation appendMessageWithText:@"lalala"];
     }];
     XCTAssertTrue([groupConversation.managedObjectContext saveOrRollback]);
     
@@ -1502,7 +1502,7 @@
     __block ZMMessage *message;
     __block NSUUID *messageNonce;
     [self.userSession performChanges:^{
-        message = [groupConversation appendMessageWithText:@"lalala"];
+        message = (id)[groupConversation appendMessageWithText:@"lalala"];
         messageNonce = message.nonce;
     }];
     XCTAssertTrue([groupConversation.managedObjectContext saveOrRollback]);
@@ -1531,7 +1531,7 @@
     __block ZMMessage *message;
     __block NSUUID *messageNonce;
     [self.userSession performChanges:^{
-        message = [groupConversation appendMessageWithText:@"lalala"];
+        message = (id)[groupConversation appendMessageWithText:@"lalala"];
         messageNonce = message.nonce;
     }];
     XCTAssertTrue([groupConversation.managedObjectContext saveOrRollback]);
