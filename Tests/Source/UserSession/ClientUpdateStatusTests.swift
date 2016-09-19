@@ -29,8 +29,9 @@ class ClientUpdateStatusTests: MessagingTest {
         super.setUp()
         self.sut = ClientUpdateStatus(syncManagedObjectContext: self.syncMOC)
         
-        clientObserverToken = ZMClientUpdateNotification.addObserverWithBlock{[weak self] in
-            self?.receivedNotifications.append($0)
+        clientObserverToken = ZMClientUpdateNotification.addObserver{[weak self] in
+            guard let note = $0 else { return }
+            self?.receivedNotifications.append(note)
         }
     }
     
@@ -104,11 +105,11 @@ class ClientUpdateStatusTests: MessagingTest {
     func testThatItCallsTheCompletionHandlerWhenFetchCompletes() {
         // given
         let selfClient = insertSelfClient()
-        let client = insertNewClient()!
+        let client = insertNewClient()
         
         // when
         self.sut.needsToFetchClients(andVerifySelfClient: true)
-        self.sut.didFetchClients([client!, selfClient])
+        self.sut.didFetchClients([client, selfClient])
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
@@ -119,7 +120,7 @@ class ClientUpdateStatusTests: MessagingTest {
         if let note = note {
             let clientIDs = note.clientObjectIDs
             XCTAssertEqual(clientIDs?.count, 1);
-            XCTAssertEqual(clientIDs?.first, client?.objectID)
+            XCTAssertEqual(clientIDs?.first, client.objectID)
             XCTAssertEqual(note.type, ZMClientUpdateNotificationType.fetchCompleted)
             XCTAssertNil(note.error)
         } else {
@@ -142,7 +143,7 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTAssertNil(clients);
             XCTAssertEqual(note.type, ZMClientUpdateNotificationType.fetchFailed)
             XCTAssertNotNil(note.error)
-            XCTAssertEqual(note.error?.code, ClientUpdateError.DeviceIsOffline.rawValue)
+            XCTAssertEqual((note.error as NSError).code, ClientUpdateError.deviceIsOffline.rawValue)
         } else {
             XCTFail("no notification received")
         }
@@ -299,7 +300,7 @@ class ClientUpdateStatusTests: MessagingTest {
             XCTAssertNil(note.userInfo);
             XCTAssertEqual(note.type, ZMClientUpdateNotificationType.deletionFailed)
             XCTAssertNotNil(note.error)
-            XCTAssertEqual(note.error?.code, ClientUpdateError.InvalidCredentials.rawValue)
+            XCTAssertEqual((note.error as NSError).code, ClientUpdateError.invalidCredentials.rawValue)
         } else {
             XCTFail("no notification received")
         }
@@ -321,8 +322,9 @@ class ClientUpdateStatusTests: MessagingTest {
         // WHEN
         // re-create
         self.sut = ClientUpdateStatus(syncManagedObjectContext: self.syncMOC)
-        clientObserverToken = ZMClientUpdateNotification.addObserverWithBlock{[weak self] in
-            self?.receivedNotifications.append($0)
+        clientObserverToken = ZMClientUpdateNotification.addObserver{[weak self] in
+            guard let note = $0 else { return }
+            self?.receivedNotifications.append(note)
         }
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         

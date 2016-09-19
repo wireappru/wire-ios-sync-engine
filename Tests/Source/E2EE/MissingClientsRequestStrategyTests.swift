@@ -281,7 +281,7 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         let (request, response) = missingClientsRequestAndResponse(selfClient, missingClients: [otherClient1], payload: payload)
         
         //when
-        self.sut.updateUpdatedObject(selfClient, requestUserInfo: request.userInfo, response: response, keysToParse: request.keys)
+        _ = self.sut.updateUpdatedObject(selfClient, requestUserInfo: request.userInfo, response: response, keysToParse: request.keys)
         
         //then
         XCTAssertEqual(selfClient.missingClients!.count, 0)

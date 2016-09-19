@@ -272,7 +272,7 @@
                                                                               @"key": [@"invalid key" dataUsingEncoding:NSUTF8StringEncoding].base64String
                                                                               }
                                                                       }
-                                                              } HTTPstatus:201 transportSessionError:nil];
+                                                              } HTTPStatus:201 transportSessionError:nil];
         }
         return nil;
     }];
@@ -384,7 +384,7 @@
     
     self.mockTransportSession.responseGeneratorBlock = ^ ZMTransportResponse *(ZMTransportRequest *__unused request) {
         if ([request.path.pathComponents containsObject:@"assets"]) {
-            return [ZMTransportResponse responseWithPayload:@{ @"label" : @"unknown-client"} HTTPstatus:403 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:@{ @"label" : @"unknown-client"} HTTPStatus:403 transportSessionError:nil];
         }
         return nil;
     };
@@ -497,7 +497,7 @@
                                                                               @"key": [@"invalid key" dataUsingEncoding:NSUTF8StringEncoding].base64String
                                                                               }
                                                                       }
-                                                              } HTTPstatus:201 transportSessionError:nil];
+                                                              } HTTPStatus:201 transportSessionError:nil];
         }
         return nil;
     }];
@@ -2059,7 +2059,7 @@
     self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
         NSString *path = [NSString stringWithFormat:@"users/%@/clients", userID.transportString];
         if ([request.path isEqualToString:path]) {
-            return [ZMTransportResponse responseWithPayload:payload HTTPstatus:200 transportSessionError:nil];
+            return [ZMTransportResponse responseWithPayload:payload HTTPStatus:200 transportSessionError:nil];
         }
         return nil;
     };

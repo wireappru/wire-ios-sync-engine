@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -80,20 +80,20 @@ extension AnalyticsTests {
 
         let firstExpected = EventWithAttributes(event: "apns_performance", attributes: [
             "server_timestamp_difference": "4000-5000" as NSObject,
-            "notification_identifier": notificationID.transportString(),
-            "state_description": "OperationLoop",
-            "state_index": 0,
-            "allowed_notifications": true,
-            "background": true
+            "notification_identifier": notificationID.transportString() as NSObject,
+            "state_description": "OperationLoop" as NSObject,
+            "state_index": 0 as NSObject,
+            "allowed_notifications": NSNumber(value:true),
+            "background": NSNumber(value:true)
         ])
 
         XCTAssertEqual(firstEventWithAttribute, firstExpected)
 
         let secondExpected = EventWithAttributes(event: "apns_performance", attributes: [
             "notification_identifier": notificationID.transportString() as NSObject,
-            "state_description": "PingBackStatus",
-            "state_index": 1,
-            "time_since_last": "200-500"
+            "state_description": "PingBackStatus" as NSObject,
+            "state_index": 1 as NSObject,
+            "time_since_last": "200-500" as NSObject
         ])
         
         XCTAssertEqual(secondEventWithAttribute, secondExpected)
@@ -148,7 +148,7 @@ extension AnalyticsTests {
         XCTAssertEqual(analytics.taggedEventsWithAttributes.count, 1)
         let eventWithAtributes = analytics.taggedEventsWithAttributes.first!
         XCTAssertEqual(eventWithAtributes.event, "connect.started_addressbook_search")
-        XCTAssertEqual(eventWithAtributes.attributes, ["size": size])
+        XCTAssertEqual(eventWithAtributes.attributes, ["size": NSNumber(value: size)])
     }
 }
 
@@ -174,7 +174,7 @@ extension AnalyticsTests {
         var attributes: [String: NSObject] = [:]
         
         if let hours = hoursSinceLastUpload, shouldTrackInterval {
-            attributes["interval"] = hours
+            attributes["interval"] = NSNumber(value: hours)
         }
         XCTAssertEqual(eventWithAtributes.attributes, attributes, line: line)
     }

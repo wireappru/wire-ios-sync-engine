@@ -31,7 +31,7 @@ class RequestStrategyTestBase : MessagingTest {
         var preKeys : [String] = []
         var lastKey : String = ""
         selfClient.keysStore.encryptionContext.perform { (sessionsDirectory) in
-            preKeys = try! sessionsDirectory.generatePrekeys(Range(0..<count)).map{ $0.prekey }
+            preKeys = try! sessionsDirectory.generatePrekeys(0..<count).map{ $0.prekey }
             lastKey = try! sessionsDirectory.generateLastPrekey()
         }
         return (preKeys, lastKey)
@@ -53,10 +53,10 @@ class RequestStrategyTestBase : MessagingTest {
             if let session = session as? MockTransportSessionObjectCreation {
                 mockUser = session.insertUser(withName: "foo")
                 if let preKeys = preKeys, let lastKey = lastKey {
-                    mockClient = session.registerClient(for: mockUser, label: mockUser.name, type: "permanent", preKeys: preKeys, lastPreKey: lastKey)
+                    mockClient = session.registerClient(for: mockUser, label: mockUser.name!, type: "permanent", preKeys: preKeys, lastPreKey: lastKey)
                 }
                 else {
-                    mockClient = session.registerClient(for: mockUser, label: mockUser.name, type: "permanent")
+                    mockClient = session.registerClient(for: mockUser, label: mockUser.name!, type: "permanent")
                 }
             }
         }
@@ -65,7 +65,7 @@ class RequestStrategyTestBase : MessagingTest {
         let client = UserClient.insertNewObject(in: syncMOC)
         client.remoteIdentifier = mockClient.identifier
         let user = ZMUser.insertNewObject(in: syncMOC)
-        user.remoteIdentifier = UUID.uuid(transport: mockUser.identifier)
+        user.remoteIdentifier = UUID(uuidString: mockUser.identifier)
         client.user = user
         return client
     }
