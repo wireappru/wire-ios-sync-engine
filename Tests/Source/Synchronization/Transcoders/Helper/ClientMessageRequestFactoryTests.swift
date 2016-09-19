@@ -266,8 +266,8 @@ extension ClientMessageRequestFactoryTests {
         
         // then
         guard let url = syncMOC.zm_fileAssetCache.accessRequestURL(nonce) else { return XCTFail() }
-        guard let multipartData = Data(contentsOf: url) else { return XCTFail() }
-        guard let multiPartItems = multipartData.multipartDataItemsSeparatedWithBoundary("frontier") else { return XCTFail() }
+        guard let multipartData = try? Data(contentsOf: url) else { return XCTFail() }
+        let multiPartItems = (multipartData as NSData).multipartDataItemsSeparated(withBoundary: "frontier")
         XCTAssertEqual(multiPartItems.count, 2)
         let fileData = (multiPartItems.last as? ZMMultipartBodyItem)?.data
         XCTAssertEqual(data, fileData)
@@ -288,11 +288,11 @@ extension ClientMessageRequestFactoryTests {
         
         // then
         guard let url = syncMOC.zm_fileAssetCache.accessRequestURL(nonce) else { return XCTFail() }
-        guard let multipartData = Data(contentsOf: url) else { return XCTFail() }
-        guard let multiPartItems = multipartData.multipartDataItemsSeparatedWithBoundary("frontier") else { return XCTFail() }
+        guard let multipartData = try? Data(contentsOf: url) else { return XCTFail() }
+        let multiPartItems = (multipartData as NSData).multipartDataItemsSeparated(withBoundary: "frontier")
         XCTAssertEqual(multiPartItems.count, 2)
         guard let fileData = (multiPartItems.last as? ZMMultipartBodyItem) else { return XCTFail() }
-        XCTAssertEqual(fileData.headers["Content-MD5"] as? String, data.zmMD5Digest().base64String())
+        XCTAssertEqual(fileData.headers?["Content-MD5"] as? String, data.zmMD5Digest().base64String())
     }
     
     func testThatItDoesNotCreateARequestIfTheMessageIsNotAFileAssetMessage_AssetClientMessage_Image() {
@@ -342,16 +342,14 @@ extension ClientMessageRequestFactoryTests {
         
         // then
         XCTAssertNotNil(uploadRequest)
-        guard let url = syncMOC.zm_fileAssetCache.accessRequestURL(nonce) else { return XCTFail() }
-        XCTAssertNotNil(Data(contentsOf: url))
-        
-        let fm = FileManager.default
-        guard let path = url.path, let attributes = try? fm.attributesOfItemAtPath(path) else { return XCTFail() }
-        XCTAssertTrue(path.containsString("/Library/Caches"))
+        guard let url = syncMOC.zm_fileAssetCache.accessRequestURL(nonce)
+        else { return XCTFail() }
         
         // It's very likely that this is the most un-future proof way of testing this...
-        let excludedFromBackup = attributes["NSFileExtendedAttributes"]?["com.apple.metadata:com_apple_backup_excludeItem"]
-        XCTAssertNotNil(excludedFromBackup)
+        guard let resourceValues = try? url.resourceValues(forKeys: Set(arrayLiteral: .isExcludedFromBackupKey)),
+              let isExcludedFromBackup = resourceValues.isExcludedFromBackup
+        else {return XCTFail()}
+        XCTAssertTrue(isExcludedFromBackup)
     }
     
     func testThatItCreatesTheMultipartDataWithTheCorrectContentTypes() {
@@ -363,7 +361,7 @@ extension ClientMessageRequestFactoryTests {
         let multipartData = ClientMessageRequestFactory().dataForMultipartFileUploadRequest(metaData, fileData: fileData)
         
         // then
-        guard let parts = multipartData.multipartDataItemsSeparatedWithBoundary("frontier") as? [ZMMultipartBodyItem] else { return XCTFail() }
+        guard let parts = (multipartData as NSData).multipartDataItemsSeparated(withBoundary: "frontier") as? [ZMMultipartBodyItem] else { return XCTFail() }
         XCTAssertEqual(parts.count, 2)
         XCTAssertEqual(parts.first?.contentType, "application/x-protobuf")
         XCTAssertEqual(parts.last?.contentType, "application/octet-stream")
@@ -416,29 +414,37 @@ extension ClientMessageRequestFactoryTests {
     func assertRequest(_ request: ZMTransportRequest?, forImageMessage message: ZMAssetClientMessage, conversationId: UUID, encrypted: Bool, expectedPath: String, expectedPayload: [String: NSObject]?, format: ZMImageFormat)
     {
         let imageData = message.imageAssetStorage!.imageData(for: format, encrypted: encrypted)!
-        
-        AssertOptionalNotNil(request, "ClientRequestFactory should create requet to post medium asset message") { request in
-            XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST)
-            XCTAssertEqual(request.path, expectedPath)
-            
-            AssertOptionalNotNil(request.multipartBodyItems(), "Request should be multipart data request") { multipartItems in
-                XCTAssertEqual(multipartItems.count, 2)
-                AssertOptionalNotNil(multipartItems.last, "Request should contain image multipart data") { imageDataItem in
-                    XCTAssertEqual(imageDataItem.data, imageData)
-                }
-                AssertOptionalNotNil(multipartItems.first, "Request should contain metadata multipart data") { metaDataItem in
-                    let metaData : [String: NSObject]
-                    do {
-                        metaData = try JSONSerialization.jsonObject(with: metaDataItem.data, options: JSONSerialization.ReadingOptions()) as! [String : NSObject]
-                    }
-                    catch {
-                        metaData = [:]
-                    }
-                    if let expectedPayload = expectedPayload {
-                        XCTAssertEqual(metaData, expectedPayload)
-                    }
-                }
-            }
+        guard let request = request else {
+            return XCTFail("ClientRequestFactory should create requet to post medium asset message")
         }
-    }    
+        XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST)
+        XCTAssertEqual(request.path, expectedPath)
+        
+        guard let multipartItems = request.multipartBodyItems() as? [AnyObject] else {
+            return XCTFail("Request should be multipart data request")
+        }
+        
+        XCTAssertEqual(multipartItems.count, 2)
+        guard let imageDataItem = multipartItems.last else {
+            return XCTFail("Request should contain image multipart data")
+        }
+        XCTAssertEqual(imageDataItem.data, imageData)
+        
+        
+        guard let metaDataItem = multipartItems.first else {
+            return XCTFail("Request should contain metadata multipart data")
+        }
+        
+        let metaData : [String: NSObject]
+        do {
+            metaData = try JSONSerialization.jsonObject(with: (metaDataItem as AnyObject).data, options: JSONSerialization.ReadingOptions()) as! [String : NSObject]
+        }
+        catch {
+            metaData = [:]
+        }
+        if let expectedPayload = expectedPayload {
+            XCTAssertEqual(metaData, expectedPayload)
+        }
+
+    }
 }

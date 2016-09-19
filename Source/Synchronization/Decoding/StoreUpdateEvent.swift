@@ -20,7 +20,7 @@ import Foundation
 import CoreData
 
 @objc(StoredUpdateEvent)
-final class StoredUpdateEvent: NSManagedObject {
+public final class StoredUpdateEvent: NSManagedObject {
     
     static let entityName =  "StoredUpdateEvent"
     static let SortIndexKey = "sortIndex"

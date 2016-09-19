@@ -108,8 +108,8 @@ extension InvitationsTests {
         //given
         XCTAssertTrue(self.logInAndWaitForSyncToBeComplete())
         self.addressBook.contacts = [
-            AddressBookContactsFake.Contact(firstName: self.user1.name!, emailAddresses: [self.user1.email], phoneNumbers: []),
-            AddressBookContactsFake.Contact(firstName: "Mario", emailAddresses: ["mm@example.com"], phoneNumbers: [])
+            AddressBookContactsFake.Contact(firstName: self.user1.name!, emailAddresses: [self.user1.email!], phoneNumbers: [String]()),
+            AddressBookContactsFake.Contact(firstName: "Mario", emailAddresses: ["mm@example.com"], phoneNumbers: [String]())
         ]
         
         let expectation = self.expectation(description: "Observer called")

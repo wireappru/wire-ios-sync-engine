@@ -409,7 +409,7 @@ extension FileUploadRequestStrategyTests {
         // when
         let assetId = UUID.create()
         let response = ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil, headers: ["Location": assetId.transportString()])
-        request.completeWithResponse(response)
+        request.complete(with: response)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -426,7 +426,7 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [], httpStatus: 200, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -441,7 +441,7 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -457,7 +457,7 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -473,7 +473,7 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 500, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 500, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -489,7 +489,7 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -504,7 +504,7 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -522,14 +522,14 @@ extension FileUploadRequestStrategyTests {
         request.markStartOfUploadTimestamp()
         let notificationExpectation = self.expectation(description: "Notification fired")
         
-        let _ = NotificationCenter.default.addObserverForName(NSNotification.Name(rawValue: FileUploadRequestStrategyNotification.uploadFinishedNotificationName), object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: FileUploadRequestStrategyNotification.uploadFinishedNotificationName), object: nil, queue: .main) { notification in
             XCTAssertNotNil(notification.userInfo![FileUploadRequestStrategyNotification.requestStartTimestampKey])
             notificationExpectation.fulfill()
         }
         // when
         let assetId = UUID.create()
         let response = ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil, headers: ["Location": assetId.transportString()])
-        request.completeWithResponse(response)
+        request.complete(with: response)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -545,12 +545,12 @@ extension FileUploadRequestStrategyTests {
         request.markStartOfUploadTimestamp()
         let notificationExpectation = self.expectation(description: "Notification fired")
         
-        let _ = NotificationCenter.default.addObserverForName(NSNotification.Name(rawValue: FileUploadRequestStrategyNotification.uploadFailedNotificationName), object: nil, queue: .mainQueue()) { notification in
+        let _ = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: FileUploadRequestStrategyNotification.uploadFailedNotificationName), object: nil, queue: .main) { notification in
             XCTAssertNotNil(notification.userInfo![FileUploadRequestStrategyNotification.requestStartTimestampKey])
             notificationExpectation.fulfill()
         }
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -568,7 +568,7 @@ extension FileUploadRequestStrategyTests {
         XCTAssertEqual(cancellationProvider.cancelledIdentifiers.count, 0)
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then there should not be a running upload request as the upload failed by itself,
@@ -591,7 +591,7 @@ extension FileUploadRequestStrategyTests {
         XCTAssertEqual(cancellationProvider.cancelledIdentifiers.count, 0)
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 400, transportSessionError: nil))
         msg.fileMessageData!.cancelTransfer()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
@@ -613,7 +613,7 @@ extension FileUploadRequestStrategyTests {
         // when
         msg.fileMessageData?.cancelTransfer()
         sut.objectsDidChange(Set(arrayLiteral: msg))
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 0, transportSessionError: .tryAgainLaterError()))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 0, transportSessionError: NSError.tryAgainLaterError() as Error))
         
         
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -875,7 +875,7 @@ extension FileUploadRequestStrategyTests {
         // when
         msg.fileMessageData?.cancelTransfer()
         sut.objectsDidChange(Set(arrayLiteral: msg))
-        request.completeWithResponse(ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 0, transportSessionError: .tryAgainLaterError()))
+        request.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 0, transportSessionError: NSError.tryAgainLaterError() as Error))
         
         // then
         XCTAssertEqual(msg.transferState, ZMFileTransferState.cancelledUpload)
@@ -936,9 +936,9 @@ extension FileUploadRequestStrategyTests {
     // MARK: - Decryption Helper
     
     func decryptedMessage(fromRequestData data: Data, forClient client: UserClient) -> ZMGenericMessage? {
-        let otrMessage = ZMNewOtrMessage.builder().mergeFromData(data).build() as? ZMNewOtrMessage
+        let otrMessage = ZMNewOtrMessage.builder().merge(from: data).build() as? ZMNewOtrMessage
         XCTAssertNotNil(otrMessage, "Unable to generate OTR message")
-        let clientEntries = otrMessage?.recipients.flatMap { $0 as? ZMUserEntry }.flatMap { $0.clients }.flatten()
+        let clientEntries = otrMessage?.recipients.flatMap { $0 as? ZMUserEntry }.flatMap { $0.clients }.joined()
         XCTAssertEqual(clientEntries?.count, 1)
         
         let encryptionContext = syncMOC.zm_cryptKeyStore.encryptionContext
@@ -948,7 +948,7 @@ extension FileUploadRequestStrategyTests {
         encryptionContext.perform { sessionsDirectory in
             do {
                 let decryptedData = try sessionsDirectory.decrypt(entry.text, senderClientId: client.remoteIdentifier)
-                message = ZMGenericMessage.builder().mergeFromData(decryptedData).build() as? ZMGenericMessage
+                message = ZMGenericMessage.builder().merge(from: decryptedData).build() as? ZMGenericMessage
             } catch {
                 XCTFail("Failed to decrypt generic message: \(error)")
             }
@@ -983,10 +983,10 @@ extension FileUploadRequestStrategyTests {
                 ]
             ],
             "time" : "2015-03-11T09:34:00.436Z"
-        ]
+        ] as [String : Any]
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -1019,7 +1019,7 @@ extension FileUploadRequestStrategyTests {
         ]
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -1056,7 +1056,7 @@ extension FileUploadRequestStrategyTests {
         ]
         
         // when
-        request.completeWithResponse(ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
+        request.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 412, transportSessionError: nil))
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         let nextRequest = sut.nextRequest()
         
@@ -1104,8 +1104,9 @@ extension FileUploadRequestStrategyTests {
         XCTAssertNotNil(encrypted)
         
         let (otrKey, sha256) = (preview.remote.otrKey, preview.remote.sha256)
+        
         XCTAssertEqual(encrypted?.zmSHA256Digest(), sha256)
-        XCTAssertEqual(decrypted, encrypted?.zmDecryptPrefixedPlainTextIV(otrKey))
+        XCTAssertEqual(decrypted, encrypted?.zmDecryptPrefixedPlainTextIV(key: otrKey!))
         
         XCTAssertNil(syncMOC.zm_imageAssetCache.assetData(message.nonce, format: .preview, encrypted: false))
         XCTAssertNil(syncMOC.zm_imageAssetCache.assetData(message.nonce, format: .preview, encrypted: true))

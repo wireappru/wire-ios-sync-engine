@@ -161,7 +161,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
             let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil)
             
             // when
-            self.sut.updateObject(message, withResponse: response, downstreamSync: nil)
+            self.sut.update(message, with: response, downstreamSync: nil)
             let storedData = message.imageAssetStorage?.imageData(for: .medium, encrypted: false)
             
             // then
@@ -178,7 +178,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
             let message = self.createImageMessage(withAssetId: UUID.create())
             
             // when
-            self.sut.deleteObject(message, downstreamSync: nil)
+            self.sut.delete(message, downstreamSync: nil)
             
             // then
             XCTAssertTrue(message.isDeleted)

@@ -46,7 +46,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         let requests = mockTransportSession.receivedRequests()
         XCTAssertEqual(requests.count, 1)
         guard let request = requests.first else { return XCTFail() }
-        XCTAssertEqual(request.method, ZMTransportRequestMethod.MethodPOST)
+        XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST)
         XCTAssertEqual(request.path, "/conversations/\(selfToUser1Conversation.identifier)/otr/messages")
         XCTAssertTrue(message.hasBeenDeleted)
     }
@@ -131,7 +131,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         var message: ZMConversationMessage! = nil
         
         userSession.performChanges {
-            guard let conversation = self.conversation(for: selfToUser1Conversation) else {return XCTFail()}
+            guard let conversation = self.conversation(for: self.selfToUser1Conversation) else {return XCTFail()}
             message = conversation.appendMessage(withText: "Hello")
         }
         
@@ -146,7 +146,7 @@ class DeleteMessagesTests: ConversationTestsBase {
             guard request.path == "/conversations/\(self.selfToUser1Conversation.identifier)/otr/messages" else { return nil }
             if requestCount < 4 {
                 requestCount += 1
-                return ZMTransportResponse(transportSessionError: .tryAgainLaterError())
+                return ZMTransportResponse(transportSessionError: NSError.tryAgainLaterError() as Error)
             }
             
             return nil

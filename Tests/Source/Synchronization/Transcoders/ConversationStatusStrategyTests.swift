@@ -73,8 +73,8 @@ class ConversationStatusStrategyTests: MessagingTest {
             conversation.appendMessage(withText: "hey")
 
             conversation.didUpdateWhileFetchingUnreadMessages()
-            conversation.lastUnreadMissedCallDate = conversation.lastReadServerTimeStamp.dateByAddingTimeInterval(-10)
-            conversation.lastUnreadKnockDate = conversation.lastReadServerTimeStamp.dateByAddingTimeInterval(-15)
+            conversation.lastUnreadMissedCallDate = conversation.lastReadServerTimeStamp?.addingTimeInterval(-10)
+            conversation.lastUnreadKnockDate = conversation.lastReadServerTimeStamp?.addingTimeInterval(-15)
             
             XCTAssertTrue(conversation.hasUnreadMissedCall)
             XCTAssertTrue(conversation.hasUnreadKnock)

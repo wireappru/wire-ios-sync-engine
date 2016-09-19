@@ -125,7 +125,7 @@ extension IncompleteConversationsDownstreamSyncTests {
         let sut = createSut()
         
         self.conversationCache.incompleteWhitelistedConversations_Stub = NSOrderedSet(object: conv1)
-        self.conversationCache.gapForConversation_Stub = [conv1 : range1!]
+        self.conversationCache.gapForConversation_Stub = [conv1 : range1]
         self.conversationCache.incompleteNonWhitelistedConversations_Stub = NSOrderedSet(object: conv2)
         self.conversationCache.gapForConversation_Stub = [conv1: range1, conv2 : range2]
         

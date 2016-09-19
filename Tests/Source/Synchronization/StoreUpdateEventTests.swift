@@ -41,8 +41,8 @@ class StoreUpdateEventTests: MessagingTest {
         // given
         let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = UUID.create()
-        let payload = self .payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])
-        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
+        let payload = self.payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])!
+        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())!
         event.appendDebugInformation("Highly informative description")
         
         // when
@@ -50,7 +50,7 @@ class StoreUpdateEventTests: MessagingTest {
             
             // then
             XCTAssertEqual(storedEvent.debugInformation, event.debugInformation)
-            XCTAssertEqual(storedEvent.payload, event.payload)
+            XCTAssertEqual(storedEvent.payload, event.payload as NSDictionary)
             XCTAssertEqual(storedEvent.isTransient, event.isTransient)
             XCTAssertEqual(storedEvent.source, Int16(event.source.rawValue))
             XCTAssertEqual(storedEvent.sortIndex, 2)
@@ -65,8 +65,8 @@ class StoreUpdateEventTests: MessagingTest {
         // given
         let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = UUID.create()
-        let payload = self.payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])
-        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
+        let payload = self.payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])!
+        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())!
         
         guard let storedEvent1 = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 0),
             let storedEvent2 = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 1),
@@ -91,8 +91,8 @@ class StoreUpdateEventTests: MessagingTest {
         // given
         let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = UUID.create()
-        let payload = self .payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])
-        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
+        let payload = payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])
+        let event = ZMUpdateEvent(fromEventStreamPayload: payload!, uuid: UUID.create())!
         
         guard let storedEvent1 = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 0),
             let storedEvent2 = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 30),
@@ -115,8 +115,8 @@ class StoreUpdateEventTests: MessagingTest {
         // given
         let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = UUID.create()
-        let payload = self .payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])
-        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
+        let payload = payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])
+        let event = ZMUpdateEvent(fromEventStreamPayload: payload!, uuid: UUID.create())!
         
         guard let storedEvent1 = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 0),
             let storedEvent2 = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 10),
@@ -148,8 +148,8 @@ class StoreUpdateEventTests: MessagingTest {
         // given
         let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = UUID.create()
-        let payload = self .payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])
-        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
+        let payload = payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])!
+        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())!
         
         guard let _ = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 0),
             let _ = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 1),
@@ -170,8 +170,8 @@ class StoreUpdateEventTests: MessagingTest {
         // given
         let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = UUID.create()
-        let payload = self .payloadForMessageInConversation(conversation, type: EventConversationAdd, data: ["foo": "bar"])
-        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())
+        let payload = payloadForMessage(in: conversation, type: EventConversationAdd, data: ["foo": "bar"])!
+        let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: UUID.create())!
         
         // when
         guard let storedEvent = StoredUpdateEvent.create(event, managedObjectContext: eventMOC, index: 0)
