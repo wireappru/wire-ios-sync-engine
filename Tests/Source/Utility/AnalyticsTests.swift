@@ -68,9 +68,9 @@ extension AnalyticsTests {
         // when
         let tracker = APNSPerformanceTracker()
 
-        let operationLoopState = NotificationFunnelState.OperationLoop(serverTimestamp: serverTime, notificationsEnabled: true, background: true, currentDate: currentTime)
+        let operationLoopState = NotificationFunnelState.operationLoop(serverTimestamp: serverTime, notificationsEnabled: true, background: true, currentDate: currentTime)
         tracker.trackNotification(notificationID, state: operationLoopState, analytics: analytics, currentDate: currentTime)
-        tracker.trackNotification(notificationID, state: .PingBackStatus, analytics: analytics, currentDate: referenceDate)
+        tracker.trackNotification(notificationID, state: .pingBackStatus, analytics: analytics, currentDate: referenceDate)
 
         // then
         XCTAssertTrue(analytics.taggedEvents.isEmpty)
@@ -79,7 +79,7 @@ extension AnalyticsTests {
         let secondEventWithAttribute = analytics.taggedEventsWithAttributes.last
 
         let firstExpected = EventWithAttributes(event: "apns_performance", attributes: [
-            "server_timestamp_difference": "4000-5000",
+            "server_timestamp_difference": "4000-5000" as NSObject,
             "notification_identifier": notificationID.transportString(),
             "state_description": "OperationLoop",
             "state_index": 0,
@@ -90,7 +90,7 @@ extension AnalyticsTests {
         XCTAssertEqual(firstEventWithAttribute, firstExpected)
 
         let secondExpected = EventWithAttributes(event: "apns_performance", attributes: [
-            "notification_identifier": notificationID.transportString(),
+            "notification_identifier": notificationID.transportString() as NSObject,
             "state_description": "PingBackStatus",
             "state_index": 1,
             "time_since_last": "200-500"

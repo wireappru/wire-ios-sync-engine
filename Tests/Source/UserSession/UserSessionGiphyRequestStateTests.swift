@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -37,29 +37,29 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         let path = "foo/bar"
         let url = URL(string: path, relativeTo: nil)!
         
-        let exp = self.expectationWithDescription("expected callback")
+        let exp = self.expectation(description: "expected callback")
         let callback: (Data?, HTTPURLResponse?, Error?) -> Void = { (_, _, _) -> Void in
             exp.fulfill()
         }
         
         //when
-        self.sut.proxiedRequestWithPath(url.absoluteString, method:.MethodGET, type:.Giphy, callback: callback)
+        self.sut.proxiedRequest(withPath: url.absoluteString, method:.methodGET, type:.giphy, callback: callback)
         
         //then
-        XCTAssertTrue(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         let request = self.sut.proxiedRequestStatus.pendingRequests.last
         XCTAssert(request != nil)
         XCTAssertEqual(request!.path, path)
         XCTAssert(request!.callback != nil)
         request!.callback!(nil, HTTPURLResponse(), nil)
-        XCTAssertTrue(self.waitForCustomExpectationsWithTimeout(0.5))
+        XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
     }
 
     func testThatAddingRequestStartsOperationLoop() {
         
         //given
-        let exp = self.expectationWithDescription("new operation loop started")
-        let token = NotificationCenter.default.addObserverForName("ZMOperationLoopNewRequestAvailable", object: nil, queue: nil) { (note) -> Void in
+        let exp = self.expectation(description: "new operation loop started")
+        let token = NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "ZMOperationLoopNewRequestAvailable"), object: nil, queue: nil) { (note) -> Void in
             exp.fulfill()
         }
         
@@ -67,10 +67,10 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         let callback: (Data?, URLResponse?, Error?) -> Void = { (_, _, _) -> Void in }
         
         //when
-        self.sut.proxiedRequestWithPath(url.absoluteString, method:.MethodGET, type:.Giphy, callback: callback)
+        self.sut.proxiedRequest(withPath: url.absoluteString, method:.methodGET, type:.giphy, callback: callback)
         
         //then
-        XCTAssertTrue(self.waitForCustomExpectationsWithTimeout(0.5))
+        XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))
         
         NotificationCenter.default.removeObserver(token)
     }
@@ -85,11 +85,11 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         //after we signal semaphore sync thread should be unblocked and pending request should be created
         let sem = DispatchSemaphore(value: 0)
         self.syncMOC.performGroupedBlock {
-            sem.wait(timeout: DispatchTime.distantFuture)
+            _ = sem.wait(timeout: DispatchTime.distantFuture)
         }
 
         //when
-        self.sut.proxiedRequestWithPath(url.absoluteString, method:.MethodGET, type:.Giphy, callback: callback)
+        self.sut.proxiedRequest(withPath: url.absoluteString, method:.methodGET, type:.giphy, callback: callback)
         
         //then
         var request = self.sut.proxiedRequestStatus.pendingRequests.last
@@ -98,7 +98,7 @@ class UserSessionGiphyRequestStateTests: ZMUserSessionTestsBase {
         //when
         sem.signal()
         
-        XCTAssertTrue(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         //then
         request = self.sut.proxiedRequestStatus.pendingRequests.last

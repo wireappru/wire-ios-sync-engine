@@ -71,7 +71,7 @@ class SessionTests : SessionBaseTest {
     func testThatItSetsStateToOngoing(){
         // given
         let event1 = callStateEvent(in: conversation, joinedUsers: [sender], videoSendingUsers: [], sequence: 1)
-        sut.changeState(event1!, managedObjectContext:uiMOC)
+        _ = sut.changeState(event1!, managedObjectContext:uiMOC)
         let event2 = callStateEvent(in: conversation, joinedUsers: [sender, otherUser], videoSendingUsers: [], sequence: 1)
         
         // when
@@ -84,7 +84,7 @@ class SessionTests : SessionBaseTest {
     func testThatItSetsStateToEnded(){
         // given
         let event1 = callStateEvent(in: conversation, joinedUsers: [sender], videoSendingUsers: [], sequence: 1)
-        sut.changeState(event1!, managedObjectContext:uiMOC)
+        _ = sut.changeState(event1!, managedObjectContext:uiMOC)
         let event2 = callStateEvent(in: conversation, joinedUsers: [], videoSendingUsers: [], sequence: 1)
 
         // when
@@ -97,7 +97,7 @@ class SessionTests : SessionBaseTest {
     func testThatItSetsStateToSelfUserJoined(){
         // given
         let event1 = callStateEvent(in: conversation, joinedUsers: [sender], videoSendingUsers: [], sequence: 1)
-        sut.changeState(event1!, managedObjectContext:uiMOC)
+        _ = sut.changeState(event1!, managedObjectContext:uiMOC)
         let event2 = callStateEvent(in: conversation, joinedUsers: [sender, selfUser], videoSendingUsers: [], sequence: 1)
 
         // when
@@ -110,9 +110,9 @@ class SessionTests : SessionBaseTest {
     func testThatItSetsStateToSelfUserEnded(){
         // given
         let event1 = callStateEvent(in: conversation, joinedUsers: [sender], videoSendingUsers: [], sequence: 1)
-        sut.changeState(event1!, managedObjectContext:uiMOC)
+        _ = sut.changeState(event1!, managedObjectContext:uiMOC)
         let event2 = callStateEvent(in: conversation, joinedUsers: [sender, selfUser], videoSendingUsers: [], sequence: 1)
-        sut.changeState(event2!, managedObjectContext:uiMOC)
+        _ = sut.changeState(event2!, managedObjectContext:uiMOC)
         let event3 = callStateEvent(in: conversation, joinedUsers: [], videoSendingUsers: [], sequence: 1)
         
         // when
@@ -125,10 +125,10 @@ class SessionTests : SessionBaseTest {
     func testThatItDoesNotAddEventsWithOlderSequence(){
         // given
         let event1 = callStateEvent(in: conversation, joinedUsers: [sender], videoSendingUsers: [], sequence: 1)
-        sut.changeState(event1!, managedObjectContext:uiMOC)
+        _ = sut.changeState(event1!, managedObjectContext:uiMOC)
         
         let event2 = callStateEvent(in: conversation, joinedUsers: [], videoSendingUsers: [], sequence: 3)
-        sut.changeState(event2!, managedObjectContext:uiMOC)
+        _ = sut.changeState(event2!, managedObjectContext:uiMOC)
         
         let event3 = callStateEvent(in: conversation, joinedUsers: [selfUser], videoSendingUsers: [], sequence: 2)
         

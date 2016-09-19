@@ -67,7 +67,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         XCTAssertTrue(waitForEverythingToBeDone())
         
         // then
-        let conversation = self.conversation(for: selfToUser1Conversation)
+        guard let conversation = self.conversation(for: selfToUser1Conversation) else {return XCTFail()}
         let messages = conversation.messages
         XCTAssertEqual(messages.count, 2) // system message & inserted message
         guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
@@ -105,7 +105,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         XCTAssertTrue(waitForEverythingToBeDone())
         
         // then
-        let conversation = self.conversation(for: selfToUser1Conversation)
+        guard let conversation = self.conversation(for: selfToUser1Conversation) else {return XCTFail()}
         let messages = conversation.messages
         XCTAssertEqual(messages.count, 2) // system message & inserted message
         guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
@@ -181,7 +181,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         }
         
         XCTAssertTrue(waitForEverythingToBeDone())
-        let conversation = self.conversation(for: selfToUser1Conversation)
+        guard let conversation = self.conversation(for: selfToUser1Conversation) else {return XCTFail()}
         let window = conversation.conversationWindow(withSize: 10)
         let observer = MessageWindowChangeObserver(messageWindow: window)!
         

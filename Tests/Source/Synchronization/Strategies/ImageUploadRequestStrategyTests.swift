@@ -268,7 +268,7 @@ class ImageUploadRequestStrategyTests: MessagingTest {
             
             // when
             let response = ZMTransportResponse(payload: ["label" : "unknown-client"] as ZMTransportData, httpStatus: 403, transportSessionError: nil)
-            self.sut.shouldRetryToSyncAfterFailed(toUpdate: message, request: request, response: response, keysToParse: keys)
+            _ = self.sut.shouldRetryToSyncAfterFailed(toUpdate: message, request: request, response: response, keysToParse: keys)
             
             // then
             XCTAssertEqual(message.uploadState, ZMAssetUploadState.uploadingFailed);

@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -37,7 +37,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         self.sut = UserClientRequestFactory()
         
         let newKeyStore = FakeKeysStore()
-        self.syncMOC.userInfo.setObject(newKeyStore, forKey: "ZMUserClientKeysStore")
+        self.syncMOC.userInfo.setObject(newKeyStore, forKey: "ZMUserClientKeysStore" as NSCopying)
     }
     
     override func tearDown() {
@@ -48,7 +48,7 @@ class UserClientRequestFactoryTests: MessagingTest {
     func expectedKeyPayloadForClientPreKeys(_ client : UserClient) -> [[String : AnyObject]] {
         let generatedKeys = (client.keysStore as! FakeKeysStore).lastGeneratedKeys
         let expectedPrekeys : [[String: AnyObject]] = generatedKeys.map { (key: (id: UInt16, prekey: String)) in
-            return ["key": key.prekey, "id": NSNumber(value: key.id)]
+            return ["key": key.prekey as AnyObject, "id": NSNumber(value: key.id)]
         }
         return expectedPrekeys
     }
@@ -61,29 +61,30 @@ class UserClientRequestFactoryTests: MessagingTest {
         //when
         let request = try! sut.registerClientRequest(client, credentials: credentials, authenticationStatus:authenticationStatus)
         
-        //then        
-        AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
-            AssertOptionalNotNil(request.payload.asDictionary() as? [String: NSObject], "Request should contain payload") { payload in
-                
-                AssertDictionaryHasOptionalValue(payload, key: "type", expected: ZMUserClientTypePermanent, "Client type should be 'permanent'")
-                AssertDictionaryHasOptionalValue(payload, key: "password", expected: credentials.password!, "Payload should contain password")
-                
-                let lastPreKey = (client.keysStore as! FakeKeysStore).lastGeneratedLastPrekey!
-                let expectedLastPreKeyPayload = ["key": lastPreKey, "id": NSNumber(unsignedShort: UserClientKeysStore.MaxPreKeyID+1)]
-                
-                AssertDictionaryHasOptionalValue(payload, key: "lastkey", expected: expectedLastPreKeyPayload, "Payload should contain last prekey")
-                
-                let preKeysPayloadData = payload["prekeys"] as? [[String: AnyObject]]
-                AssertOptionalNotNil(preKeysPayloadData, "Payload should contain prekeys") {preKeysPayloadData in
-                    XCTAssertEqual(preKeysPayloadData, self.expectedKeyPayloadForClientPreKeys(client))
-                }
-                
-                AssertOptionalNotNil(payload["sigkeys"] as? [String: NSObject], "Payload should contain apns keys") { apnsKeysPayload in
-                    XCTAssertNotNil(apnsKeysPayload["enckey"], "Payload should contain apns enc key")
-                    XCTAssertNotNil(apnsKeysPayload["mackey"], "Payload should contain apns mac key")
-                }
-            }
+        //then       
+        guard request.transportRequest != nil else  { return XCTFail("Should return non nil request") }
+        guard let payload = request.payload?.asDictionary() as? [String: NSObject] else {return XCTFail("Request should contain payload") }
+        
+        guard let type = payload["type"], type == ZMUserClientTypePermanent else {return XCTFail("Client type should be 'permanent'") }
+        guard let password = payload["password"], password == credentials.password else {return XCTFail("Payload should contain password") }
+        
+        let lastPreKey = (client.keysStore as! FakeKeysStore).lastGeneratedLastPrekey!
+        let expectedLastPreKeyPayload = ["key": lastPreKey, "id": NSNumber(value: UserClientKeysStore.MaxPreKeyID+1)] as [String : Any]
+        
+        guard let lastkey = payload["lastkey"], lastkey == expectedLastPreKeyPayload else {
+          return XCTFail("Payload should contain last prekey")
         }
+        
+        guard let preKeysPayloadData = payload["prekeys"] as? [[String: AnyObject]],
+              let prekeys = preKeysPayloadData
+        else  { return XCTFail("Payload should contain prekeys") }
+        XCTAssertEqual(preKeysPayloadData, self.expectedKeyPayloadForClientPreKeys(client))
+        
+        guard let apnsKeysPayload = payload["sigkeys"] as? [String: NSObject] else {return XCTFail("Payload should contain apns keys")}
+        XCTAssertNotNil(apnsKeysPayload["enckey"], "Payload should contain apns enc key")
+        XCTAssertNotNil(apnsKeysPayload["mackey"], "Payload should contain apns mac key")
+        
+
     }
     
     func testThatItCreatesRegistrationRequestWithPhoneCredentialsCorrectly() {
@@ -105,7 +106,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
             
             XCTAssertEqual(request.path, "/clients", "Should create request with correct path")
-            XCTAssertEqual(request.method, ZMTransportRequestMethod.MethodPOST, "Should create POST request")
+            XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST, "Should create POST request")
             
             AssertOptionalNotNil(request.payload.asDictionary() as? [String: NSObject], "Request should contain payload") { payload in
                 
@@ -168,7 +169,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
             
             XCTAssertEqual(request.path, "/clients/\(client.remoteIdentifier)", "Should create request with correct path")
-            XCTAssertEqual(request.method, ZMTransportRequestMethod.MethodPUT, "Should create POST request")
+            XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPUT, "Should create POST request")
             
             AssertOptionalNotNil(request.payload.asDictionary() as? [String: NSObject], "Request should contain payload") { payload in
                 
@@ -193,7 +194,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
             
             XCTAssertEqual(request.path, "/clients/\(client.remoteIdentifier)", "Should create request with correct path")
-            XCTAssertEqual(request.method, ZMTransportRequestMethod.MethodPUT, "Should create POST request")
+            XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPUT, "Should create POST request")
             
             AssertOptionalNotNil(request.payload.asDictionary() as? [String: NSObject], "Request should contain payload") { payload in
                 
@@ -228,7 +229,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         do {
             _ = try sut.updateClientPreKeysRequest(client)
         }
-        catch let error as Error {
+        catch let error {
             XCTAssertNotNil(error, "Should not return request if client does not have remoteIdentifier")
         }
         
@@ -254,7 +255,7 @@ class UserClientRequestFactoryTests: MessagingTest {
                 "email" : email,
                 "password" : password
                 ])
-            XCTAssertEqual($0.transportRequest.method, ZMTransportRequestMethod.MethodDELETE)
+            XCTAssertEqual($0.transportRequest.method, ZMTransportRequestMethod.methodDELETE)
         }
-    }
 }
+
