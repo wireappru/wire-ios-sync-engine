@@ -183,8 +183,8 @@
     }] authenticationDidFail:OCMOCK_ANY];
     
     // when
-    // TODO Sabine
-    //self.authFailHandler(nil);
+    ZMTransportResponse *response = [ZMTransportResponse responseWithTransportSessionError:[NSError tryAgainLaterError]];
+    self.authFailHandler(response);
     
     // then
     [self verifyMockLater:self.authenticationObserver];
