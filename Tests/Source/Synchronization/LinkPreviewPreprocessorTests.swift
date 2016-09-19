@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -54,7 +54,7 @@ class LinkPreviewPreprocessorTests: MessagingTest {
         // given 
         let URL = "http://www.example.com"
         let preview = LinkPreview(originalURLString: "example.com", permamentURLString: URL, offset: 0)
-        preview.imageData = [.secureRandomData(ofLength: 256)]
+        preview.imageData = [.secureRandomData(length: 256)]
         preview.imageURLs = [Foundation.URL(string: "http://www.example.com/image")!]
         mockDetector.nextResult = [preview]
         let message = createMessage()

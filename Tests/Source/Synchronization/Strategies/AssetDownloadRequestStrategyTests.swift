@@ -174,7 +174,7 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItMarksDownloadAsSuccessIfSuccessfulDownloadAndDecryption() {
         
         // given
-        let plainTextData = Data.secureRandomData(ofLength: 500)
+        let plainTextData = Data.secureRandomData(length: 500)
         let key = Data.randomEncryptionKey()
         let encryptedData = plainTextData.zmEncryptPrefixingPlainTextIV(key: key)
         let sha = encryptedData.zmSHA256Digest()
@@ -282,7 +282,7 @@ extension AssetDownloadRequestStrategyTests {
     func testThatItSendsTheNotificationIfSuccessfulDownloadAndDecryption() {
         
         // given
-        let plainTextData = Data.secureRandomData(ofLength: 500)
+        let plainTextData = Data.secureRandomData(length: 500)
         let key = Data.randomEncryptionKey()
         let encryptedData = plainTextData.zmEncryptPrefixingPlainTextIV(key: key)
         let sha = encryptedData.zmSHA256Digest()

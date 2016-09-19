@@ -172,8 +172,8 @@ extension ZMLocalNotificationForMessageTests {
 
     func messageForFile(_ mimeType: String, nonce: NSUUID){
         let dataBuilder = ZMAssetRemoteDataBuilder()
-        dataBuilder.setSha256(Data.secureRandomData(ofLength: 32))
-        dataBuilder.setOtrKey(Data.secureRandomData(ofLength: 32))
+        dataBuilder.setSha256(Data.secureRandomData(length: 32))
+        dataBuilder.setOtrKey(Data.secureRandomData(length: 32))
 
         let originalBuilder = ZMAssetOriginalBuilder()
         originalBuilder.setMimeType(mimeType)

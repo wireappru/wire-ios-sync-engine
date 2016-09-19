@@ -490,7 +490,11 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
         let remoteClientIdentifier = String.createAlphanumerical()
         
         // when
-        let payload: [String: Any] = ["id": remoteClientIdentifier as NSString! , "type": "permanent", "time": Date().transportString()]
+        let payload = [
+            "id": remoteClientIdentifier as AnyObject,
+            "type": "permanent" as AnyObject,
+            "time": Date().transportString() as AnyObject
+        ]
         let newSelfClient = UserClient.createOrUpdateClient(payload, context: self.syncMOC)!
         newSelfClient.user = selfClient.user
         sut.notifyChangeTrackers(selfClient)

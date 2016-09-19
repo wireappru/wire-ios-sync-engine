@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -83,7 +83,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString())
         message.add(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDs(for: [message])
-        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .medium, encrypted: false, data: .secureRandomData(ofLength: 256))
+        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .medium, encrypted: false, data: .secureRandomData(length: 256))
         
         // when
         message.requestImageDownload()
@@ -102,7 +102,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString())
         message.add(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDs(for: [message])
-        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .medium, encrypted: false, data: .secureRandomData(ofLength:256))
+        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .medium, encrypted: false, data: .secureRandomData(length:256))
         
         // when
         message.requestImageDownload()
@@ -117,7 +117,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
     func testThatItDecryptsTheImageDataInTheRequestResponseAndDeletesTheEncryptedVersion() {
         let message = ZMClientMessage.insertNewObject(in: syncMOC)
         let assetID = UUID.create().transportString()
-        let data = Data.secureRandomData(ofLength: 256)
+        let data = Data.secureRandomData(length: 256)
         let otrKey = Data.randomEncryptionKey()
         let encrypted = data.zmEncryptPrefixingPlainTextIV(key: otrKey)
         let (linkPreview, _, _) = createLinkPreviewAndKeys(assetID, otrKey: otrKey, sha256: encrypted.zmSHA256Digest())
@@ -160,7 +160,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         
         // then
         guard let request = sut.nextRequest() else { return XCTFail("No request generated") }
-        let response = ZMTransportResponse(imageData: .secureRandomData(ofLength:256), httpStatus: 400, transportSessionError: nil, headers: nil)
+        let response = ZMTransportResponse(imageData: .secureRandomData(length:256), httpStatus: 400, transportSessionError: nil, headers: nil)
         
         // when
         request.complete(with: response)
@@ -179,7 +179,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         let observer = MessageChangeObserver(message: message)
         defer { observer?.tearDown() }
         let assetID = UUID.create().transportString()
-        let data = Data.secureRandomData(ofLength: 256)
+        let data = Data.secureRandomData(length: 256)
         let otrKey = Data.randomEncryptionKey()
         let encrypted = data.zmEncryptPrefixingPlainTextIV(key: otrKey)
         let (linkPreview, _, _) = createLinkPreviewAndKeys(assetID, otrKey: otrKey, sha256: encrypted.zmSHA256Digest())
