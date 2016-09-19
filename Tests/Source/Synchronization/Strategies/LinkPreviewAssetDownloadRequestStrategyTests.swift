@@ -83,7 +83,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString())
         message.add(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDs(for: [message])
-        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .Medium, encrypted: false, data: .secureRandomDataOfLength(256))
+        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .medium, encrypted: false, data: .secureRandomData(ofLength: 256))
         
         // when
         message.requestImageDownload()
@@ -102,7 +102,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         let genericMessage = ZMGenericMessage(text: name!, linkPreview: linkPreview, nonce: nonce.transportString())
         message.add(genericMessage.data())
         _ = try? syncMOC.obtainPermanentIDs(for: [message])
-        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .Medium, encrypted: false, data: .secureRandomDataOfLength(256))
+        syncMOC.zm_imageAssetCache.storeAssetData(nonce, format: .medium, encrypted: false, data: .secureRandomData(ofLength:256))
         
         // when
         message.requestImageDownload()
@@ -132,10 +132,10 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         
         // then
         guard let request = sut.nextRequest() else { return XCTFail("No request generated") }
-        let response = ZMTransportResponse(imageData: encrypted, HTTPstatus: 200, transportSessionError: nil, headers: nil)
+        let response = ZMTransportResponse(imageData: encrypted, httpStatus: 200, transportSessionError: nil, headers: nil)
         
         // when
-        request.completeWithResponse(response)
+        request.complete(with: response)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -160,10 +160,10 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         
         // then
         guard let request = sut.nextRequest() else { return XCTFail("No request generated") }
-        let response = ZMTransportResponse(imageData: .secureRandomDataOfLength(256), HTTPstatus: 400, transportSessionError: nil, headers: nil)
+        let response = ZMTransportResponse(imageData: .secureRandomData(ofLength:256), httpStatus: 400, transportSessionError: nil, headers: nil)
         
         // when
-        request.completeWithResponse(response)
+        request.complete(with: response)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
@@ -193,8 +193,8 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
         message.requestImageDownload()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         guard let request = sut.nextRequest() else { return XCTFail("No request generated") }
-        let response = ZMTransportResponse(imageData: encrypted, HTTPstatus: 200, transportSessionError: nil, headers: nil)
-        request.completeWithResponse(response)
+        let response = ZMTransportResponse(imageData: encrypted, httpStatus: 200, transportSessionError: nil, headers: nil)
+        request.complete(with: response)
         uiMOC.saveOrRollback()
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
@@ -216,7 +216,7 @@ class LinkPreviewAssetDownloadRequestStrategyTests: MessagingTest {
             remoteBuilder.setAssetId(assetID)
             remoteBuilder.setOtrKey(otr)
             remoteBuilder.setSha256(sha)
-            assetBuilder.setUploadedBuilder(remoteBuilder)
+            assetBuilder.setUploaded(remoteBuilder)
             let preview = ZMLinkPreview.linkPreview(withOriginalURL: URL, permanentURL: URL, offset: 42, title: "Title", summary: "Summary", imageAsset: assetBuilder.build(), tweet: nil)
             return (preview, otr, sha)
         } else {

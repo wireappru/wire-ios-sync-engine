@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -41,56 +41,57 @@ class OTRTests : IntegrationTestBase
     {
         // given
         XCTAssert(logInAndWaitForSyncToBeComplete())
-        XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
-        let conversation = self.conversationForMockConversation(self.selfToUser1Conversation)
+        guard let conversation = self.conversation(for: self.selfToUser1Conversation) else {return XCTFail()}
+        
         let text = "Foo bar, but encrypted"
         self.mockTransportSession.resetReceivedRequests()
         
         // when
         var message: ZMConversationMessage?
         userSession.performChanges {
-            message = conversation.appendMessageWithText(text)
+            message = conversation.appendMessage(withText: text)
         }
-        XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
         XCTAssertNotNil(message)
-        XCTAssertTrue(self.hasMockTransportRequest(.MethodPOST, path: "/conversations/\(conversation.remoteIdentifier.transportString())/otr/messages"))
+        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier.transportString())/otr/messages"))
     }
     
     func testThatItSendsEncryptedImageMessage()
     {
         // given
         XCTAssert(self.logInAndWaitForSyncToBeComplete())
-        XCTAssert(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        let conversation = self.conversationForMockConversation(self.selfToUser1Conversation)
+        guard let conversation = self.conversation(for: self.selfToUser1Conversation) else {return XCTFail()}
         self.mockTransportSession.resetReceivedRequests()
         let imageData = self.verySmallJPEGData()
         
         // when
-        let message = conversation.appendMessageWithImageData(imageData)
+        let message = conversation.appendMessage(withImageData: imageData)
         self.uiMOC.saveOrRollback()
-        XCTAssert(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
         XCTAssertNotNil(message)
-        XCTAssertTrue(self.hasMockTransportRequest(.MethodPOST, path: "/conversations/\(conversation.remoteIdentifier.transportString())/otr/assets", count: 2))
+        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier.transportString())/otr/assets", count: 2))
     }
     
     func testThatItSendsARequestToUpdateSignalingKeys(){
         
         // given
         XCTAssert(self.logInAndWaitForSyncToBeComplete())
-        XCTAssert(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         self.mockTransportSession.resetReceivedRequests()
 
         var didReregister = false
         self.mockTransportSession.responseGeneratorBlock = { response in
-            if response.path.containsString("/clients/") && response.payload.asDictionary()["sigkeys"] != nil {
+            if response.path.contains("/clients/") && response.payload?.asDictionary()?["sigkeys"] != nil {
                 didReregister = true
-                return ZMTransportResponse(payload: [], HTTPstatus: 200, transportSessionError: nil)
+                return ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
             }
             return nil
         }
@@ -99,7 +100,7 @@ class OTRTests : IntegrationTestBase
         self.userSession.performChanges {
             UserClient.resetSignalingKeysInContext(self.uiMOC)
         }
-        XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
         // then
         XCTAssertTrue(didReregister)
@@ -109,21 +110,23 @@ class OTRTests : IntegrationTestBase
         
         // given
         XCTAssert(self.logInAndWaitForSyncToBeComplete())
-        XCTAssert(self.waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         self.mockTransportSession.resetReceivedRequests()
 
         var tryCount = 0
         var firstSigKeys = [String : String]()
         self.mockTransportSession.responseGeneratorBlock = { response in
-            if response.path.containsString("/clients/") && response.payload.asDictionary()["sigkeys"] != nil {
+            guard let payload = response.payload?.asDictionary() else {return nil}
+            
+            if response.path.contains("/clients/") && payload["sigkeys"] != nil {
                 if tryCount == 0 {
                     tryCount += 1
-                    firstSigKeys = response.payload.asDictionary()["sigkeys"] as! [String : String]
-                    return ZMTransportResponse(payload: ["label" : "bad-request"], HTTPstatus: 400, transportSessionError: nil)
+                    firstSigKeys = payload["sigkeys"] as! [String : String]
+                    return ZMTransportResponse(payload: ["label" : "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
                 }
                 tryCount += 1
-                XCTAssertNotEqual(response.payload.asDictionary()["sigkeys"] as! [String : String], firstSigKeys)
-                return ZMTransportResponse(payload: [], HTTPstatus: 200, transportSessionError: nil)
+                XCTAssertNotEqual(payload["sigkeys"] as! [String : String], firstSigKeys)
+                return ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
             }
             return nil
         }
@@ -132,7 +135,7 @@ class OTRTests : IntegrationTestBase
         self.userSession.performChanges {
             UserClient.resetSignalingKeysInContext(self.uiMOC)
         }
-        XCTAssert(waitForAllGroupsToBeEmptyWithTimeout(0.5))
+        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
         XCTAssertEqual(tryCount, 2)

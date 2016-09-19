@@ -101,7 +101,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
             conversationId = message.conversation!.remoteIdentifier
             
             // remove image data or it won't be downloaded
-            self.syncMOC.zm_imageAssetCache.deleteAssetData(message.nonce, format: .Original, encrypted: false)
+            self.syncMOC.zm_imageAssetCache.deleteAssetData(message.nonce, format: .original, encrypted: false)
             message.requestImageDownload()
         }
         
@@ -158,11 +158,11 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
             let imageData = self.verySmallJPEGData()
             let message = self.createImageMessage(withAssetId: UUID.create())
             message.isEncrypted = false
-            let response = ZMTransportResponse(imageData: imageData, HTTPstatus: 200, transportSessionError: nil, headers: nil)
+            let response = ZMTransportResponse(imageData: imageData, httpStatus: 200, transportSessionError: nil, headers: nil)
             
             // when
             self.sut.updateObject(message, withResponse: response, downstreamSync: nil)
-            let storedData = message.imageAssetStorage?.imageDataForFormat(.Medium, encrypted: false)
+            let storedData = message.imageAssetStorage?.imageData(for: .medium, encrypted: false)
             
             // then
             XCTAssertEqual(storedData, imageData)
@@ -181,7 +181,7 @@ class ImageDownloadRequestStrategyTests: MessagingTest {
             self.sut.deleteObject(message, downstreamSync: nil)
             
             // then
-            XCTAssertTrue(message.deleted)
+            XCTAssertTrue(message.isDeleted)
         }
         
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))

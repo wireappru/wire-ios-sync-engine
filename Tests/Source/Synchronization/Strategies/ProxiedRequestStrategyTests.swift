@@ -121,7 +121,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
     func testThatItCallsTheCompletionHandlerWhenTheRequestIsCompleted() {
         
         // given
-        let error = Error(domain: "ZMTransportSession", code: 10, userInfo: nil)
+        let error = NSError(domain: "ZMTransportSession", code: 10, userInfo: nil)
         let data = "Foobar".data(using: String.Encoding.utf8, allowLossyConversion: true)!
         let HTTPResponse = HTTPURLResponse(url: URL(string: "http://www.example.com/")!, statusCode:200, httpVersion:"HTTP/1.1", headerFields:[
                 "Content-Length": "\(data.count)",
@@ -129,7 +129,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
             ]
         )!
         
-        let response = ZMTransportResponse(HTTPURLResponse: HTTPResponse, data: data, error: error)
+        let response = ZMTransportResponse(httpurlResponse: HTTPResponse, data: data, error: error)
         let expectation = self.expectation(description: "Callback invoked")
 
         requestsStatus.addRequest(.giphy, path: "/foo/bar1", method:.methodGET, callback: {
@@ -146,7 +146,7 @@ class ProxiedRequestStrategyTests: MessagingTest {
         // when
         let request : ZMTransportRequest? = self.sut.nextRequest()
         if let request = request {
-            request.completeWithResponse(response)
+            request.complete(with: response)
         }
         
         // then

@@ -80,13 +80,13 @@ class DeleteAccountRequestStrategyTests: MessagingTest {
         self.uiMOC.setPersistentStoreMetadata(NSNumber(value: true), forKey: DeleteAccountRequestStrategy.userDeletionInitiatedKey)
         let notificationExpectation = self.expectation(description: "Notification fired")
         
-        let _ = NotificationCenter.default.addObserverForName(NSNotification.Name(rawValue: "ZMUserSessionAuthenticationNotificationName"), object: nil, queue: .mainQueue()) { _ in
+        let _ = NotificationCenter.default.addObserverForName(NSNotification.Name(rawValue: "ZMUserSessionAuthenticationNotificationName"), object: nil, queue: .main) { _ in
             notificationExpectation.fulfill()
         }
         
         // when
         let request1 : ZMTransportRequest! = self.sut.nextRequest()
-        request1.complete(with: ZMTransportResponse(payload: [], httPstatus: 201, transportSessionError: nil))
+        request1.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 201, transportSessionError: nil))
         
         // then
         XCTAssertTrue(self.waitForCustomExpectations(withTimeout: 0.5))

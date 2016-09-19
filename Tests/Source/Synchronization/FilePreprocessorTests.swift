@@ -75,7 +75,7 @@ extension FilePreprocessorTests {
 
         XCTAssertEqual(msg.genericAssetMessage.asset.uploaded.sha256, encryptedData?.zmSHA256Digest())
         if let key = msg.genericAssetMessage.asset.uploaded.otrKey , key.count > 0 {
-            XCTAssertEqual(encryptedData?.zmDecryptPrefixedPlainTextIVWithKey(key), testData)
+            XCTAssertEqual(encryptedData?.zmDecryptPrefixedPlainTextIV(key: key), testData)
         }
         else {
             XCTFail("No key")

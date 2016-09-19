@@ -28,7 +28,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         var message: ZMConversationMessage! = nil
         
         userSession.performChanges {
-            let conversation = self.conversationForMockConversation(self.selfToUser1Conversation)
+            let conversation = self.conversation(for: self.selfToUser1Conversation)
             message = conversation.appendMessageWithText("Hello")
         }
         
@@ -61,13 +61,13 @@ class DeleteMessagesTests: ConversationTestsBase {
         
         // when
         mockTransportSession.performRemoteChanges { session in
-            self.selfToUser1Conversation.encryptAndInsertDataFromClient(fromClient, toClient: toClient, data: textMessage.data())
+            self.selfToUser1Conversation.encryptAndInsertData(from: fromClient, to: toClient, data: textMessage.data())
         }
         
         XCTAssertTrue(waitForEverythingToBeDone())
         
         // then
-        let conversation = conversationForMockConversation(selfToUser1Conversation)
+        let conversation = conversation(for: selfToUser1Conversation)
         let messages = conversation.messages
         XCTAssertEqual(messages.count, 2) // system message & inserted message
         guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
@@ -99,13 +99,13 @@ class DeleteMessagesTests: ConversationTestsBase {
         
         // when
         mockTransportSession.performRemoteChanges { session in
-            self.selfToUser1Conversation.encryptAndInsertDataFromClient(firstClient, toClient: selfClient, data: textMessage.data())
+            self.selfToUser1Conversation.encryptAndInsertData(from: firstClient, to: selfClient, data: textMessage.data())
         }
         
         XCTAssertTrue(waitForEverythingToBeDone())
         
         // then
-        let conversation = conversationForMockConversation(selfToUser1Conversation)
+        let conversation = conversation(for: selfToUser1Conversation)
         let messages = conversation.messages
         XCTAssertEqual(messages.count, 2) // system message & inserted message
         guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
@@ -177,11 +177,11 @@ class DeleteMessagesTests: ConversationTestsBase {
         
         // when
         mockTransportSession.performRemoteChanges { session in
-            self.selfToUser1Conversation.encryptAndInsertDataFromClient(fromClient, toClient: toClient, data: textMessage.data())
+            self.selfToUser1Conversation.encryptAndInsertData(from: fromClient, to: toClient, data: textMessage.data())
         }
         
         XCTAssertTrue(waitForEverythingToBeDone())
-        let conversation = conversationForMockConversation(selfToUser1Conversation)
+        let conversation = conversation(for: selfToUser1Conversation)
         let window = conversation.conversationWindowWithSize(10)
         let observer = MessageWindowChangeObserver(messageWindow: window)
         

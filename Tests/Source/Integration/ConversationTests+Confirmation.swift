@@ -34,7 +34,7 @@ class ConversationTests_Confirmation: ConversationTestsBase {
             
             // expect
             mockTransportSession.responseGeneratorBlock = { request in
-                if (request?.path == requestPath) {
+                if (request.path == requestPath) {
                     guard let hiddenMessage = conversation?.hiddenMessages.lastObject as? ZMClientMessage,
                         let message = conversation?.messages.lastObject as? ZMClientMessage
                         else {
