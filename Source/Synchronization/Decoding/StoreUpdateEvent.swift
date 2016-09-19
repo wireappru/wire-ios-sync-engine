@@ -44,7 +44,7 @@ public final class StoredUpdateEvent: NSManagedObject {
         storedEvent.payload = event.payload as NSDictionary
         storedEvent.source = Int16(event.source.rawValue)
         storedEvent.sortIndex = index
-        storedEvent.uuidString = (event.uuid as NSUUID).transportString()
+        storedEvent.uuidString = event.uuid?.transportString()
         return storedEvent
     }
     

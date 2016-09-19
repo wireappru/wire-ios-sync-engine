@@ -73,14 +73,14 @@ public final class PushKitRegistrant : NSObject, PushNotificationSource {
     let didInvalidateToken: () -> Void
     
     public init(fakeRegistry: PKPushRegistry?, didUpdateCredentials: @escaping (Data) -> Void, didReceivePayload: @escaping (NSDictionary, ZMPushNotficationType, (ZMPushPayloadResult) -> Void) -> Void, didInvalidateToken: @escaping () -> Void) {
-        let q = DispatchQueue(label: "PushRegistrant")
+        let q = DispatchQueue(label: "PushRegistrant", target: .global())
         self.queue = q
         self.registry = fakeRegistry ?? PKPushRegistry(queue: q)
         self.didUpdateCredentials = didUpdateCredentials
         self.didReceivePayload = didReceivePayload
         self.didInvalidateToken = didInvalidateToken
         super.init()
-        queue.setTarget(queue: DispatchQueue.global())
+        
         self.registry.delegate = self
         self.registry.desiredPushTypes = Set(arrayLiteral: PKPushType.voIP)
         ZMLogPushKit_swift("Created registrant. Registry = \(self.registry.description)")

@@ -330,7 +330,9 @@ ZM_EMPTY_ASSERTING_INIT()
     [self appTerminated:nil];
     
     for (ZMObjectSyncStrategy *s in [self.allTranscoders arrayByAddingObjectsFromArray:self.requestStrategies]) {
-        [s tearDown];
+        if ([s respondsToSelector:@selector((tearDown))]) {
+            [s tearDown];
+        }
     }
     
     [self.conversationStatusSync tearDown];
