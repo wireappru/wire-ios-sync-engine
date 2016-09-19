@@ -28,7 +28,7 @@ class OTRTests : IntegrationTestBase
     }
     
     func hasMockTransportRequest(_ count: Int = 1, filter: (ZMTransportRequest) -> Bool) -> Bool {
-        return (self.mockTransportSession.receivedRequests() as! [ZMTransportRequest]).filter(filter).count >= count
+        return (self.mockTransportSession.receivedRequests()).filter(filter).count >= count
     }
     
     func hasMockTransportRequest(_ method : ZMTransportRequestMethod, path : String, count : Int = 1) -> Bool  {

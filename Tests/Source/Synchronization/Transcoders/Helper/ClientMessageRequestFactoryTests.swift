@@ -246,7 +246,7 @@ extension ClientMessageRequestFactoryTests {
         
         // then
         guard let request = uploadRequest else { return XCTFail() }
-        XCTAssertFalse(request.path.containsString(message.assetId!.transportString()))
+        XCTAssertFalse(request.path.contains(message.assetId!.transportString()))
         XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST)
         XCTAssertEqual(request.path, "/conversations/\(conversationID.transportString())/otr/messages")
     }
@@ -266,7 +266,7 @@ extension ClientMessageRequestFactoryTests {
         
         // then
         guard let url = syncMOC.zm_fileAssetCache.accessRequestURL(nonce) else { return XCTFail() }
-        guard let multipartData = Data(contentsOfURL: url) else { return XCTFail() }
+        guard let multipartData = Data(contentsOf: url) else { return XCTFail() }
         guard let multiPartItems = multipartData.multipartDataItemsSeparatedWithBoundary("frontier") else { return XCTFail() }
         XCTAssertEqual(multiPartItems.count, 2)
         let fileData = (multiPartItems.last as? ZMMultipartBodyItem)?.data
@@ -288,7 +288,7 @@ extension ClientMessageRequestFactoryTests {
         
         // then
         guard let url = syncMOC.zm_fileAssetCache.accessRequestURL(nonce) else { return XCTFail() }
-        guard let multipartData = Data(contentsOfURL: url) else { return XCTFail() }
+        guard let multipartData = Data(contentsOf: url) else { return XCTFail() }
         guard let multiPartItems = multipartData.multipartDataItemsSeparatedWithBoundary("frontier") else { return XCTFail() }
         XCTAssertEqual(multiPartItems.count, 2)
         guard let fileData = (multiPartItems.last as? ZMMultipartBodyItem) else { return XCTFail() }
@@ -343,7 +343,7 @@ extension ClientMessageRequestFactoryTests {
         // then
         XCTAssertNotNil(uploadRequest)
         guard let url = syncMOC.zm_fileAssetCache.accessRequestURL(nonce) else { return XCTFail() }
-        XCTAssertNotNil(Data(contentsOfURL: url))
+        XCTAssertNotNil(Data(contentsOf: url))
         
         let fm = FileManager.default
         guard let path = url.path, let attributes = try? fm.attributesOfItemAtPath(path) else { return XCTFail() }
