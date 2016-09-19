@@ -42,6 +42,7 @@
 @class MockUser;
 @class ZMClientMessage;
 
+NS_ASSUME_NONNULL_BEGIN
 
 /// This is a base test class with utility stuff for all tests.
 @interface MessagingTest : ZMTBaseTest
@@ -124,7 +125,6 @@ typedef BOOL (^SaveExpectationHandler)(ZMManagedObject *);
 
 @end
 
-NS_ASSUME_NONNULL_BEGIN
 
 @interface MessagingTest (OTR)
 

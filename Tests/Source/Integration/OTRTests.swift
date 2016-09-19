@@ -57,7 +57,7 @@ class OTRTests : IntegrationTestBase
         
         // then
         XCTAssertNotNil(message)
-        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier.transportString())/otr/messages"))
+        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/messages"))
     }
     
     func testThatItSendsEncryptedImageMessage()
@@ -77,7 +77,7 @@ class OTRTests : IntegrationTestBase
         
         // then
         XCTAssertNotNil(message)
-        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier.transportString())/otr/assets", count: 2))
+        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/assets", count: 2))
     }
     
     func testThatItSendsARequestToUpdateSignalingKeys(){
