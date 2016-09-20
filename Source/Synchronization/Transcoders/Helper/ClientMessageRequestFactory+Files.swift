@@ -90,7 +90,7 @@ extension ClientMessageRequestFactory {
         }
         
         let request = ZMTransportRequest.uploadRequest(withFileURL: uploadURL, path: path, contentType: "multipart/mixed")
-        request.appendDebugInformation("Inserting file upload metadata (Asset.Uploaded) with binary file data")
+        request.appendDebugInformation("Inserting file upload metadata (Asset.Uploaded) with binary file data\n\(message.dataSetDebugInformation)")
         return request
     }
     
@@ -110,7 +110,7 @@ extension ClientMessageRequestFactory {
             mediaContentType: octetStreamContentType
         )
         
-        request.appendDebugInformation("Inserting file upload thumbnail (Asset.Preview) with binary file data")
+        request.appendDebugInformation("Inserting file upload thumbnail (Asset.Preview) with binary file data\n\(message.dataSetDebugInformation)")
         return request
     }
     
@@ -120,7 +120,7 @@ extension ClientMessageRequestFactory {
         let path = "/conversations/\(conversationId.transportString())/otr/assets/\(message.assetId!.transportString())"
         guard let assetUploadedData = message.encryptedMessagePayloadForDataType(.fullAsset) else { return nil }
         let request = ZMTransportRequest(path: path, method: .methodPOST, binaryData: assetUploadedData, type: protobufContentType, contentDisposition: nil)
-        request.appendDebugInformation("Updating file upload metadata (Asset.Uploaded)")
+        request.appendDebugInformation("Updating file upload metadata (Asset.Uploaded)\n\(message.dataSetDebugInformation)")
         request.appendDebugInformation("\(assetUploadedData)")
         request.forceToBackgroundSession()
         return request
@@ -133,7 +133,7 @@ extension ClientMessageRequestFactory {
         let path = "/conversations/\(identifier.transportString())/otr/assets/\(message.assetId!.transportString())"
         
         let request = ZMTransportRequest(getFromPath: path)
-        request.appendDebugInformation("Downloading file (Asset)")
+        request.appendDebugInformation("Downloading file (Asset)\n\(message.dataSetDebugInformation)")
         request.forceToBackgroundSession()
         return request
     }
