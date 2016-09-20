@@ -62,7 +62,7 @@ class PushNoticeRequestStrategyTests: MessagingTest {
         // then
         XCTAssertEqual(request?.method, .methodGET)
         XCTAssertTrue(request!.shouldUseVoipSession)
-        XCTAssertEqual(request?.path, "/notifications/\(notificationID.transportString())?client=\(selfClient.remoteIdentifier)&cancel_fallback=true")
+        XCTAssertEqual(request?.path, "/notifications/\(notificationID.transportString())?client=\(selfClient.remoteIdentifier!)&cancel_fallback=true")
         XCTAssertNil(request?.payload)
     }
     
@@ -125,11 +125,13 @@ class PushNoticeRequestStrategyTests: MessagingTest {
         XCTAssertTrue(pingBackStatus.hasNoticeNotificationIDs)
         let conversation = ZMConversation.insertNewObject(in: self.uiMOC)
         conversation.remoteIdentifier = UUID()
-        let eventPayload = self.payloadForMessage(in: conversation, type: EventConversationAdd, data: [])
-        let event = ZMUpdateEvent(fromEventStreamPayload:eventPayload!, uuid: nextUUID)!
+        let eventPayload = self.payloadForMessage(in: conversation, type: EventConversationAdd, data: [])!
+        let event = ZMUpdateEvent(fromEventStreamPayload:eventPayload, uuid: nextUUID)!
+        let responsePayload : [String : AnyObject] = ["payload": ([eventPayload] as NSArray),
+                                                      "id": nextUUID.transportString() as NSString]
         
         // when
-        let response = ZMTransportResponse(payload: ["payload": [eventPayload], "id": nextUUID.transportString()] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
+        let response = ZMTransportResponse(payload: responsePayload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         let request = sut.nextRequest()
         request?.complete(with: response)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
