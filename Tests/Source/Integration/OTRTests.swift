@@ -66,7 +66,7 @@ class OTRTests : IntegrationTestBase
         XCTAssert(self.logInAndWaitForSyncToBeComplete())
         XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
 
-        guard let conversation = self.conversation(for: self.selfToUser1Conversation) else {return XCTFail()}
+        guard let conversation = self.conversation(for: self.selfToUser1Conversation) else { return XCTFail() }
         self.mockTransportSession.resetReceivedRequests()
         let imageData = self.verySmallJPEGData()
         
@@ -114,18 +114,24 @@ class OTRTests : IntegrationTestBase
         self.mockTransportSession.resetReceivedRequests()
 
         var tryCount = 0
-        var firstSigKeys = [String : String]()
+        var (firstMac, firstEnc) = (String(), String())
         self.mockTransportSession.responseGeneratorBlock = { response in
-            guard let payload = response.payload?.asDictionary() else {return nil}
+            guard let payload = response.payload?.asDictionary() else { return nil }
             
             if response.path.contains("/clients/") && payload["sigkeys"] != nil {
+                let keys = payload["sigkeys"] as? [String: Any]
+                let macKey = keys?["mackey"] as? String
+                let encKey = keys?["enckey"] as? String
+                
                 if tryCount == 0 {
                     tryCount += 1
-                    firstSigKeys = payload["sigkeys"] as! [String : String]
+                    guard let mac = macKey, let enc = encKey else { XCTFail("No signaling keys in payload"); return nil }
+                    (firstMac, firstEnc) = (mac, enc)
                     return ZMTransportResponse(payload: ["label" : "bad-request"] as ZMTransportData, httpStatus: 400, transportSessionError: nil)
                 }
                 tryCount += 1
-                XCTAssertNotEqual(payload["sigkeys"] as! [String : String], firstSigKeys)
+                XCTAssertNotEqual(macKey, firstMac)
+                XCTAssertNotEqual(encKey, firstEnc)
                 return ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil)
             }
             return nil
