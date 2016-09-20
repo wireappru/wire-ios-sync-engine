@@ -94,8 +94,8 @@ class MissingClientsRequestStrategyTests: RequestStrategyTestBase {
             XCTAssertEqual(request.transportRequest.path, "/users/prekeys")
             let userPayload = request.transportRequest.payload?.asDictionary()?[missingUser.remoteIdentifier!.transportString()] as? NSArray
             AssertOptionalNotNil(userPayload, "Clients map should contain missid user id") {userPayload in
-                XCTAssertTrue(userPayload.contains(firstMissingClient.remoteIdentifier), "Clients map should contain all missed clients id for each user")
-                XCTAssertTrue(userPayload.contains(secondMissingClient.remoteIdentifier), "Clients map should contain all missed clients id for each user")
+                XCTAssertTrue(userPayload.contains(firstMissingClient.remoteIdentifier!), "Clients map should contain all missed clients id for each user")
+                XCTAssertTrue(userPayload.contains(secondMissingClient.remoteIdentifier!), "Clients map should contain all missed clients id for each user")
             }
         }
     }
