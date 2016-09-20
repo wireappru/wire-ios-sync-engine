@@ -982,7 +982,6 @@
     NSDictionary *payload = @{@"recipient": client.remoteIdentifier, @"sender": senderClient.remoteIdentifier, @"text": message.data.base64String};
     
     NSDictionary *eventPayload = @{
-                                   @"id": NSUUID.createUUID.transportString,
                                    @"sender": senderClient.user.remoteIdentifier.transportString,
                                    @"type":@"conversation.otr-message-add",
                                    @"data":payload,
