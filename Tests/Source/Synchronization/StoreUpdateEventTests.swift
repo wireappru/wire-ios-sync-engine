@@ -54,7 +54,7 @@ class StoreUpdateEventTests: MessagingTest {
             XCTAssertEqual(storedEvent.isTransient, event.isTransient)
             XCTAssertEqual(storedEvent.source, Int16(event.source.rawValue))
             XCTAssertEqual(storedEvent.sortIndex, 2)
-            XCTAssertEqual(storedEvent.uuidString, event.uuid.transportString())
+            XCTAssertEqual(storedEvent.uuidString, event.uuid?.transportString())
         } else {
             XCTFail("Did not create storedEvent")
         }

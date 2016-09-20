@@ -46,7 +46,7 @@ public struct MissingClientsMap {
         let addClientIdToMap = { (clientsMap: [String : [String]], missingClient: UserClient) -> [String:[String]] in
             var clientsMap = clientsMap
             let missingUserId = missingClient.user!.remoteIdentifier!.transportString()
-            clientsMap[missingUserId] = (clientsMap[missingUserId] ?? []) + [missingClient.remoteIdentifier]
+            clientsMap[missingUserId] = (clientsMap[missingUserId] ?? []) + [missingClient.remoteIdentifier!]
             return clientsMap
         }
         
@@ -58,6 +58,6 @@ public struct MissingClientsMap {
         }
         
         payload = missing.filter { $0.user?.remoteIdentifier != nil } .reduce([String:[String]](), addClientIdToMap)
-        userInfo = [MissingClientsRequestUserInfoKeys.clients: missing.map { $0.remoteIdentifier }]
+        userInfo = [MissingClientsRequestUserInfoKeys.clients: missing.map { $0.remoteIdentifier! }]
     }
 }

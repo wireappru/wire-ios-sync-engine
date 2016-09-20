@@ -151,12 +151,12 @@ public final class UserClientRequestFactory {
     }
     
     /// Password needs to be set
-    public func deleteClientRequest(_ client: UserClient, credentials: ZMEmailCredentials) -> ZMUpstreamRequest! {
+    public func deleteClientRequest(_ client: UserClient, credentials: ZMEmailCredentials) -> ZMUpstreamRequest {
         let payload = [
             "email" : credentials.email!,
             "password" : credentials.password!
         ]
-        let request =  ZMTransportRequest(path: "/clients/\(client.remoteIdentifier)", method: ZMTransportRequestMethod.methodDELETE, payload: payload as ZMTransportData?)
+        let request =  ZMTransportRequest(path: "/clients/\(client.remoteIdentifier!)", method: ZMTransportRequestMethod.methodDELETE, payload: payload as ZMTransportData?)
         return ZMUpstreamRequest(keys: Set(arrayLiteral: ZMUserClientMarkedToDeleteKey), transportRequest: request)
     }
     

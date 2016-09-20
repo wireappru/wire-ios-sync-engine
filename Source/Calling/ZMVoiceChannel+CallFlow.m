@@ -218,7 +218,7 @@
     conversation.isSendingVideo = NO;
     conversation.isFlowActive = NO;
     conversation.activeFlowParticipants = [NSOrderedSet orderedSet];
-    conversation.otherActiveVideoCallParticipants = [NSOrderedSet orderedSet];
+    conversation.otherActiveVideoCallParticipants = [NSSet set];
     if (conversation.managedObjectContext.zm_isSyncContext) {
         [conversation.managedObjectContext zm_resetCallTimer:conversation];
     }

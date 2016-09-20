@@ -88,14 +88,14 @@ class MissingClientsMapTests: MessagingTest {
     // MARK: - Helper
     
     func assertExpectedUserInfo(_ missingClientsMap: MissingClientsMap, _ clients: UserClient...) {
-        let identifiers = Set(clients.map { $0.remoteIdentifier })
+        let identifiers = Set(clients.map { $0.remoteIdentifier! })
         guard let actualClients = missingClientsMap.userInfo["clients"].map(Set.init) else { return XCTFail() }
         XCTAssertEqual(actualClients, identifiers)
     }
     
     func assertPayloadContainsClient(_ missingClientsMap: MissingClientsMap, _ client: UserClient) {
         guard let userId = client.user?.remoteIdentifier?.transportString(), let clientPayload = missingClientsMap.payload[userId] else { return XCTFail()}
-        XCTAssertTrue(clientPayload.contains(client.remoteIdentifier))
+        XCTAssertTrue(clientPayload.contains(client.remoteIdentifier!))
     }
     
     func createClient(_ forUser: ZMUser? = nil) -> UserClient {

@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -122,7 +122,8 @@ extension ZMOTRMessage {
             guard let clientIDs = pair.1 as? [String] else { fatal("Deleted client ID is not parsed properly") }
             let clientIDsSet = Set(clientIDs)
             return user.clients.filter {
-                clientIDsSet.contains($0.remoteIdentifier)
+                guard let remoteIdentifier = $0.remoteIdentifier else { return false }
+                return clientIDsSet.contains(remoteIdentifier)
             }
         })
         

@@ -475,7 +475,7 @@ extension UserClientRequestStrategyTests {
         let expectedDeviceClasses = Set(arrayLiteral: "phone", "tablet")
         let actualDeviceClasses = Set(user.clients.flatMap { $0.deviceClass })
         let expectedIdentifiers = Set(arrayLiteral: firstIdentifier, secondIdentifier)
-        let actualIdentifiers = Set(user.clients.map { $0.remoteIdentifier })
+        let actualIdentifiers = Set(user.clients.map { $0.remoteIdentifier! })
         XCTAssertEqual(user.clients.count, 2)
         XCTAssertEqual(expectedDeviceClasses, actualDeviceClasses)
         XCTAssertEqual(expectedIdentifiers, actualIdentifiers)
@@ -732,7 +732,7 @@ extension UserClientRequestStrategyTests {
         let payload: [String : Any] = [
             "id" : "27330a52-bab6-11e5-8183-22000b080265",
             "payload" : [
-                UserClientRequestStrategyTests.payloadForAddingClient(existingClient.remoteIdentifier)
+                UserClientRequestStrategyTests.payloadForAddingClient(existingClient.remoteIdentifier!)
             ],
             "transient" : false
         ]
@@ -766,7 +766,7 @@ extension UserClientRequestStrategyTests {
         let payload: [String: Any] = [
             "id" : "27330a52-bab6-11e5-8183-22000b080265",
             "payload" : [
-                UserClientRequestStrategyTests.payloadForDeletingClient(existingClient2.remoteIdentifier)
+                UserClientRequestStrategyTests.payloadForDeletingClient(existingClient2.remoteIdentifier!)
             ],
             "transient" : false
         ]
@@ -805,7 +805,7 @@ extension UserClientRequestStrategyTests {
         let payload: [String: Any] = [
             "id" : "27330a52-bab6-11e5-8183-22000b080265",
             "payload" : [
-                UserClientRequestStrategyTests.payloadForDeletingClient(existingClient.remoteIdentifier)
+                UserClientRequestStrategyTests.payloadForDeletingClient(existingClient.remoteIdentifier!)
             ],
             "transient" : false
         ] as [String : Any]

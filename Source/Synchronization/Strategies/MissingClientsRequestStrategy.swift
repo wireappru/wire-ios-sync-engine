@@ -183,7 +183,11 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
             return missedClientIdsToClientsMap
         }
         
-        missingClients.forEach{ missedClientIdsToClientsMap[$0.remoteIdentifier] = $0 }
+        missingClients.forEach {
+            if let remoteIdentifier = $0.remoteIdentifier {
+                missedClientIdsToClientsMap[remoteIdentifier] = $0
+            }
+        }
         return missedClientIdsToClientsMap
     }
     
