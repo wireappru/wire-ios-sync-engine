@@ -690,27 +690,30 @@
            withRemoteID:selfUserAndSelfConversationID
                 formats:@[@(ZMImageFormatProfile), @(ZMImageFormatMedium)]
     locallyModifiedKeys:modifiedKeys.allObjects];
+    
+    WaitForAllGroupsToBeEmpty(0.5);
+    
     selfUser.imageMediumData = nil;
     selfUser.imageSmallProfileData = nil;
     
     XCTAssertTrue([selfUser hasLocalModificationsForKeys:modifiedKeys]);
+    XCTAssertNil(selfUser.imageSmallProfileData);
+    XCTAssertNil(selfUser.imageMediumData);
 
     // when
-    
     ZMUserImageTranscoder __block *localSUT = [[ZMUserImageTranscoder alloc] initWithManagedObjectContext:self.syncMOC
                                                                                      imageProcessingQueue:self.queue];
     
     XCTAssertTrue([self waitForAllGroupsToBeEmptyWithTimeout:0.5]);
     
     // then
-    
-    [self.syncMOC performBlockAndWait:^{
-        
+    [self.syncMOC performGroupedBlock:^{
         XCTAssertFalse([selfUser hasLocalModificationsForKeys:modifiedKeys]);
         [localSUT tearDown];
         localSUT = nil;
     }];
     
+    WaitForAllGroupsToBeEmpty(0.5);
 }
 
 - (void)testThatItDoesNotUpdateTheImageIfTheCorrelationIDFromTheBackendResponseDiffersFromTheUserImageCorrelationID
