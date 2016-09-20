@@ -21,24 +21,9 @@ import Foundation
 import zmessaging
 import ZMCMockTransport
 
-class OTRTests : IntegrationTestBase
-{
-    override func setUp() {
-        super.setUp()
-    }
-    
-    func hasMockTransportRequest(_ count: Int = 1, filter: (ZMTransportRequest) -> Bool) -> Bool {
-        return (self.mockTransportSession.receivedRequests()).filter(filter).count >= count
-    }
-    
-    func hasMockTransportRequest(_ method : ZMTransportRequestMethod, path : String, count : Int = 1) -> Bool  {
-        return self.hasMockTransportRequest(count, filter: {
-            $0.method == method && $0.path == path
-        })
-    }
+class OTRTests : IntegrationTestBase {
         
-    func testThatItSendsEncryptedTextMessage()
-    {
+    func testThatItSendsEncryptedTextMessage() {
         // given
         XCTAssert(logInAndWaitForSyncToBeComplete())
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -53,15 +38,18 @@ class OTRTests : IntegrationTestBase
         userSession.performChanges {
             message = conversation.appendMessage(withText: text)
         }
-        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        XCTAssert(waitForEverythingToBeDone(withTimeout: 0.5))
         
         // then
         XCTAssertNotNil(message)
-        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/messages"))
+        let expected = "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/messages"
+        let requests = mockTransportSession.receivedRequests()
+        XCTAssertEqual(requests[0].path, expected)
+        XCTAssertEqual(requests[1].path, "/users/prekeys")
+        XCTAssertEqual(requests[2].path, expected)
     }
     
-    func testThatItSendsEncryptedImageMessage()
-    {
+    func testThatItSendsEncryptedImageMessage() {
         // given
         XCTAssert(self.logInAndWaitForSyncToBeComplete())
         XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
@@ -71,22 +59,31 @@ class OTRTests : IntegrationTestBase
         let imageData = self.verySmallJPEGData()
         
         // when
-        let message = conversation.appendMessage(withImageData: imageData)
-        self.uiMOC.saveOrRollback()
-        XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        var message: ZMConversationMessage? = nil
+        userSession.performChanges {
+             message = conversation.appendMessage(withImageData: imageData)
+        }
+        
+        XCTAssert(waitForEverythingToBeDone(withTimeout: 0.5))
         
         // then
         XCTAssertNotNil(message)
-        XCTAssertTrue(self.hasMockTransportRequest(.methodPOST, path: "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/assets", count: 2))
+        let requests = mockTransportSession.receivedRequests()
+        let expected = "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/assets"
+        XCTAssertEqual(requests[0].path, expected)
+        XCTAssertEqual(requests[1].path, "/users/prekeys")
+        XCTAssertEqual(requests[2].path, expected)
+        XCTAssertEqual(requests[3].path, expected)
     }
     
-    func testThatItSendsARequestToUpdateSignalingKeys(){
+    func testThatItSendsARequestToUpdateSignalingKeys() {
         
         // given
         XCTAssert(self.logInAndWaitForSyncToBeComplete())
         XCTAssert(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         self.mockTransportSession.resetReceivedRequests()
-
+        
+    
         var didReregister = false
         self.mockTransportSession.responseGeneratorBlock = { response in
             if response.path.contains("/clients/") && response.payload?.asDictionary()?["sigkeys"] != nil {
@@ -100,7 +97,7 @@ class OTRTests : IntegrationTestBase
         self.userSession.performChanges {
             UserClient.resetSignalingKeysInContext(self.uiMOC)
         }
-        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        XCTAssert(waitForEverythingToBeDone(withTimeout: 0.5))
 
         // then
         XCTAssertTrue(didReregister)
@@ -138,13 +135,15 @@ class OTRTests : IntegrationTestBase
         }
         
         // when
-        self.userSession.performChanges {
+        userSession.performChanges {
             UserClient.resetSignalingKeysInContext(self.uiMOC)
         }
-        XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
+        
+        XCTAssert(waitForEverythingToBeDone(withTimeout: 0.5))
         
         // then
         XCTAssertEqual(tryCount, 2)
     }
+
 }
 

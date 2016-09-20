@@ -84,7 +84,7 @@ extension ImageUploadRequestStrategy : ZMUpstreamTranscoder {
         message.update(withPostPayload: response.payload?.asDictionary(), updatedKeys: keys)
         
         if let clientRegistrationStatus = self.clientRegistrationStatus {
-            _ = message.parseUploadResponse(response, clientDeletionDelegate: clientRegistrationStatus)
+            let _ = message.parseUploadResponse(response, clientDeletionDelegate: clientRegistrationStatus)
         }
     }
     
