@@ -180,13 +180,14 @@ private let reponseHeaderAssetIdKey = "Location"
             self.deleteRequestData(forMessage: message, includingEncryptedAssetData: true)
             
             let messageObjectId = message.objectID
-            self.managedObjectContext.zm_userInterface.performGroupedBlock({ () -> Void in
-                let uiMessage = try? self.managedObjectContext.zm_userInterface.existingObject(with: messageObjectId)
-                
-                let userInfo = [FileUploadRequestStrategyNotification.requestStartTimestampKey: response.startOfUploadTimestamp]
-                
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: FileUploadRequestStrategyNotification.uploadFinishedNotificationName), object: uiMessage, userInfo: userInfo)
-            })
+
+            managedObjectContext.zm_userInterface.performGroupedBlock {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name(rawValue: FileUploadRequestStrategyNotification.uploadFinishedNotificationName),
+                    object: try? self.managedObjectContext.zm_userInterface.existingObject(with: messageObjectId),
+                    userInfo: [FileUploadRequestStrategyNotification.requestStartTimestampKey: response.startOfUploadTimestamp]
+                )
+            }
             
         case .uploadingFailed, .done: break
         }

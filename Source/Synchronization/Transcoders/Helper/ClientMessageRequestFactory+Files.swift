@@ -69,13 +69,9 @@ extension ClientMessageRequestFactory {
         let path = "/conversations/\(conversationId.transportString())/otr/messages"
         guard let assetOriginalData = message.encryptedMessagePayloadForDataType(.placeholder) , nil != message.filename else { return nil }
         let request = ZMTransportRequest(path: path, method: .methodPOST, binaryData: assetOriginalData, type: protobufContentType, contentDisposition: nil)
-        request.appendDebugInformation("Inserting file upload placeholder (Original)")
-        // TODO jacob
-//        let genericMessages : [ZMGenericMessage] = message.dataSet.map { $0.genericMessage }
-//        for g in genericMessages {
-//            request.appendDebugInformation("GENERIC MESSAGE:\n\(g)\n")
-//        }
+        request.appendDebugInformation("Inserting file upload placeholder (Original)\n\(message.dataSetDebugInformation)")
         request.forceToBackgroundSession()
+        
         return request
     }
     
@@ -133,8 +129,8 @@ extension ClientMessageRequestFactory {
     // MARK: Downloading
     
     func downstreamRequestForEcryptedOriginalFileMessage(_ message: ZMAssetClientMessage) -> ZMTransportRequest? {
-        guard let conversation = message.conversation else { return nil }
-        let path = "/conversations/\(conversation.remoteIdentifier?.transportString())/otr/assets/\(message.assetId!.transportString())"
+        guard let conversation = message.conversation, let identifier = conversation.remoteIdentifier else { return nil }
+        let path = "/conversations/\(identifier.transportString())/otr/assets/\(message.assetId!.transportString())"
         
         let request = ZMTransportRequest(getFromPath: path)
         request.appendDebugInformation("Downloading file (Asset)")

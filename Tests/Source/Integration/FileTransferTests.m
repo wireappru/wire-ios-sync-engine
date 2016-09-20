@@ -40,7 +40,6 @@
 
 - (NSArray *)filterOutRequestsForLastRead:(NSArray *)requests
 {
-   
     NSString *conversationPrefix = [NSString stringWithFormat:@"/conversations/%@/otr/messages",  [ZMConversation selfConversationInContext:self.uiMOC].remoteIdentifier.transportString];
     return [requests filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id  obj, NSDictionary __unused *bindings) {
         return ![((ZMTransportRequest *)obj).path hasPrefix:conversationPrefix];
