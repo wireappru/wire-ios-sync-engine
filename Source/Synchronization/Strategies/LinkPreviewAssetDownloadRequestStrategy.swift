@@ -79,13 +79,15 @@ import Foundation
         guard response.result == .success else { return }
         let cache = managedObjectContext.zm_imageAssetCache
         
-        guard let remote = (message.genericMessage?.text.linkPreview.first as AnyObject).remote else { return }
-        cache?.storeAssetData(message.nonce, format: .medium, encrypted: true, data: response.rawData!)
+        let linkPreview = message.genericMessage?.text.linkPreview.first as? ZMLinkPreview
+        guard let remote = linkPreview?.remote, let data = response.rawData else { return }
+        cache?.storeAssetData(message.nonce, format: .medium, encrypted: true, data: data)
+
         let success = cache?.decryptFileIfItMatchesDigest(
             message.nonce,
             format: .medium,
-            encryptionKey: (remote?.otrKey)!,
-            sha256Digest: (remote?.sha256)!
+            encryptionKey: remote.otrKey,
+            sha256Digest: remote.sha256
         )
         
         guard success! else { return }
