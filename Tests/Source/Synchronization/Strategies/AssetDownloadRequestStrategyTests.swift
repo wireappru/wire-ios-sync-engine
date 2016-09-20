@@ -146,7 +146,7 @@ extension AssetDownloadRequestStrategyTests {
         // then
         if let request = request {
             XCTAssertEqual(request.method, ZMTransportRequestMethod.methodGET)
-            XCTAssertEqual(request.path, "/conversations/\(self.conversation.remoteIdentifier?.transportString())/otr/assets/\((message.assetId?.transportString())!)")
+            XCTAssertEqual(request.path, "/conversations/\(conversation.remoteIdentifier!.transportString())/otr/assets/\(message.assetId!.transportString())")
             XCTAssertTrue(request.needsAuthentication)
         } else {
             XCTFail("Empty request")
