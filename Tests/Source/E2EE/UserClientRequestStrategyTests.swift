@@ -556,7 +556,7 @@ extension UserClientRequestStrategyTests {
         
         // then
         AssertOptionalNotNil(nextRequest) {
-            XCTAssertEqual($0.path, "/clients/\(clients[0].remoteIdentifier)")
+            XCTAssertEqual($0.path, "/clients/\(clients[0].remoteIdentifier!)")
             XCTAssertEqual($0.payload as! [String:String], [
                 "email" : self.clientUpdateStatus.mockCredentials.email!,
                 "password" : self.clientUpdateStatus.mockCredentials.password!
@@ -595,7 +595,7 @@ extension UserClientRequestStrategyTests {
     func testThatItDoesNotDeleteAnObjectWhenResponseContainsRemoteID() {
         let (_, otherClient) = self.createClients()
         let user = otherClient.user
-        let payload =  [["id" : otherClient.remoteIdentifier]]
+        let payload =  [["id" : otherClient.remoteIdentifier!]]
         let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         
         //when
@@ -607,7 +607,7 @@ extension UserClientRequestStrategyTests {
     func testThatItAddsNewInsertedClientsToIgnoredClients() {
         let (selfClient, otherClient) = self.createClients()
         let user = otherClient.user
-        let payload =  [["id" : otherClient.remoteIdentifier]]
+        let payload =  [["id" : otherClient.remoteIdentifier!]]
         let response = ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil)
         
         //when

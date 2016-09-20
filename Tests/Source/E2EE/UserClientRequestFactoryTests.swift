@@ -72,7 +72,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         
         guard let lastKeyPayload = payload["lastkey"] as? [String: Any] else { return XCTFail() }
         XCTAssertEqual(lastKeyPayload["key"] as? String, lastPreKey)
-        XCTAssertEqual(lastKeyPayload["id"] as? UInt16, UserClientKeysStore.MaxPreKeyID + 1)
+        XCTAssertEqual(lastKeyPayload["id"] as? NSNumber, NSNumber(value: UserClientKeysStore.MaxPreKeyID + 1))
 
         guard let preKeysPayloadData = payload["prekeys"] as? [[String: Any]] else  { return XCTFail("Payload should contain prekeys") }
         zip(preKeysPayloadData, expectedKeyPayloadForClientPreKeys(client)).forEach { (lhs, rhs) in
@@ -110,7 +110,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         
         guard let lastKeyPayload = payload["lastkey"] as? [String: Any] else { return XCTFail("Payload should contain last prekey") }
         XCTAssertEqual(lastKeyPayload["key"] as? String, lastPreKey)
-        XCTAssertEqual(lastKeyPayload["id"] as? UInt16, UserClientKeysStore.MaxPreKeyID + 1)
+        XCTAssertEqual(lastKeyPayload["id"] as? NSNumber, NSNumber(value: UserClientKeysStore.MaxPreKeyID + 1))
         
         guard let preKeysPayloadData = payload["prekeys"] as? [[String: Any]] else { return XCTFail("Payload should contain prekeys") }
         
@@ -161,7 +161,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         
         AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
             
-            XCTAssertEqual(request.path, "/clients/\(client.remoteIdentifier)", "Should create request with correct path")
+            XCTAssertEqual(request.path, "/clients/\(client.remoteIdentifier!)", "Should create request with correct path")
             XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPUT, "Should create POST request")
             
             AssertOptionalNotNil(request.payload?.asDictionary() as? [String: NSObject], "Request should contain payload") { payload in
@@ -189,7 +189,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         
         AssertOptionalNotNil(request.transportRequest, "Should return non nil request") { request in
             
-            XCTAssertEqual(request.path, "/clients/\(client.remoteIdentifier)", "Should create request with correct path")
+            XCTAssertEqual(request.path, "/clients/\(client.remoteIdentifier!)", "Should create request with correct path")
             XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPUT, "Should create POST request")
             
             AssertOptionalNotNil(request.payload?.asDictionary() as? [String: NSObject], "Request should contain payload") { payload in
@@ -249,7 +249,7 @@ class UserClientRequestFactoryTests: MessagingTest {
         
         // then
         AssertOptionalNotNil(nextRequest) {
-            XCTAssertEqual($0.transportRequest.path, "/clients/\(client.remoteIdentifier)")
+            XCTAssertEqual($0.transportRequest.path, "/clients/\(client.remoteIdentifier!)")
             XCTAssertEqual($0.transportRequest.payload as! [String:String], [
                 "email" : email,
                 "password" : password
