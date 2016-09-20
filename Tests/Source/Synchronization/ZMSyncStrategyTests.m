@@ -84,7 +84,7 @@
 @property (nonatomic) id mockUpstreamSync2;
 @property (nonatomic) NSFetchRequest *fetchRequestForTrackedObjects1;
 @property (nonatomic) NSFetchRequest *fetchRequestForTrackedObjects2;
-
+@property (nonatomic) id mockDispatcher;
 @property (nonatomic) ZMBadge *badge;
 
 @end
@@ -98,7 +98,7 @@
     [super setUp];
     
     self.badge = [[ZMBadge alloc] initWithApplication:self.application];
-    
+    self.mockDispatcher = [OCMockObject niceMockForClass:[ZMLocalNotificationDispatcher class]];
     self.mockUpstreamSync1 = [OCMockObject mockForClass:[ZMUpstreamModifiedObjectSync class]];
     self.mockUpstreamSync2 = [OCMockObject mockForClass:[ZMUpstreamModifiedObjectSync class]];
     [self verifyMockLater:self.mockUpstreamSync1];
@@ -122,11 +122,11 @@
 
     id systemMessageTranscoder = [OCMockObject mockForClass:ZMSystemMessageTranscoder.class];
     [[[[systemMessageTranscoder expect] andReturn:systemMessageTranscoder] classMethod] alloc];
-    (void) [[[systemMessageTranscoder expect] andReturn:systemMessageTranscoder] initWithManagedObjectContext:self.syncMOC upstreamInsertedObjectSync:nil localNotificationDispatcher:OCMOCK_ANY messageExpirationTimer:nil];
+    (void) [[[systemMessageTranscoder expect] andReturn:systemMessageTranscoder] initWithManagedObjectContext:self.syncMOC upstreamInsertedObjectSync:nil localNotificationDispatcher:self.mockDispatcher messageExpirationTimer:nil];
 
     id clientMessageTranscoder = [OCMockObject mockForClass:ZMClientMessageTranscoder.class];
     [[[[clientMessageTranscoder expect] andReturn:clientMessageTranscoder] classMethod] alloc];
-    (void) [[[clientMessageTranscoder expect] andReturn:clientMessageTranscoder] initWithManagedObjectContext:self.syncMOC localNotificationDispatcher:OCMOCK_ANY clientRegistrationStatus:OCMOCK_ANY apnsConfirmationStatus:OCMOCK_ANY];
+    (void) [[[clientMessageTranscoder expect] andReturn:clientMessageTranscoder] initWithManagedObjectContext:self.syncMOC localNotificationDispatcher:self.mockDispatcher clientRegistrationStatus:OCMOCK_ANY apnsConfirmationStatus:OCMOCK_ANY];
 
     id knockTranscoder = [OCMockObject mockForClass:ZMKnockTranscoder.class];
     [[[[knockTranscoder expect] andReturn:knockTranscoder] classMethod] alloc];
@@ -253,7 +253,7 @@
                                                               uiMOC:self.uiMOC
                                                   syncStateDelegate:self.syncStateDelegate
                                               backgroundableSession:self.backgroundableSession
-                                       localNotificationsDispatcher:OCMOCK_ANY
+                                       localNotificationsDispatcher:self.mockDispatcher
                                            taskCancellationProvider:OCMOCK_ANY
                                                  appGroupIdentifier:nil
                                                               badge:self.badge
