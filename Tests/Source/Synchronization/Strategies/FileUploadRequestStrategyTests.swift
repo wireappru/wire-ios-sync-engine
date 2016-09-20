@@ -134,7 +134,7 @@ extension FileUploadRequestStrategyTests {
         // then
         XCTAssertNotNil(placeholderRequest)
         guard let requestUploaded = placeholderRequest else { return XCTFail() }
-        XCTAssertEqual(requestUploaded.path, "/conversations/\(msgConversation.remoteIdentifier?.transportString())/otr/messages")
+        XCTAssertEqual(requestUploaded.path, "/conversations/\(msgConversation.remoteIdentifier!.transportString())/otr/messages")
         XCTAssertEqual(requestUploaded.method, ZMTransportRequestMethod.methodPOST)
         
         guard let genericMessage = decryptedMessage(fromRequestData: requestUploaded.binaryData!, forClient: otherClient) else { return XCTFail() }
@@ -211,13 +211,13 @@ extension FileUploadRequestStrategyTests {
         // when
         guard let placeholderRequest = sut.nextRequest() else { return XCTFail("Unable to create placeholder request") } // Asset.Original request (message-add / .UploadingPlaceholder)
         completeRequest(placeholderRequest, HTTPStatus: 201)
-        XCTAssertEqual(placeholderRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier?.transportString())/otr/messages")
+        XCTAssertEqual(placeholderRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier!.transportString())/otr/messages")
         XCTAssertEqual(placeholderRequest.method, ZMTransportRequestMethod.methodPOST)
         XCTAssertEqual(msg.uploadState, ZMAssetUploadState.uploadingThumbnail)
         
         guard let thumbnailRequest = sut.nextRequest() else { return XCTFail("Unable to create thumbnail request") } // Asset.Preview request (message-add / .UploadingThumbnail)
         completeRequest(thumbnailRequest, HTTPStatus: 201)
-        XCTAssertEqual(thumbnailRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier?.transportString())/otr/assets")
+        XCTAssertEqual(thumbnailRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier!.transportString())/otr/assets")
         XCTAssertEqual(thumbnailRequest.method, ZMTransportRequestMethod.methodPOST)
         
         // then
@@ -229,7 +229,7 @@ extension FileUploadRequestStrategyTests {
         completeRequest(fullRequest, HTTPStatus: 201)
         
         // then
-        XCTAssertEqual(fullRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier?.transportString())/otr/assets")
+        XCTAssertEqual(fullRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier!.transportString())/otr/assets")
         XCTAssertEqual(fullRequest.method, ZMTransportRequestMethod.methodPOST)
         XCTAssertNil(sut.nextRequest())
     }
@@ -244,7 +244,7 @@ extension FileUploadRequestStrategyTests {
         // when
         guard let placeholderRequest = sut.nextRequest() else { return XCTFail("Unable to create placeholder request") } // Asset.Original request (message-add / .UploadingPlaceholder)
         completeRequest(placeholderRequest, HTTPStatus: 201)
-        XCTAssertEqual(placeholderRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier?.transportString())/otr/messages")
+        XCTAssertEqual(placeholderRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier!.transportString())/otr/messages")
         XCTAssertEqual(placeholderRequest.method, ZMTransportRequestMethod.methodPOST)
         
         // then
@@ -256,7 +256,7 @@ extension FileUploadRequestStrategyTests {
         completeRequest(fullRequest, HTTPStatus: 201)
         
         // then
-        XCTAssertEqual(fullRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier?.transportString())/otr/assets")
+        XCTAssertEqual(fullRequest.path, "/conversations/\(msg.conversation!.remoteIdentifier!.transportString())/otr/assets")
         XCTAssertEqual(fullRequest.method, ZMTransportRequestMethod.methodPOST)
         XCTAssertNil(sut.nextRequest())
     }
@@ -316,7 +316,7 @@ extension FileUploadRequestStrategyTests {
         
         // first request: msg1 original
         let msg1Original = sut.nextRequest() // original
-        XCTAssertEqual(msg1Original?.path, "/conversations/\(msg1Conversation.remoteIdentifier?.transportString())/otr/messages")
+        XCTAssertEqual(msg1Original?.path, "/conversations/\(msg1Conversation.remoteIdentifier!.transportString())/otr/messages")
         
         // when
         msg1Original?.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil))
@@ -326,7 +326,7 @@ extension FileUploadRequestStrategyTests {
         
         // second request: msg1 file
         let msg1File = sut.nextRequest()
-        XCTAssertEqual(msg1File?.path, "/conversations/\(msg1Conversation.remoteIdentifier?.transportString())/otr/assets")
+        XCTAssertEqual(msg1File?.path, "/conversations/\(msg1Conversation.remoteIdentifier!.transportString())/otr/assets")
         
         // Given 
         let msg2 = createMessage("foo", inConversation: msg1.conversation)
@@ -334,7 +334,7 @@ extension FileUploadRequestStrategyTests {
         
         // third request: msg2 original
         let msg2Original = sut.nextRequest()
-        XCTAssertEqual(msg2Original?.path, "/conversations/\(msg1Conversation.remoteIdentifier?.transportString())/otr/messages")
+        XCTAssertEqual(msg2Original?.path, "/conversations/\(msg1Conversation.remoteIdentifier!.transportString())/otr/messages")
         msg2Original?.complete(with: ZMTransportResponse(payload: [] as ZMTransportData, httpStatus: 200, transportSessionError: nil))
         XCTAssertTrue(self.waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         self.syncMOC.saveOrRollback()
@@ -384,7 +384,7 @@ extension FileUploadRequestStrategyTests {
         XCTAssertNotNil(placeholderRequest)
         XCTAssertNotNil(uploadedRequest)
         XCTAssertNotNil(uploadedRequest?.fileUploadURL)
-        XCTAssertEqual(uploadedRequest?.path, "/conversations/\(msgConversation.remoteIdentifier?.transportString())/otr/assets")
+        XCTAssertEqual(uploadedRequest?.path, "/conversations/\(msgConversation.remoteIdentifier!.transportString())/otr/assets")
      
         guard let request = uploadedRequest,
             let requestMultipart = try? Data(contentsOf: request.fileUploadURL!) else {
@@ -745,7 +745,7 @@ extension FileUploadRequestStrategyTests {
         
         guard let request = sut.nextRequest() else { return XCTFail("Request was nil") }
         guard let msgConversation = msg.conversation else { return XCTFail("Conversation was nil") }
-        let expectedPath = "/conversations/\(msgConversation.remoteIdentifier?.transportString())/otr/messages"
+        let expectedPath = "/conversations/\(msgConversation.remoteIdentifier!.transportString())/otr/messages"
 
         XCTAssertEqual(request.path, expectedPath)
         XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST)
@@ -780,7 +780,7 @@ extension FileUploadRequestStrategyTests {
         
         guard let request = sut.nextRequest() else { return XCTFail("Request was nil") }
         guard let msgConversation = msg.conversation else { return XCTFail("Conversation was nil") }
-        let expectedPath = "/conversations/\(msgConversation.remoteIdentifier?.transportString())/otr/messages"
+        let expectedPath = "/conversations/\(msgConversation.remoteIdentifier!.transportString())/otr/messages"
 
         XCTAssertEqual(request.path, expectedPath)
         XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST)
@@ -848,7 +848,7 @@ extension FileUploadRequestStrategyTests {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         guard let request = sut.nextRequest() else { return XCTFail("Request was nil") }
-        let expectedPath = "/conversations/\(msg.conversation!.remoteIdentifier?.transportString())/otr/messages"
+        let expectedPath = "/conversations/\(msg.conversation!.remoteIdentifier!.transportString())/otr/messages"
         XCTAssertEqual(request.path, expectedPath)
         XCTAssertEqual(request.method, ZMTransportRequestMethod.methodPOST)
 
@@ -883,7 +883,7 @@ extension FileUploadRequestStrategyTests {
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         guard let secondRequest = sut.nextRequest() else { return XCTFail("Request was nil") }
-        let expectedPath = "/conversations/\(msg.conversation!.remoteIdentifier?.transportString())/otr/messages"
+        let expectedPath = "/conversations/\(msg.conversation!.remoteIdentifier!.transportString())/otr/messages"
         XCTAssertEqual(secondRequest.path, expectedPath)
         XCTAssertEqual(secondRequest.method, ZMTransportRequestMethod.methodPOST)
         
@@ -914,7 +914,7 @@ extension FileUploadRequestStrategyTests {
         // then
         guard let notUploadedRequest = sut.nextRequest() else { return XCTFail("Request was nil") }
         guard let msgConversation = msg.conversation else { return XCTFail("Conversation was nil") }
-        let expectedPath = "/conversations/\(msgConversation.remoteIdentifier?.transportString())/otr/messages"
+        let expectedPath = "/conversations/\(msgConversation.remoteIdentifier!.transportString())/otr/messages"
 
         XCTAssertEqual(notUploadedRequest.path, expectedPath)
         XCTAssertEqual(notUploadedRequest.method, ZMTransportRequestMethod.methodPOST)
@@ -975,15 +975,14 @@ extension FileUploadRequestStrategyTests {
         guard let request = sut.nextRequest() else { return XCTFail() }
         
         // payload
-        let payload = [
-            "time" : Date().transportString(),
+        let payload: [String : Any] = [
+            "time" : "2015-03-11T09:34:00.436Z",
             "deleted" : [
                 user.remoteIdentifier!.transportString() : [
-                    client.remoteIdentifier
+                    client.remoteIdentifier!
                 ]
             ],
-            "time" : "2015-03-11T09:34:00.436Z"
-        ] as [String : Any]
+        ]
         
         // when
         request.complete(with: ZMTransportResponse(payload: payload as ZMTransportData, httpStatus: 200, transportSessionError: nil))
