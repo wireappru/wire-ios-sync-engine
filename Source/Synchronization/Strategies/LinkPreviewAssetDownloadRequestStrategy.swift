@@ -113,12 +113,12 @@ extension LinkPreviewAssetDownloadRequestStrategy: ZMDownstreamTranscoder {
     
     public func request(forFetching object: ZMManagedObject!, downstreamSync: ZMObjectSync!) -> ZMTransportRequest! {
         guard let message = object as? ZMClientMessage else { fatal("Unable to generate request for \(object)") }
-        let linkPreview = message.genericMessage?.text.linkPreview.first
-        guard let remoteData = (linkPreview as AnyObject).remote else { return nil }
+        guard let linkPreview = message.genericMessage?.text.linkPreview.first as? ZMLinkPreview else { return nil }
+        guard let remoteData = linkPreview.remote else { return nil }
 
         // Protobuf initializes the token to an empty string when set to nil
-        let token = (remoteData?.hasAssetToken())! && remoteData?.assetToken != "" ? remoteData?.assetToken : nil
-        let request = assetRequestFactory.requestToGetAsset(withKey: (remoteData?.assetId)!, token: token)
+        let token = remoteData.hasAssetToken() && remoteData.assetToken != "" ? remoteData.assetToken : nil
+        let request = assetRequestFactory.requestToGetAsset(withKey: remoteData.assetId, token: token)
         request?.add(ZMCompletionHandler(on: managedObjectContext) { response in
             self.handleResponse(response, forMessage: message)
         })
