@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -403,7 +403,7 @@ extension ZMAssetClientMessage {
         return self.fileMessageData != nil
             && [.uploading, .failedUpload, .cancelledUpload].contains(transferState)
             && self.uploadState != .done
-            && self.genericAssetMessage?.asset.uploaded.otrKey.count > 0
-            && (!self.hasDownloadedImage || self.genericAssetMessage?.asset.preview.image.width > 0)
+            && (self.genericAssetMessage?.asset.uploaded.otrKey.count ?? 0) > 0
+            && (!self.hasDownloadedImage || (self.genericAssetMessage?.asset.preview.image.width ?? 0) > 0)
     }
 }

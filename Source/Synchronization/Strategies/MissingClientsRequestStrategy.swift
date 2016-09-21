@@ -264,7 +264,9 @@ public final class MissingClientsRequestStrategy: ZMObjectSyncStrategy, ZMObject
                 }
             }
         }
-        return selfClient.missingClients?.count > 0 // we are done
+        
+        
+        return (selfClient.missingClients?.count ?? 0) > 0 // we are done
     }
     
     fileprivate func expireMessagesMissingRecipient(_ client: UserClient) {
