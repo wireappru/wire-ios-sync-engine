@@ -530,7 +530,7 @@
     //given
     self.registeredOnThisDevice = YES;
     XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
-    WaitForAllGroupsToBeEmpty(0.5);
+    WaitForEverythingToBeDone();
     
     ZMConversation *conversation = [self conversationForMockConversation:self.selfToUser1Conversation];
     XCTAssertNotNil(conversation);
@@ -551,14 +551,19 @@
     [self.userSession performChanges:^{
         fileMessage = (id)[conversation appendMessageWithFileMetadata:[[ZMVideoMetadata alloc] initWithFileURL:fileURL thumbnail:self.mediumJPEGData]];
     }];
-    WaitForAllGroupsToBeEmpty(0.5);
+    WaitForEverythingToBeDone();
     
     //then
     XCTAssertEqual(fileMessage.deliveryState, ZMDeliveryStateSent);
     XCTAssertEqual(fileMessage.fileMessageData.transferState, ZMFileTransferStateDownloaded);
     
     NSArray <ZMTransportRequest *> *requests = [self filterOutRequestsForLastRead:self.mockTransportSession.receivedRequests];
-    XCTAssertEqual(requests.count, 3lu); // Asset.Original, Asset.Preview & Asset.Uploaded
+    
+    // Asset.Original, Asset.Preview & Asset.Uploaded
+    if (3 != requests.count) {
+        return XCTFail(@"Wrong number of requests");
+    }
+    
     XCTAssertEqualObjects(requests.firstObject.path, expectedMessageAddPath);
     
     ZMTransportRequest *thumbnailRequest = requests[1];
