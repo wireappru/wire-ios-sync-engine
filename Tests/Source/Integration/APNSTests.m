@@ -531,10 +531,8 @@
         
         // when
         [self.userSession receivedPushNotificationWithPayload:[self APNSPayloadForNotificationPayload:payload] completionHandler:nil source:ZMPushNotficationTypeVoIP];
-        WaitForAllGroupsToBeEmpty(0.2);
-        
-        
         XCTAssert([self waitForCustomExpectationsWithTimeout:0.5]);
+        WaitForAllGroupsToBeEmpty(0.2);
     }
 }
 
