@@ -131,7 +131,7 @@ class ConversationTests_Confirmation: ConversationTestsBase {
             XCTAssertTrue(waitForEverythingToBeDone())
             
             // then
-            if convObserver?.notifications.count > 0 {
+            if convObserver!.notifications.count > 0 {
                 return XCTFail()
             }
             guard let messageChangeInfo = messageObserver?.notifications.firstObject  as? MessageChangeInfo else {
