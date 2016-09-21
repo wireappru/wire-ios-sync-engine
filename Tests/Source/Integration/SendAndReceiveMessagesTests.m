@@ -210,9 +210,9 @@
 - (void)testThatItSetsTheLastReadWhenInsertingAnImage
 {
     // given
-    XCTAssertTrue([self logInAndWaitForSyncToBeCompleteWithTimeout:0.6]);
-    WaitForAllGroupsToBeEmpty(0.5);
-    
+    XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
+    WaitForEverythingToBeDone();
+
     [self prefetchRemoteClientByInsertingMessageInConversation:self.groupConversation];
     
     ZMConversation *conversation =  [self conversationForMockConversation:self.groupConversation];
@@ -220,23 +220,26 @@
     XCTAssertEqual(conversation.messages.count, 3u);
     id<ZMConversationMessage> originalMessage = [conversation.messages lastObject];
     XCTAssertEqualWithAccuracy([conversation.lastReadServerTimeStamp timeIntervalSince1970], [originalMessage.serverTimestamp timeIntervalSince1970], 0.1);
+    [self spinMainQueueWithTimeout:0.5]; // if the tests run too fast the new message would otherwise have the same timestamp
     
     // when
     __block ZMMessage *message;
     [self.userSession performChanges:^{
         message = (id)[conversation appendMessageWithImageData:self.verySmallJPEGData];
     }];
-    WaitForAllGroupsToBeEmpty(0.5);
+    WaitForEverythingToBeDone();
     
     // then
     XCTAssertNotNil(conversation.lastReadServerTimeStamp);
     XCTAssertNotEqualWithAccuracy([conversation.lastReadServerTimeStamp timeIntervalSince1970], [originalMessage.serverTimestamp timeIntervalSince1970], 0.1);
+    XCTAssertEqualWithAccuracy([conversation.lastReadServerTimeStamp timeIntervalSince1970], [message.serverTimestamp timeIntervalSince1970], 0.1);
+
 }
 
 - (void)testThatItSetsTheLastReadWhenInsertingAText
 {
     // given
-    XCTAssertTrue([self logInAndWaitForSyncToBeCompleteWithTimeout:0.6]);
+    XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
     WaitForAllGroupsToBeEmpty(0.5);
     
     ZMConversation *conversation =  [self conversationForMockConversation:self.groupConversation];
