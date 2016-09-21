@@ -966,6 +966,34 @@
     XCTAssertEqualObjects(addedMessages.lastObject.nonce.transportString, lastMessageNonce.transportString);
 }
 
+- (void)performRemoteChangesNotInNotificationStream:(void(^)(id<MockTransportSessionObjectCreation> session))changes
+{
+    // when
+    [self recreateUserSessionAndWipeCache:NO];
+    WaitForAllGroupsToBeEmpty(0.5);
+    
+    // to avoid the client fetching the changes before they are cleared, we "block" requests to /notifications
+    self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
+        if ([request.path containsString:@"notifications"]) {
+            return [ZMTransportResponse responseWithPayload:@{@"notifications" : @[]} HTTPStatus:404 transportSessionError:nil];
+        }
+        return nil;
+    };
+    
+    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
+        [session simulatePushChannelClosed];
+        changes(session);
+    }];
+    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
+        [session clearNotifications];
+    }];
+    WaitForAllGroupsToBeEmpty(0.5);
+    
+    self.mockTransportSession.responseGeneratorBlock = nil;
+    XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
+    WaitForAllGroupsToBeEmpty(0.5);
+}
+
 - (void)testThatPotentialGapSystemMessageContainsAddedAndRemovedUsers
 {
     // given
@@ -985,21 +1013,10 @@
     WaitForAllGroupsToBeEmpty(0.5);
     
     // when
-    [self recreateUserSessionAndWipeCache:NO];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session simulatePushChannelClosed];
+    [self performRemoteChangesNotInNotificationStream:^(id<MockTransportSessionObjectCreation> session __unused) {
         [self.groupConversation removeUsersByUser:self.user2 removedUser:self.user1];
         [self.groupConversation addUsersByUser:self.user2 addedUsers:@[self.user4]];
     }];
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session clearNotifications];
-    }];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
-    WaitForAllGroupsToBeEmpty(0.5);
     
     ZMConversation *conversation = [self conversationForMockConversation:self.groupConversation];
     ZMSystemMessage *systemMessage = [conversation.messages lastObject];
@@ -1038,21 +1055,10 @@
     XCTAssertEqual(conversation.messages.count - initialMessageCount, 1lu);
     
     // when
-    [self recreateUserSessionAndWipeCache:NO];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session simulatePushChannelClosed];
+    [self performRemoteChangesNotInNotificationStream:^(id<MockTransportSessionObjectCreation> session __unused) {
         [self.groupConversation removeUsersByUser:self.user2 removedUser:self.user1];
         [self.groupConversation addUsersByUser:self.user2 addedUsers:@[self.user4]];
     }];
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session clearNotifications];
-    }];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
-    WaitForAllGroupsToBeEmpty(0.5);
     
     conversation = [self conversationForMockConversation:self.groupConversation];
     NSOrderedSet<ZMMessage *> *allMessages = conversation.messages;
@@ -1064,21 +1070,10 @@
     XCTAssertFalse(systemMessage.needsUpdatingUsers);
     
     // when
-    [self recreateUserSessionAndWipeCache:NO];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session simulatePushChannelClosed];
+    [self performRemoteChangesNotInNotificationStream:^(id<MockTransportSessionObjectCreation> session __unused) {
         [self.groupConversation removeUsersByUser:self.user2 removedUser:self.user3];
         [self.groupConversation addUsersByUser:self.user2 addedUsers:@[self.user1, self.user5]];
     }];
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session clearNotifications];
-    }];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
-    WaitForAllGroupsToBeEmpty(0.5);
     
     conversation = [self conversationForMockConversation:self.groupConversation];
     ZMSystemMessage *secondSystemMessage = (ZMSystemMessage *)conversation.messages.lastObject;
@@ -1120,52 +1115,14 @@
     WaitForAllGroupsToBeEmpty(0.5);
     XCTAssertEqual(conversation.messages.count - initialMessageCount, 1lu);
     
-    // when we simulate an inactive period and a user was added in the meantime
-    [self recreateUserSessionAndWipeCache:NO];
-    WaitForAllGroupsToBeEmpty(0.5);
-    
+    // when
+    // add new user to conversation
     __block MockUser *newMockUser;
-    
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session simulatePushChannelClosed];
+    [self performRemoteChangesNotInNotificationStream:^(id<MockTransportSessionObjectCreation> session __unused) {
         newMockUser = [session insertUserWithName:@"Bruno"];
         [self storeRemoteIDForObject:newMockUser];
-    }];
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session clearNotifications];
-    }];
-    
-    WaitForAllGroupsToBeEmpty(0.5);
-    XCTestExpectation *updatingUsersExpectation = [self expectationWithDescription:@"It should update the users"];
-    
-    self.mockTransportSession.responseGeneratorBlock = ^ZMTransportResponse *(ZMTransportRequest *request) {
-        if ([request.path containsString:newMockUser.identifier]) {
-            ZMConversation *innerConversation = [self conversationForMockConversation:self.groupConversation];
-            NSOrderedSet<ZMMessage *> *allMessages = innerConversation.messages;
-            id <ZMSystemMessageData> systemMessageData = allMessages.lastObject.systemMessageData;
-            
-            // then we should insert a system message which needs updating users
-            XCTAssertNotNil(systemMessageData);
-            XCTAssertEqual(systemMessageData.systemMessageType, ZMSystemMessageTypePotentialGap);
-            XCTAssertTrue(systemMessageData.needsUpdatingUsers);
-            [updatingUsersExpectation fulfill];
-        }
-        return nil;
-    };
-    
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session simulatePushChannelClosed];
         [self.groupConversation addUsersByUser:self.user2 addedUsers:@[newMockUser]];
     }];
-    [self.mockTransportSession performRemoteChanges:^(id<MockTransportSessionObjectCreation> session __unused) {
-        [session clearNotifications];
-    }];
-    
-    WaitForAllGroupsToBeEmpty(0.5);
-    
-    XCTAssertTrue([self logInAndWaitForSyncToBeComplete]);
-    WaitForAllGroupsToBeEmpty(0.5);
-    XCTAssertTrue([self waitForCustomExpectationsWithTimeout:5]);
     
     conversation = [self conversationForMockConversation:self.groupConversation];
     NSOrderedSet<ZMMessage *> *allMessages = conversation.messages;
