@@ -24,7 +24,6 @@
 #import "MessagingTest.h"
 #import "ZMPhoneNumberVerificationTranscoder.h"
 #import "ZMAuthenticationStatus.h"
-#import "ZMSingleRequestSync.h"
 #import "ZMCredentials+Internal.h"
 #import "ZMUserSessionRegistrationNotification.h"
 
@@ -123,7 +122,7 @@
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{@"code": @0,
                                                                                @"message": @"",
                                                                                @"label": @""}
-                                                                  HTTPstatus:400
+                                                                  HTTPStatus:400
                                                        transportSessionError:nil];
     [request completeWithResponse:response];
     WaitForAllGroupsToBeEmpty(0.5);
@@ -160,7 +159,7 @@
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{@"code": @0,
                                                                                @"message": @"",
                                                                                @"label": @""}
-                                                                  HTTPstatus:400
+                                                                  HTTPStatus:400
                                                        transportSessionError:nil];
     [request completeWithResponse:response];
     WaitForAllGroupsToBeEmpty(0.5);
@@ -196,7 +195,7 @@
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{@"code": @0,
                                                                                @"message": @"",
                                                                                @"label": @""}
-                                                                  HTTPstatus:400
+                                                                  HTTPStatus:400
                                                        transportSessionError:nil];
     [request completeWithResponse:response];
     WaitForAllGroupsToBeEmpty(0.5);
@@ -225,7 +224,7 @@
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{@"code": @0,
                                                                                @"message": @"",
                                                                                @"label": @"key-exists"}
-                                                                  HTTPstatus:409
+                                                                  HTTPStatus:409
                                                        transportSessionError:nil];
     
     //when
@@ -249,7 +248,7 @@
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{@"code": @0,
                                                                                @"message": @"",
                                                                                @"label": @""}
-                                                                  HTTPstatus:400
+                                                                  HTTPStatus:400
                                                        transportSessionError:nil];
     
     //when
@@ -275,7 +274,7 @@
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{@"code": @0,
                                                                                @"message": @"",
                                                                                @"label": @""}
-                                                                  HTTPstatus:400
+                                                                  HTTPStatus:400
                                                        transportSessionError:nil];
     
     __block BOOL notificationCalled = NO;
@@ -316,7 +315,7 @@
     request = [self.sut.requestGenerators nextRequest];
 
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{}
-                                                                  HTTPstatus:200
+                                                                  HTTPStatus:200
                                                        transportSessionError:nil];
     
     [request completeWithResponse:response];
@@ -337,7 +336,7 @@
     [self.authenticationStatus prepareForRegistrationPhoneVerificationWithCredentials:[ZMPhoneCredentials credentialsWithPhoneNumber:phoneNumber verificationCode:code]];
 
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{}
-                                                                  HTTPstatus:404
+                                                                  HTTPStatus:404
                                                        transportSessionError:nil];
 
     [self.sut verifyPhoneNumber];
@@ -365,7 +364,7 @@
 
     
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{}
-                                                                  HTTPstatus:400
+                                                                  HTTPStatus:400
                                                        transportSessionError:nil];
     
     __block BOOL notificationCalled = NO;
@@ -399,7 +398,7 @@
     
     
     ZMTransportResponse *response = [ZMTransportResponse responseWithPayload:@{@"label":@"invalid-code"}
-                                                                  HTTPstatus:404
+                                                                  HTTPStatus:404
                                                        transportSessionError:nil];
     
     __block BOOL notificationCalled = NO;

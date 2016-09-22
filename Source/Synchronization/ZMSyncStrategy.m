@@ -35,7 +35,6 @@
 #import "ZMKnockTranscoder.h"
 #import "ZMAssetTranscoder.h"
 #import "ZMUserImageTranscoder.h"
-#import "ZMContextChangeTracker.h"
 #import "ZMSyncStateMachine.h"
 #import "ZMAuthenticationStatus.h"
 #import "ZMMissingUpdateEventsTranscoder.h"
@@ -48,8 +47,6 @@
 #import "ZMSearchUserImageTranscoder.h"
 #import "ZMTypingTranscoder.h"
 #import "ZMCallStateTranscoder.h"
-#import "ZMOperationLoop.h"
-#import "ZMChangeTrackerBootstrap.h"
 #import "ZMRemovedSuggestedPeopleTranscoder.h"
 #import "ZMPhoneNumberVerificationTranscoder.h"
 #import "ZMLoginCodeRequestTranscoder.h"
@@ -117,7 +114,7 @@
 
 @property (nonatomic) NSArray *allChangeTrackers;
 
-@property (nonatomic) NSArray *requestStrategies;
+@property (nonatomic) NSArray<ZMObjectSyncStrategy *> *requestStrategies;
 
 @property (atomic) BOOL tornDown;
 @property (nonatomic) BOOL contextMergingDisabled;
@@ -277,7 +274,7 @@ ZM_EMPTY_ASSERTING_INIT()
     ZMBackgroundActivity *activity = [[BackgroundActivityFactory sharedInstance] backgroundActivityWithName:@"enter background"];
     [self.syncMOC performGroupedBlock:^{
         [self.stateMachine enterBackground];
-        [ZMOperationLoop notifyNewRequestsAvailable:self];
+        [ZMRequestAvailableNotification notifyNewRequestsAvailable:self];
         [self updateBadgeCount];
         [activity endActivity];
     }];
@@ -289,7 +286,7 @@ ZM_EMPTY_ASSERTING_INIT()
     ZMBackgroundActivity *activity = [[BackgroundActivityFactory sharedInstance] backgroundActivityWithName:@"enter foreground"];
     [self.syncMOC performGroupedBlock:^{
         [self.stateMachine enterForeground];
-        [ZMOperationLoop notifyNewRequestsAvailable:self];
+        [ZMRequestAvailableNotification notifyNewRequestsAvailable:self];
         [activity endActivity];
     }];
 }
@@ -329,7 +326,7 @@ ZM_EMPTY_ASSERTING_INIT()
     [self appTerminated:nil];
     
     for (ZMObjectSyncStrategy *s in [self.allTranscoders arrayByAddingObjectsFromArray:self.requestStrategies]) {
-        if ([s respondsToSelector:@selector(tearDown)]) {
+        if ([s respondsToSelector:@selector((tearDown))]) {
             [s tearDown];
         }
     }
@@ -460,7 +457,7 @@ ZM_EMPTY_ASSERTING_INIT()
     return NO;
 }
 
-- (NSArray *)allTranscoders;
+- (NSArray<ZMObjectSyncStrategy *> *)allTranscoders;
 {
     return @[
              self.connectionTranscoder,
@@ -609,7 +606,7 @@ ZM_EMPTY_ASSERTING_INIT()
     ZM_WEAK(self);
     [self.eventDecoder processEvents:events block:^(NSArray<ZMUpdateEvent *> * decryptedEvents) {
         ZM_STRONG(self);
-        if (self  == nil){
+        if (self == nil){
             return;
         }
         

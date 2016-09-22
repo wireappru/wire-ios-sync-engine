@@ -51,8 +51,6 @@
 
 @end
 
-
-
 @interface ZMUserSessionTestsBase : MessagingTest <ZMAuthenticationStatusObserver>
 
 @property (nonatomic) id transportSession;
@@ -66,6 +64,7 @@
 @property (nonatomic) id mediaManager;
 @property (nonatomic) NSUInteger dataChangeNotificationsCount;
 @property (nonatomic) ThirdPartyServices *thirdPartyServices;
+@property (nonatomic) id requestAvailableNotification;
 @property (nonatomic) id operationLoop;
 @property (nonatomic) id apnsEnvironment;
 

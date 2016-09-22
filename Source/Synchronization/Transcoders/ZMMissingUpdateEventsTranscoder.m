@@ -19,9 +19,9 @@
 
 @import ZMUtilities;
 @import ZMTransport;
+@import WireRequestStrategy;
 
 #import "ZMMissingUpdateEventsTranscoder+Internal.h"
-#import "ZMSingleRequestSync.h"
 #import "ZMSyncStrategy.h"
 #import <zmessaging/zmessaging-Swift.h>
 #import "ZMSimpleListRequestPaginator.h"
@@ -78,7 +78,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
     NSUUID *previousUUID = self.lastUpdateEventID;
     if(
        previousUUID.isType1UUID && lastUpdateEventID.isType1UUID && // both are type 1 (or I can't compare)
-       [previousUUID compareWithType1:lastUpdateEventID] != NSOrderedAscending // and I'm not setting to a new one
+       [previousUUID compareWithType1UUID:lastUpdateEventID] != NSOrderedAscending // and I'm not setting to a new one
        ) {
         // only set if more recent
         return;

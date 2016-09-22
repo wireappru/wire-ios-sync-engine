@@ -24,8 +24,6 @@
 #import "MessagingTest.h"
 #import "ZMPushTokenTranscoder.h"
 #import "ZMPushToken.h"
-#import "ZMContextChangeTracker.h"
-#import "ZMSingleRequestSync.h"
 #import <zmessaging/zmessaging-Swift.h>
 
 static NSString * const FallbackAPNS = @"APNS";
@@ -246,7 +244,7 @@ static NSString * const FallbackAPNS = @"APNS";
     NSDictionary *responsePayload = @{@"token": @"aabbccddeeff",
                                       @"app": @"foo.bar",
                                       @"transport": @"APNS"};
-    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPstatus:201 transportSessionError:nil headers:@{}];
+    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPStatus:201 transportSessionError:nil headers:@{}];
     
     
     // when
@@ -275,7 +273,7 @@ static NSString * const FallbackAPNS = @"APNS";
     NSDictionary *responsePayload = @{@"token": @"aabbccddeeff",
                                       @"app": @"foo.bar",
                                       @"transport": @"APNS"};
-    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPstatus:201 transportSessionError:nil headers:@{}];
+    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPStatus:201 transportSessionError:nil headers:@{}];
     
     
     // when
@@ -423,7 +421,7 @@ static NSString * const FallbackAPNS = @"APNS";
                                       @"transport": @"APNS_VOIP",
                                       @"fallback": @"APNS"
                                       };
-    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPstatus:201 transportSessionError:nil headers:@{}];
+    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPStatus:201 transportSessionError:nil headers:@{}];
     
     
     // when
@@ -456,7 +454,7 @@ static NSString * const FallbackAPNS = @"APNS";
                                       @"transport": @"APNS",
                                       @"fallback": @"APNS"
                                       };
-    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPstatus:201 transportSessionError:nil headers:@{}];
+    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:responsePayload HTTPStatus:201 transportSessionError:nil headers:@{}];
     
     
     // when
@@ -490,7 +488,7 @@ static NSString * const FallbackAPNS = @"APNS";
     for (id<ZMContextChangeTracker> t in [self.sut contextChangeTrackers]) {
         [t objectsDidChange:[NSSet set]];
     }
-    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:nil HTTPstatus:200 transportSessionError:nil headers:@{}];
+    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:nil HTTPStatus:200 transportSessionError:nil headers:@{}];
     
     // when
     ZMTransportRequest *req = [self.sut.requestGenerators nextRequest];
@@ -527,7 +525,7 @@ static NSString * const FallbackAPNS = @"APNS";
     for (id<ZMContextChangeTracker> t in [self.sut contextChangeTrackers]) {
         [t objectsDidChange:[NSSet set]];
     }
-    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:nil HTTPstatus:200 transportSessionError:nil headers:@{}];
+    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:nil HTTPStatus:200 transportSessionError:nil headers:@{}];
     
     // when
     ZMTransportRequest *req = [self.sut.requestGenerators nextRequest];
@@ -564,7 +562,7 @@ static NSString * const FallbackAPNS = @"APNS";
     for (id<ZMContextChangeTracker> t in [self.sut contextChangeTrackers]) {
         [t objectsDidChange:[NSSet set]];
     }
-    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:nil HTTPstatus:200 transportSessionError:nil headers:@{}];
+    ZMTransportResponse *response = [[ZMTransportResponse alloc] initWithPayload:nil HTTPStatus:200 transportSessionError:nil headers:@{}];
     
     
     // when
