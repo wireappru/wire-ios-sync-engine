@@ -38,6 +38,7 @@
 @class ZMAPNSEnvironment;
 @class ClientUpdateStatus;
 @class AVSFlowManager;
+@class ZMCallKitDelegate;
 
 extern NSString * const ZMAppendAVSLogNotificationName;
 
@@ -61,6 +62,7 @@ extern NSString * const ZMAppendAVSLogNotificationName;
 @property (nonatomic) BOOL didStartInitialSync;
 @property (nonatomic) BOOL didNotifyThirdPartyServices;
 @property (nonatomic, readonly) id<ZMApplication> application;
+@property (nonatomic) ZMCallKitDelegate *callKitDelegate;
 
 - (void)notifyThirdPartyServices;
 - (void)start;

@@ -61,4 +61,4 @@
 #import <zmessaging/ZMUserSessionRegistrationNotification.h>
 #import <zmessaging/UILocalNotification+UserInfo.h>
 #import <zmessaging/ZMUserSession+UserNotificationCategories.h>
-
+#import <zmessaging/ZMVoiceChannel+CallFlowPrivate.h>

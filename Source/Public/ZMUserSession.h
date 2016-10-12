@@ -158,6 +158,10 @@ extern NSString * const ZMUserSessionResetPushTokensNotificationName;
 @end
 
 
+@interface ZMUserSession (Calling)
++ (BOOL)useCallKit;
+@end
+
 
 @protocol ZMRequestsToOpenViewsDelegate <NSObject>
 

@@ -35,9 +35,9 @@ extension NotificationForMessage {
     public var soundName : String {
         switch contentType {
         case .knock:
-            return ZMLocalNotificationPingSoundName()
+            return ZMCustomSound.notificationPingSoundName()
         default:
-            return ZMLocalNotificationNewMessageSoundName()
+            return ZMCustomSound.notificationNewMessageSoundName()
         }
     }
     
@@ -46,7 +46,7 @@ extension NotificationForMessage {
         let shouldHideContent = message.managedObjectContext!.value(forKey: ZMShouldHideNotificationContentKey)
         if let shouldHideContent = shouldHideContent as? NSNumber , shouldHideContent.boolValue == true {
             notification.alertBody = ZMPushStringDefault.localized()
-            notification.soundName = ZMLocalNotificationNewMessageSoundName()
+            notification.soundName = ZMCustomSound.notificationNewMessageSoundName()
         } else {
             notification.alertBody = configureAlertBody(message).escapingPercentageSymbols()
             notification.soundName = soundName

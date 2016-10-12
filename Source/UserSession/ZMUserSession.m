@@ -22,6 +22,7 @@
 @import ZMCSystem;
 @import ZMUtilities;
 @import ZMCDataModel;
+@import CallKit;
 
 #import "ZMUserSession+Background.h"
 
@@ -46,6 +47,8 @@
 #import "ZMOnDemandFlowManager.h"
 #import "ZMCookie.h"
 #import "ZMFlowSync.h"
+#import "ZMCallKitDelegate.h"
+#import "ZMOperationLoop+Private.h"
 #import <zmessaging/zmessaging-Swift.h>
 
 #import "ZMEnvironmentsSetup.h"
@@ -101,7 +104,6 @@ static NSString * const AppstoreURL = @"https://itunes.apple.com/us/app/zeta-cli
 
 /// map from NSUUID to ZMCommonContactsSearchCachedEntry
 @property (nonatomic) NSCache *commonContactsCache;
-
 @end
 
 @interface ZMUserSession (AlertView) <UIAlertViewDelegate>
@@ -329,6 +331,17 @@ ZM_EMPTY_ASSERTING_INIT()
                                                                            selector:@selector(didEnterEventProcessingState:)
                                                                                name:ZMApplicationDidEnterEventProcessingStateNotificationName
                                                                              object:nil]);
+        if ([self.class useCallKit]) {
+            CXProvider *provider = [[CXProvider alloc] initWithConfiguration:[ZMCallKitDelegate providerConfiguration]];
+            CXCallController *callController = [[CXCallController alloc] initWithQueue:dispatch_get_main_queue()];
+            
+            self.callKitDelegate = [[ZMCallKitDelegate alloc] initWithCallKitProvider:provider
+                                                                       callController:callController
+                                                                          userSession:self
+                                                                             flowSync:self.operationLoop.syncStrategy.flowTranscoder
+                                                                  onDemandFlowManager:self.onDemandFlowManager
+                                                                         mediaManager:(AVSMediaManager *)mediaManager];
+        }
     }
     return self;
 }
@@ -895,6 +908,17 @@ static NSString * const TrackingIdentifierKey = @"ZMTrackingIdentifier";
 }
 
 @end
+
+
+@implementation ZMUserSession (Calling)
+
++ (BOOL)useCallKit
+{
+    return ([CXCallObserver class] != nil);
+}
+
+@end
+
 
 
 @implementation NSManagedObjectContext (KeyValueStore)
