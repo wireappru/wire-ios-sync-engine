@@ -125,7 +125,7 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
         self.onDemandFlowManager = onDemandFlowManager;
         self.mediaManager = mediaManager;
         
-        self.voiceChannelStateObserverToken = [ZMVoiceChannel addGlobalVoiceChannelStateObserver:self inUserSession:self.userSession];
+        self.voiceChannelStateObserverToken = [ZMVoiceChannel addGlobalVoiceChannelStateObserver:self inUserSession:self.userSession runsInBackground:YES];
     }
     return self;
 }
@@ -228,6 +228,37 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
     }];
 }
 
+- (void)configureAudioSession
+{
+    AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+    
+    // we are going to play and record so we pick that category
+    NSError *error = nil;
+    [sessionInstance setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
+    if (error.code != 0) {
+        ZMLogError(@"couldn't set session's audio category: %ld", (long)error.code);
+    }
+    
+    // set the mode to voice chat
+    [sessionInstance setMode:AVAudioSessionModeVoiceChat error:&error];
+    if (error.code != 0) {
+        ZMLogError(@"couldn't set session's audio mode: %ld", (long)error.code);
+    }
+    
+    // set the buffer duration to 5 ms
+    NSTimeInterval bufferDuration = .005;
+    [sessionInstance setPreferredIOBufferDuration:bufferDuration error:&error];
+    if (error.code != 0) {
+        ZMLogError(@"couldn't set session's I/O buffer duration: %ld", (long)error.code);
+    }
+    
+    // set the session's sample rate
+    [sessionInstance setPreferredSampleRate:44100 error:&error];
+    if (error.code != 0) {
+        ZMLogError(@"couldn't set session's preferred sample rate: %ld", (long)error.code);
+    }
+}
+
 @end
 
 @implementation ZMCallKitDelegate (VoiceChannelObserver)
@@ -241,29 +272,24 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
             [self indicateIncomingCallInConversation:conversation];
         break;
     case ZMVoiceChannelStateSelfIsJoiningActiveChannel:
-            if (conversation.isOutgoingCall) {
-                [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier startedConnectingAtDate:[NSDate date]];
-            }
+            [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier startedConnectingAtDate:[NSDate date]];
+
         break;
     case ZMVoiceChannelStateSelfConnectedToActiveChannel:
-            if (conversation.isOutgoingCall) {
-                [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier connectedAtDate:[NSDate date]];
-            }
+            [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier connectedAtDate:[NSDate date]];
         break;
     case ZMVoiceChannelStateNoActiveUsers:
         {
-            if (!conversation.isOutgoingCall) {
-                CXEndCallAction *endCallAction = [[CXEndCallAction alloc] initWithCallUUID:conversation.remoteIdentifier];
-                
-                CXTransaction *endCallTransaction = [[CXTransaction alloc] initWithAction:endCallAction];
-                
-                [self.callController requestTransaction:endCallTransaction completion:^(NSError * _Nullable error) {
-                    if (nil != error) {
-                        ZMLogError(@"Cannot end call: %@", error);
-                    }
-                }];
-            }
-         }
+            CXEndCallAction *endCallAction = [[CXEndCallAction alloc] initWithCallUUID:conversation.remoteIdentifier];
+            
+            CXTransaction *endCallTransaction = [[CXTransaction alloc] initWithAction:endCallAction];
+            
+            [self.callController requestTransaction:endCallTransaction completion:^(NSError * _Nullable error) {
+                if (nil != error) {
+                    ZMLogError(@"Cannot end call: %@", error);
+                }
+            }];
+        }
         break;
     default:
         break;
@@ -291,6 +317,8 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
     ZMLogInfo(@"CXProvider %@ performStartCallAction", provider);
     ZMConversation *callConversation = [action conversationInContext:self.userSession.managedObjectContext];
     [self.userSession performChanges:^{
+        [self configureAudioSession];
+
         if (action.video) {
             NSError *error = nil;
             [callConversation.voiceChannel joinVideoCall:&error];
@@ -322,6 +350,8 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
             [callConversation.voiceChannel join];
         }
         
+        [self configureAudioSession];
+        
         [action fulfill];
     }];
 }
@@ -333,8 +363,8 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
     ZMConversation *callConversation = [action conversationInContext:self.userSession.managedObjectContext];
     [self.userSession performChanges:^{
         [callConversation.voiceChannel leave];
+        [action fulfill];
     }];
-    [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performSetHeldCallAction:(nonnull CXSetHeldCallAction *)action
