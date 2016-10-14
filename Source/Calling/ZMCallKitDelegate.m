@@ -32,6 +32,8 @@
 
 static char* const ZMLogTag ZM_UNUSED = "CallKit";
 
+NS_ASSUME_NONNULL_BEGIN
+
 @implementation CXProvider (TypeConformance)
 @end
 
@@ -40,9 +42,76 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
 - (BOOL)inActiveState;
 @end
 
-@interface CXCallAction (Conversation)
-- (ZMConversation *)conversationInContext:(NSManagedObjectContext *)context;
+@interface ZMUser (Handle)
+- (CXHandle *)callKitHandle;
 @end
+
+@interface ZMConversation (Handle)
+- (CXHandle *)callKitHandle;
+@end
+
+@interface CXCallAction (Conversation)
+- (nullable ZMConversation *)conversationInContext:(NSManagedObjectContext *)context;
+@end
+
+
+@interface ZMCallKitDelegate ()
+@property (nonatomic) id<CallKitProviderType> provider;
+@property (nonatomic) id<CallKitCallController> callController;
+@property (nonatomic) ZMUserSession *userSession;
+@property (nonatomic) ZMFlowSync *flowSync;
+@property (nonatomic) ZMOnDemandFlowManager *onDemandFlowManager;
+@property (nonatomic) AVSMediaManager *mediaManager;
+
+@property (nonatomic) id <ZMVoiceChannelStateObserverOpaqueToken> voiceChannelStateObserverToken;
+@end
+
+NS_ASSUME_NONNULL_END
+
+@implementation ZMUser (Handle)
+
+- (CXHandle *)callKitHandle
+{
+    if (0 != self.phoneNumber.length) {
+        return [[CXHandle alloc] initWithType:CXHandleTypePhoneNumber value:self.phoneNumber];
+    }
+    else if (0 != self.emailAddress.length) {
+        return [[CXHandle alloc] initWithType:CXHandleTypeEmailAddress value:self.emailAddress];
+    }
+    else {
+        RequireString(1, "Cannot create CXHandle: user has neither email nor phone number");
+    }
+    return nil;
+}
+
+@end
+
+@implementation ZMConversation (Handle)
+
+- (CXHandle *)callKitHandle
+{
+    switch (self.conversationType) {
+        case ZMConversationTypeOneOnOne:
+        case ZMConversationTypeConnection:
+            return self.connectedUser.callKitHandle;
+            break;
+        case ZMConversationTypeSelf:
+            return [ZMUser selfUserInContext:self.managedObjectContext].callKitHandle;
+            break;
+        case ZMConversationTypeGroup:
+            return [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:self.remoteIdentifier.transportString];
+            break;
+        default:
+            RequireString(1, "Cannot create CXHandle: conversation type is invalid");
+            return nil;
+            break;
+    }
+    
+    return nil;
+}
+
+@end
+
 
 @implementation CXCallAction (Conversation)
 
@@ -51,8 +120,6 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
     ZMConversation *result = [ZMConversation conversationWithRemoteID:self.callUUID
                                                        createIfNeeded:NO
                                                             inContext:context];
-    
-    assert(result != nil);
     return result;
 }
 
@@ -74,17 +141,6 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
 
 @end
 
-
-@interface ZMCallKitDelegate ()
-@property (nonatomic) id<CallKitProviderType> provider;
-@property (nonatomic) id<CallKitCallController> callController;
-@property (nonatomic) ZMUserSession *userSession;
-@property (nonatomic) ZMFlowSync *flowSync;
-@property (nonatomic) ZMOnDemandFlowManager *onDemandFlowManager;
-@property (nonatomic) AVSMediaManager *mediaManager;
-
-@property (nonatomic) id <ZMVoiceChannelStateObserverOpaqueToken> voiceChannelStateObserverToken;
-@end
 
 @interface ZMCallKitDelegate (ProviderDelegate) <CXProviderDelegate>
 @end
@@ -109,12 +165,12 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
 {
     self = [super init];
     if (nil != self) {
-        NSCParameterAssert(callKitProvider);
-        NSCParameterAssert(callController);
-        NSCParameterAssert(userSession);
-        NSCParameterAssert(flowSync);
-        NSCParameterAssert(onDemandFlowManager);
-        NSCParameterAssert(mediaManager);
+        Require(callKitProvider);
+        Require(callController);
+        Require(userSession);
+        Require(flowSync);
+        Require(onDemandFlowManager);
+        Require(mediaManager);
 
         
         self.provider = callKitProvider;
@@ -140,7 +196,7 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
 
     providerConfiguration.supportsVideo = YES;
     providerConfiguration.maximumCallsPerCallGroup = 1;
-    providerConfiguration.supportedHandleTypes = [NSSet setWithObjects:@(CXHandleTypePhoneNumber), @(CXHandleTypeEmailAddress), nil];
+    providerConfiguration.supportedHandleTypes = [NSSet setWithObjects:@(CXHandleTypePhoneNumber), @(CXHandleTypeEmailAddress), @(CXHandleTypeGeneric), nil];
     providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:@"AppIcon"]); // TODO add correct icon
     providerConfiguration.ringtoneSound = [ZMCustomSound notificationRingingSoundName];
 
@@ -149,10 +205,9 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
 
 - (void)requestStartCallInConversation:(ZMConversation *)conversation videoCall:(BOOL)video
 {
-    CXHandle *selfUserHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric
-                                                        value:[ZMUser selfUserInUserSession:self.userSession].remoteIdentifier.UUIDString];
-
-    CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:conversation.remoteIdentifier handle:selfUserHandle];
+    ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
+    
+    CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:conversation.remoteIdentifier handle:selfUser.callKitHandle];
     startCallAction.video = video;
     
     CXTransaction *startCallTransaction = [[CXTransaction alloc] initWithAction:startCallAction];
@@ -194,11 +249,16 @@ static char* const ZMLogTag ZM_UNUSED = "CallKit";
     CXCallUpdate* update = [[CXCallUpdate alloc] init];
     
     ZMUser *caller = [conversation.voiceChannel.participants firstObject];
-    NSUUID *callerUUID = [caller remoteIdentifier];
     
-    update.localizedCallerName = caller.displayName;
-    update.remoteHandle = [[CXHandle alloc] initWithType:CXHandleTypeGeneric
-                                                   value:callerUUID.UUIDString];
+    if (conversation.conversationType == ZMConversationTypeGroup) {
+        NSString* baseString = conversation.isVideoCall ? ZMPushStringVideoCallStarts : ZMPushStringCallStarts;
+        update.localizedCallerName = [baseString localizedStringWithUser:caller conversation:conversation count:0];
+    }
+    else {
+        update.localizedCallerName = caller.displayName;
+    }
+    
+    update.remoteHandle = conversation.callKitHandle;
     update.hasVideo = conversation.isVideoCall;
     [self.provider reportNewIncomingCallWithUUID:conversation.remoteIdentifier
                                           update:update
