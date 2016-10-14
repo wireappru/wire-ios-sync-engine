@@ -29,6 +29,9 @@
 @import CallKit;
 @import UIKit;
 @import ZMCSystem;
+@import Intents;
+
+static NSString * const ZMCallKitDelegateCallStartedInGroup = @"callkit.call.started.group";
 
 static char* const ZMLogTag ZM_UNUSED = "CallKit";
 
@@ -48,6 +51,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ZMConversation (Handle)
 - (CXHandle *)callKitHandle;
++ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons inContext:(NSManagedObjectContext *)context;
 @end
 
 @interface CXCallAction (Conversation)
@@ -108,6 +112,52 @@ NS_ASSUME_NONNULL_END
     }
     
     return nil;
+}
+
++ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons inContext:(NSManagedObjectContext *)context
+{
+    if (1 != persons.count) {
+        ZMLogError(@"CallKit: Cannot resolve call conversation for %lu participants", (unsigned long)persons.count);
+        return nil;
+    }
+    
+    INPerson *person = persons.firstObject;
+    
+    switch (person.personHandle.type) {
+        case INPersonHandleTypeUnknown:
+        {
+            ZMConversation *result = [ZMConversation conversationWithRemoteID:[NSUUID uuidWithTransportString:person.personHandle.value]
+                                                               createIfNeeded:NO
+                                                                    inContext:context];
+            return result;
+        }
+            break;
+        case INPersonHandleTypePhoneNumber:
+        {
+            ZMUser *user = [ZMUser userWithPhoneNumber:person.personHandle.value inContext:context];
+            if (nil == user) {
+                // Due to iOS bug the email caller is indicated as one with the INPersonHandleTypePhoneNumber in iOS 10.0.2
+                user = [ZMUser userWithEmailAddress:person.personHandle.value inContext:context];
+                
+                return user.oneToOneConversation;
+            }
+            else {
+                return user.oneToOneConversation;
+            }
+        }
+            break;
+        case INPersonHandleTypeEmailAddress:
+        {
+            ZMUser *user = [ZMUser userWithEmailAddress:person.personHandle.value inContext:context];
+            if (nil == user) {
+                return nil;
+            }
+            else {
+                return user.oneToOneConversation;
+            }
+        }
+            break;
+    }
 }
 
 @end
@@ -251,8 +301,7 @@ NS_ASSUME_NONNULL_END
     ZMUser *caller = [conversation.voiceChannel.participants firstObject];
     
     if (conversation.conversationType == ZMConversationTypeGroup) {
-        NSString* baseString = conversation.isVideoCall ? ZMPushStringVideoCallStarts : ZMPushStringCallStarts;
-        update.localizedCallerName = [baseString localizedStringWithUser:caller conversation:conversation count:0];
+        update.localizedCallerName = [ZMCallKitDelegateCallStartedInGroup localizedStringWithUser:caller conversation:conversation count:0];
     }
     else {
         update.localizedCallerName = caller.displayName;
@@ -317,6 +366,52 @@ NS_ASSUME_NONNULL_END
     if (error.code != 0) {
         ZMLogError(@"couldn't set session's preferred sample rate: %ld", (long)error.code);
     }
+}
+
+- (BOOL)continueUserActivity:(NSUserActivity *)userActivity
+{
+    INInteraction* interaction = userActivity.interaction;
+    if (interaction == nil) {
+        return NO;
+    }
+    INIntent *intent = interaction.intent;
+    
+    NSArray<INPerson *> *contacts = nil;
+    BOOL isVideo = NO;
+    
+    if ([intent isKindOfClass:[INStartAudioCallIntent class]]) {
+        INStartAudioCallIntent *startAudioCallIntent = (INStartAudioCallIntent *)intent;
+        contacts = startAudioCallIntent.contacts;
+        isVideo = NO;
+    }
+    else if ([intent isKindOfClass:[INStartVideoCallIntent class]]) {
+        INStartVideoCallIntent *startVideoCallIntent = (INStartVideoCallIntent *)intent;
+        contacts = startVideoCallIntent.contacts;
+        isVideo = YES;
+    }
+    
+    if (1 == contacts.count) {
+        ZMConversation *callConversation = [ZMConversation resolveConversationForPersons:contacts inContext:self.userSession.managedObjectContext];
+        if (nil != callConversation) {
+            if (isVideo) {
+                NSError *joinError = nil;
+                [callConversation.voiceChannel joinVideoCall:&joinError inUserSession:self.userSession];
+                if (nil != joinError) {
+                    ZMLogError(@"Cannot start the video call: %@", joinError);
+                }
+            }
+            else {
+                [callConversation.voiceChannel joinInUserSession:self.userSession];
+            }
+            
+            return YES;
+        }
+        else {
+            return NO;
+        }
+    }
+    
+    return YES;
 }
 
 @end
@@ -430,27 +525,24 @@ NS_ASSUME_NONNULL_END
 - (void)provider:(CXProvider *)provider performSetHeldCallAction:(nonnull CXSetHeldCallAction *)action
 {
     ZMLogInfo(@"CXProvider %@ performSetHeldCallAction", provider);
-
-    // ZMConversation *callConversation = [action conversationInContext:self.userSession.managedObjectContext];
-
-    // TODO
-    
+    [self.userSession performChanges:^{
+        self.mediaManager.microphoneMuted = action.onHold;
+    }];
     [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performSetMutedCallAction:(CXSetMutedCallAction *)action
 {
     ZMLogInfo(@"CXProvider %@ performSetMutedCallAction", provider);
-
-    self.mediaManager.microphoneMuted = action.muted;
-    
+    [self.userSession performChanges:^{
+        self.mediaManager.microphoneMuted = action.muted;
+    }];
     [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider timedOutPerformingAction:(CXAction *)action
 {
     ZMLogInfo(@"CXProvider %@ timedOutPerformingAction %@", provider, action);
-
 }
 
 - (void)provider:(CXProvider __unused *)provider didActivateAudioSession:(AVAudioSession __unused *)audioSession

@@ -168,6 +168,8 @@
 "push.notification.action.call.callback" = "Call Back";
 "push.notification.action.connection.accept" = "Accept";
 
+"callkit.call.started.group" = "%1$@ in %2$@";
+
 
 //////////////
 // The following keys are handled in the Push.stringsdict file. Please make the according changes there.

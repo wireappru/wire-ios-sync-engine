@@ -59,6 +59,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)requestStartCallInConversation:(ZMConversation *)conversation videoCall:(BOOL)video;
 - (void)requestEndCallInConversation:(ZMConversation *)conversation;
+
+- (BOOL)continueUserActivity:(NSUserActivity *)userActivity;
 @end
 
 NS_ASSUME_NONNULL_END
