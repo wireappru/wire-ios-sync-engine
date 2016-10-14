@@ -79,7 +79,7 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
         self.voiceGainNotificationQueue = [[NSNotificationQueue alloc] initWithNotificationCenter:[NSNotificationCenter defaultCenter]];
 
         self.onDemandFlowManager = onDemandFlowManager;
-        if (self.application.applicationState != UIApplicationStateBackground) {
+        if (self.application.applicationState != UIApplicationStateBackground || [ZMUserSession useCallKit]) {
             [self setUpFlowManagerIfNeeded];
         }
         
@@ -162,10 +162,10 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
 
 - (ZMTransportRequest *)nextRequest
 {
-    if (!self.pushChannelIsOpen) {
+    if (!self.pushChannelIsOpen && ![ZMUserSession useCallKit]) {
         return nil;
     }
-    if (self.application.applicationState != UIApplicationStateBackground && self.flowManager == nil) {
+    if ((self.application.applicationState != UIApplicationStateBackground && self.flowManager == nil) || [ZMUserSession useCallKit]) {
         [self setUpFlowManagerIfNeeded];  // this should not happen, but we should recover after all
     }
     
@@ -234,7 +234,7 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
     if(!liveEvents) {
         return;
     }
-    if (self.application.applicationState != UIApplicationStateBackground) {
+    if (self.application.applicationState != UIApplicationStateBackground || [ZMUserSession useCallKit]) {
         [self setUpFlowManagerIfNeeded];
     }
     if (!self.isFlowManagerReady) {
@@ -273,7 +273,7 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
 
 - (void)acquireFlowsForConversation:(ZMConversation *)conversation;
 {
-    if (self.application.applicationState != UIApplicationStateBackground) {
+    if (self.application.applicationState != UIApplicationStateBackground || [ZMUserSession useCallKit]) {
         [self setUpFlowManagerIfNeeded];
     }
     if (!self.isFlowManagerReady) {
@@ -293,7 +293,7 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
 
 - (void)releaseFlowsForConversation:(ZMConversation *)conversation;
 {
-    if (self.application.applicationState != UIApplicationStateBackground) {
+    if (self.application.applicationState != UIApplicationStateBackground || [ZMUserSession useCallKit]) {
         [self setUpFlowManagerIfNeeded];
     }
     if (!self.isFlowManagerReady) {
@@ -437,7 +437,7 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
         }]];
         
         [self.requestStack insertObject:request atIndex:0];
-        if (self.pushChannelIsOpen) {
+        if (self.pushChannelIsOpen || [ZMUserSession useCallKit]) {
             [ZMRequestAvailableNotification notifyNewRequestsAvailable:self];
         }
     }];

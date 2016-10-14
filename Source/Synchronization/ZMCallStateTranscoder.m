@@ -179,7 +179,7 @@ _Pragma("clang diagnostic pop")
 - (void)objectsDidChange:(NSSet *)objects
 {
     for (ZMConversation *conv in objects) {
-        ZMFlowSync *strongSync= self.flowSync;
+        ZMFlowSync *strongSync = self.flowSync;
         if ([conv isKindOfClass:[ZMConversation class]]){
             if ([self.upstreamFetchPredicate evaluateWithObject:conv] && !conv.callDeviceIsActive && conv.hasLocalModificationsForCallDeviceIsActive) {
                 // we need to release the flows as soon as the user wants to leave the call
@@ -669,7 +669,7 @@ _Pragma("clang diagnostic pop")
 
 - (BOOL)shouldCreateRequestToSyncObject:(ZMManagedObject * __unused)managedObject forKeys:(NSSet<NSString *> * __unused)keys withSync:(id __unused)sync
 {
-    return self.pushChannelIsOpen;
+    return self.pushChannelIsOpen || [ZMUserSession useCallKit];
 }
 
 - (ZMUpstreamRequest *)requestForUpdatingObject:(ZMConversation *)conversation forKeys:(NSSet *)keys

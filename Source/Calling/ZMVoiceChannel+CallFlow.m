@@ -279,7 +279,7 @@
 {
     ZMConversation *conv = self.conversation;
     
-    if ([self hasOngoingGSMCall]) {
+    if ([self hasOngoingGSMCall] && ![ZMUserSession useCallKit]) {
         [conv.managedObjectContext.zm_userInterfaceContext performGroupedBlock: ^{
             [CallingInitialisationNotification notifyCallingFailedWithErrorCode:ZMVoiceChannelErrorCodeOngoingGSMCall];
         }];
