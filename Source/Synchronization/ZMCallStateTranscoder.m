@@ -724,7 +724,7 @@ _Pragma("clang diagnostic pop")
     
     [self.callStateLogger logCurrentStateForConversation:conversation
                                              withMessage:[NSString stringWithFormat:@"Received response for setting self call state: %@",response]];
-    if (response.result == ZMTransportResponseStatusPermanentError ) {
+    if (response.result == ZMTransportResponseStatusPermanentError) {
         BOOL isVoiceChannelFull = NO;
         if (conversation.isSelfAnActiveMember) {
             // we can be no more in conversation so we can ignore any errors

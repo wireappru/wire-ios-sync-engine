@@ -437,7 +437,7 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
         }]];
         
         [self.requestStack insertObject:request atIndex:0];
-        if (self.pushChannelIsOpen || [ZMUserSession useCallKit]) {
+        if (self.pushChannelIsOpen) {
             [ZMRequestAvailableNotification notifyNewRequestsAvailable:self];
         }
     }];

@@ -160,6 +160,7 @@ extern NSString * const ZMUserSessionResetPushTokensNotificationName;
 
 @interface ZMUserSession (Calling)
 + (BOOL)useCallKit;
++ (void)setUseCallKit:(BOOL)useCallKit;
 @end
 
 

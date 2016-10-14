@@ -16,7 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
+@import ZMCDataModel;
+@import CallKit;
+@import UIKit;
+@import ZMCSystem;
+@import Intents;
 #import "ZMCallKitDelegate.h"
 #import "ZMUserSession.h"
 #import "ZMVoiceChannel+CallFlow.h"
@@ -25,11 +29,6 @@
 #import "AVSMediaManager.h"
 #import "AVSMediaManager+Client.h"
 #import <zmessaging/zmessaging-Swift.h>
-@import ZMCDataModel;
-@import CallKit;
-@import UIKit;
-@import ZMCSystem;
-@import Intents;
 
 static NSString * const ZMCallKitDelegateCallStartedInGroup = @"callkit.call.started.group";
 
@@ -41,20 +40,29 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @interface ZMVoiceChannel (ActiveStates)
+/// Returns the list of @c ZMVoiceChannelState that are considered as an active call.
 + (NSSet *)activeStates;
+/// Checks if current state of voice channel is one of the active ones.
 - (BOOL)inActiveState;
 @end
 
 @interface ZMUser (Handle)
+/// Generates the handle for CallKit, either a phone number or an email one.
 - (CXHandle *)callKitHandle;
 @end
 
 @interface ZMConversation (Handle)
+/// Generates the handle for CallKit, either a phone number or an email one for one to one conversations and generic one
+/// for the group chats.
 - (CXHandle *)callKitHandle;
-+ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons inContext:(NSManagedObjectContext *)context;
+
+/// Finds the appropriate conversation described by the list of @c INPerson objects.
++ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons
+                                             inContext:(NSManagedObjectContext *)context;
 @end
 
 @interface CXCallAction (Conversation)
+/// Fetches the conversation associated by @c callUUID with the call action.
 - (nullable ZMConversation *)conversationInContext:(NSManagedObjectContext *)context;
 @end
 
@@ -114,7 +122,8 @@ NS_ASSUME_NONNULL_END
     return nil;
 }
 
-+ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons inContext:(NSManagedObjectContext *)context
++ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons
+                                             inContext:(NSManagedObjectContext *)context
 {
     if (1 != persons.count) {
         ZMLogError(@"CallKit: Cannot resolve call conversation for %lu participants", (unsigned long)persons.count);
@@ -126,7 +135,8 @@ NS_ASSUME_NONNULL_END
     switch (person.personHandle.type) {
         case INPersonHandleTypeUnknown:
         {
-            ZMConversation *result = [ZMConversation conversationWithRemoteID:[NSUUID uuidWithTransportString:person.personHandle.value]
+            NSUUID *personHandle = [NSUUID uuidWithTransportString:person.personHandle.value];
+            ZMConversation *result = [ZMConversation conversationWithRemoteID:personHandle
                                                                createIfNeeded:NO
                                                                     inContext:context];
             return result;
@@ -202,7 +212,8 @@ NS_ASSUME_NONNULL_END
 
 - (void)dealloc
 {
-    [ZMVoiceChannel removeGlobalVoiceChannelStateObserverForToken:self.voiceChannelStateObserverToken inUserSession:self.userSession];
+    [ZMVoiceChannel removeGlobalVoiceChannelStateObserverForToken:self.voiceChannelStateObserverToken
+                                                    inUserSession:self.userSession];
 }
 
 - (instancetype)initWithCallKitProvider:(id<CallKitProviderType>)callKitProvider
@@ -231,7 +242,9 @@ NS_ASSUME_NONNULL_END
         self.onDemandFlowManager = onDemandFlowManager;
         self.mediaManager = mediaManager;
         
-        self.voiceChannelStateObserverToken = [ZMVoiceChannel addGlobalVoiceChannelStateObserver:self inUserSession:self.userSession runsInBackground:YES];
+        self.voiceChannelStateObserverToken = [ZMVoiceChannel addGlobalVoiceChannelStateObserver:self
+                                                                                   inUserSession:self.userSession
+                                                                                runsInBackground:YES];
     }
     return self;
 }
@@ -246,7 +259,11 @@ NS_ASSUME_NONNULL_END
 
     providerConfiguration.supportsVideo = YES;
     providerConfiguration.maximumCallsPerCallGroup = 1;
-    providerConfiguration.supportedHandleTypes = [NSSet setWithObjects:@(CXHandleTypePhoneNumber), @(CXHandleTypeEmailAddress), @(CXHandleTypeGeneric), nil];
+    providerConfiguration.supportedHandleTypes = [NSSet setWithObjects:
+                                                  @(CXHandleTypePhoneNumber),
+                                                  @(CXHandleTypeEmailAddress),
+                                                  @(CXHandleTypeGeneric), nil];
+    
     providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:@"AppIcon"]); // TODO add correct icon
     providerConfiguration.ringtoneSound = [ZMCustomSound notificationRingingSoundName];
 
@@ -286,7 +303,9 @@ NS_ASSUME_NONNULL_END
 {
     ZMConversationList *nonIdleConversations = [ZMConversationList nonIdleVoiceChannelConversationsInUserSession:self.userSession];
     
-    NSArray *activeCallConversations = [nonIdleConversations objectsAtIndexes:[nonIdleConversations indexesOfObjectsPassingTest:^BOOL(ZMConversation *conversation, NSUInteger __unused idx, BOOL __unused *stop) {
+    NSArray *activeCallConversations = [nonIdleConversations objectsAtIndexes:[nonIdleConversations
+                                                                               indexesOfObjectsPassingTest:
+                                                                               ^BOOL(ZMConversation *conversation, NSUInteger __unused idx, BOOL __unused *stop) {
         return conversation.voiceChannel.inActiveState;
     }]];
     
@@ -301,7 +320,9 @@ NS_ASSUME_NONNULL_END
     ZMUser *caller = [conversation.voiceChannel.participants firstObject];
     
     if (conversation.conversationType == ZMConversationTypeGroup) {
-        update.localizedCallerName = [ZMCallKitDelegateCallStartedInGroup localizedStringWithUser:caller conversation:conversation count:0];
+        update.localizedCallerName = [ZMCallKitDelegateCallStartedInGroup localizedStringWithUser:caller
+                                                                                     conversation:conversation
+                                                                                            count:0];
     }
     else {
         update.localizedCallerName = caller.displayName;
@@ -391,7 +412,8 @@ NS_ASSUME_NONNULL_END
     }
     
     if (1 == contacts.count) {
-        ZMConversation *callConversation = [ZMConversation resolveConversationForPersons:contacts inContext:self.userSession.managedObjectContext];
+        ZMConversation *callConversation = [ZMConversation resolveConversationForPersons:contacts
+                                                                               inContext:self.userSession.managedObjectContext];
         if (nil != callConversation) {
             if (isVideo) {
                 NSError *joinError = nil;
@@ -427,11 +449,13 @@ NS_ASSUME_NONNULL_END
             [self indicateIncomingCallInConversation:conversation];
         break;
     case ZMVoiceChannelStateSelfIsJoiningActiveChannel:
-            [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier startedConnectingAtDate:[NSDate date]];
+            [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier
+                              startedConnectingAtDate:[NSDate date]];
 
         break;
     case ZMVoiceChannelStateSelfConnectedToActiveChannel:
-            [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier connectedAtDate:[NSDate date]];
+            [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier
+                                      connectedAtDate:[NSDate date]];
         break;
     case ZMVoiceChannelStateNoActiveUsers:
         {

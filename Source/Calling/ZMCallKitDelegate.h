@@ -27,11 +27,13 @@ NS_ASSUME_NONNULL_BEGIN
 @class ZMOnDemandFlowManager;
 @class AVSMediaManager;
 
-
+/// Needed to unbound @c ZMCallKitDelegate from OS CallKit implementation (for testing).
 @protocol CallKitProviderType <NSObject>
 - (instancetype)initWithConfiguration:(CXProviderConfiguration *)configuration;
 - (void)setDelegate:(nullable id<CXProviderDelegate>)delegate queue:(nullable dispatch_queue_t)queue;
-- (void)reportNewIncomingCallWithUUID:(NSUUID *)UUID update:(CXCallUpdate *)update completion:(void (^)(NSError *_Nullable error))completion;
+- (void)reportNewIncomingCallWithUUID:(NSUUID *)UUID
+                               update:(CXCallUpdate *)update
+                           completion:(void (^)(NSError *_Nullable error))completion;
 - (void)reportCallWithUUID:(NSUUID *)UUID endedAtDate:(nullable NSDate *)dateEnded reason:(CXCallEndedReason)endedReason;
 - (void)reportOutgoingCallWithUUID:(NSUUID *)UUID startedConnectingAtDate:(nullable NSDate *)dateStartedConnecting;
 - (void)reportOutgoingCallWithUUID:(NSUUID *)UUID connectedAtDate:(nullable NSDate *)dateConnected;
@@ -40,6 +42,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface CXProvider (TypeConformance) <CallKitProviderType>
 @end
 
+/// Needed to unbound @c ZMCallKitDelegate from OS CallKit implementation (for testing).
 @protocol CallKitCallController <NSObject>
 - (void)requestTransaction:(CXTransaction *)transaction completion:(void (^)(NSError *_Nullable error))completion;
 @end
@@ -47,6 +50,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface CXCallController (TypeConformance) <CallKitCallController>
 @end
 
+
+/*
+ * @c ZMCallKitDelegate is designed to provide the interaction with iOS integrated calling UI as a replacement of
+ * the push notifications for calls, replacing it with native calling screen.
+ */
 @interface ZMCallKitDelegate : NSObject
 - (instancetype)initWithCallKitProvider:(id<CallKitProviderType>)callKitProvider
                          callController:(id<CallKitCallController>)callController
@@ -55,11 +63,18 @@ NS_ASSUME_NONNULL_BEGIN
                     onDemandFlowManager:(ZMOnDemandFlowManager *)onDemandFlowManager
                            mediaManager:(AVSMediaManager *)mediaManager;
 
+/// Provides default configuration for CallKit provider.
 + (CXProviderConfiguration *)providerConfiguration;
 
+/// Must be called in order to start the call. It checks with CallKit if the call can be started at the point of time
+/// and if it is possible starts the call (calling `-[ZMVoiceChannel join]` or `-[ZMVoiceChannel joinVideoCall:]`).
 - (void)requestStartCallInConversation:(ZMConversation *)conversation videoCall:(BOOL)video;
+/// Must be called in order to end the call. It checks with CallKit if the call can be ended and end the call
+/// (calling `-[ZMVoiceChannel leave]`).
 - (void)requestEndCallInConversation:(ZMConversation *)conversation;
 
+/// Must be called with the @c NSUserActivity that is provided to the application via @c UIApplicationDelegate protocol.
+/// Needed to handle the action to select the call from user's "Phone" app.
 - (BOOL)continueUserActivity:(NSUserActivity *)userActivity;
 @end
 

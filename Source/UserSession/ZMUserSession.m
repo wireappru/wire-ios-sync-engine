@@ -910,11 +910,18 @@ static NSString * const TrackingIdentifierKey = @"ZMTrackingIdentifier";
 @end
 
 
+static BOOL ZMUserSessionUseCallKit = NO;
+
 @implementation ZMUserSession (Calling)
 
 + (BOOL)useCallKit
 {
-    return ([CXCallObserver class] != nil);
+    return ZMUserSessionUseCallKit;
+}
+
++ (void)setUseCallKit:(BOOL)useCallKit
+{
+    ZMUserSessionUseCallKit = useCallKit;
 }
 
 @end
