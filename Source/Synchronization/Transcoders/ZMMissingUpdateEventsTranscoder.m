@@ -220,7 +220,7 @@ NSUInteger const ZMMissingUpdateEventsTranscoderListPageSize = 500;
         self.lastUpdateEventID = latestEventId;
     }
     
-    Boolean hasMore = ((NSNumber *) response.payload.asDictionary[@"has_more"]).boolValue;
+    BOOL hasMore = ((NSNumber *) response.payload.asDictionary[@"has_more"]).boolValue;
     if(!hasMore) {
         [self.previouslyReceivedEventIDsCollection discardListOfAlreadyReceivedPushEventIDs];
     }

@@ -335,6 +335,7 @@ NS_ASSUME_NONNULL_END
         if (nil != error) {
             ZMLogError(@"Cannot end call: %@", error);
         }
+        [conversation.voiceChannel leave];
     }];
 }
 
@@ -477,6 +478,7 @@ NS_ASSUME_NONNULL_END
 
 - (void)voiceChannelStateDidChange:(VoiceChannelStateChangeInfo *)info
 {
+    ZMLogInfo(@"Call state %d -> %d", info.previousState, info.currentState);
     ZMConversation *conversation = info.voiceChannel.conversation;
     
     switch (info.voiceChannel.state) {
@@ -526,6 +528,16 @@ NS_ASSUME_NONNULL_END
     [self leaveAllActiveCalls];
 }
 
+- (BOOL)provider:(CXProvider *)provider executeTransaction:(CXTransaction *)transaction
+{
+    NOT_USED(provider);
+    [[transaction actions] enumerateObjectsUsingBlock:^(__kindof CXAction * _Nonnull obj, NSUInteger __unused idx, BOOL * _Nonnull __unused stop) {
+        NSLog(@"action = %@", obj);
+    }];
+    
+    return NO;
+}
+
 - (void)provider:(CXProvider *)provider performStartCallAction:(CXStartCallAction *)action
 {
     ZMLogInfo(@"CXProvider %@ performStartCallAction", provider);
@@ -538,17 +550,14 @@ NS_ASSUME_NONNULL_END
             [callConversation.voiceChannel joinVideoCall:&error];
             if (nil != error) {
                 ZMLogError(@"Error joining video call: %@", error);
-                [action fail];
-            }
-            else {
-                [action fulfill];
             }
         }
         else {
             [callConversation.voiceChannel join];
-            [action fulfill];
         }
     }];
+    
+    [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performAnswerCallAction:(CXAnswerCallAction *)action
@@ -565,9 +574,8 @@ NS_ASSUME_NONNULL_END
         }
         
         [self configureAudioSession];
-        
-        [action fulfill];
     }];
+    [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performEndCallAction:(nonnull CXEndCallAction *)action
@@ -576,9 +584,14 @@ NS_ASSUME_NONNULL_END
 
     ZMConversation *callConversation = [action conversationInContext:self.userSession.managedObjectContext];
     [self.userSession performChanges:^{
-        [callConversation.voiceChannel leave];
-        [action fulfill];
+        if (callConversation.voiceChannel.selfUserConnectionState == ZMVoiceChannelConnectionStateNotConnected) {
+            [callConversation.voiceChannel ignoreIncomingCall];
+        }
+        else {
+            [callConversation.voiceChannel leave];
+        }
     }];
+    [action fulfill];
 }
 
 - (void)provider:(CXProvider *)provider performSetHeldCallAction:(nonnull CXSetHeldCallAction *)action
