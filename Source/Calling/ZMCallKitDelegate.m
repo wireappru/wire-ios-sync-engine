@@ -30,6 +30,46 @@
 #import "AVSMediaManager+Client.h"
 #import <zmessaging/zmessaging-Swift.h>
 
+/**
+ @c ZMCallKitDelegate is the main logical part of CallKit integration of wire-ios-sync-engine. 
+ CallKit is the iOS VoIP calling integration framework that allows to place VoIP calls with the same priority level
+ as other (GSM) calls.
+ 
+ CallKit is supported from iOS 10. On the devices that do not support it we still show the notifications.
+ 
+ It is possible to disable CallKit and use old-style notifications logic: `+[ZMUserSession setUseCallKit:]`.
+ 
+ CallKit integration consists of 2 parts:
+ I.  Showing iOS calling UI when call happens
+     I.a Receive calls
+     I.b Place calls
+ II. Interaction with Phone app and redialing existing calls from there
+ 
+ Using CallKit means asking iOS to start and end the call, so it can show the proper calling UI and play the ringtone.
+ 
+ Flow for receieving the call (I.a):
+ 1. BE sends the new call state in conversation via push
+ 2. @c ZMCallStateTranscoder decode the payload and update the conversation/ZMVoiceChannel fields
+ 3. @c ZMVoiceChannel observer sends the update to @c ZMCallKitDelegate -[ZMCallKitDelegate voiceChannelStateDidChange:]
+ 4. @c ZMCallKitDelegate indicates the call to CallKit's @c CXProvider in -[ZMCallKitDelegate indicateIncomingCallInConversation:]
+ 5. @c CXProvider approves the call and informs @c ZMCallKitDelegate that call is possible in -[ZMCallKitDelegate provider:performStartCallAction:]
+ 6. @c ZMCallKitDelegate joins the call with -[ZMVoiceChannel join]
+ 
+ Flow for sending the call (I.b):
+ 1. API consumer (UI app) calls -[ZMVoiceChannel joinInUserSession:]. This call is forwarded to -[ZMCallKitDelegate requestStartCallInConversation:]
+ 2. @c ZMCallKitDelegate indicates the call to CallKit's @c CXCallController, that asks @c CXProvider if call is possible. 
+ 3. @c CXProvider is indicating the call is possible with the callback -[ZMCallKitDelegate provider:performStartCallAction:]
+ 4. @c ZMCallKitDelegate joins the call with -[ZMVoiceChannel join]
+ 
+ Flow for interaction with last calls / Phone app:
+ 1. The app is launched or brought to foreground
+ 2. @c UIApplicationDelegate receives the call for continuing the User Activity that is forwarded to @c ZMUserSession
+ 3. @c ZMUserSession forwards the call to -[ZMCallKitDelegate continueUserActivity:]
+ 4. @c ZMCallKitDelegate looks up the caller from the NSUserActivity and starts the call
+ 
+ */
+
+
 static NSString * const ZMCallKitDelegateCallStartedInGroup = @"callkit.call.started.group";
 
 static char* const ZMLogTag ZM_UNUSED = "CallKit";
@@ -232,7 +272,6 @@ NS_ASSUME_NONNULL_END
         Require(flowSync);
         Require(onDemandFlowManager);
         Require(mediaManager);
-
         
         self.provider = callKitProvider;
         self.callController = callController;
@@ -347,11 +386,7 @@ NS_ASSUME_NONNULL_END
             if (conversation.voiceChannel.state == ZMVoiceChannelStateIncomingCall) {
                 [conversation.voiceChannel ignoreIncomingCall];
             }
-            else if (conversation.voiceChannel.state == ZMVoiceChannelStateSelfConnectedToActiveChannel ||
-                     conversation.voiceChannel.state == ZMVoiceChannelStateSelfIsJoiningActiveChannel ||
-                     conversation.voiceChannel.state == ZMVoiceChannelStateDeviceTransferReady ||
-                     conversation.voiceChannel.state == ZMVoiceChannelStateOutgoingCall ||
-                     conversation.voiceChannel.state == ZMVoiceChannelStateOutgoingCallInactive) {
+            else if (conversation.voiceChannel.inActiveState) {
                 [conversation.voiceChannel leave];
             }
         }
