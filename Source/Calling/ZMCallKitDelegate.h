@@ -21,6 +21,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class INPerson;
 @class ZMUserSession;
 @class ZMConversation;
 @class ZMFlowSync;
@@ -50,6 +51,26 @@ NS_ASSUME_NONNULL_BEGIN
 @interface CXCallController (TypeConformance) <CallKitCallController>
 @end
 
+@interface ZMUser (Handle)
+/// Generates the handle for CallKit, either a phone number or an email one.
+- (CXHandle *)callKitHandle;
+@end
+
+@interface ZMConversation (Handle)
+/// Generates the handle for CallKit, either a phone number or an email one for one to one conversations and generic one
+/// for the group chats.
+- (CXHandle *)callKitHandle;
+
+/// Finds the appropriate conversation described by the list of @c INPerson objects.
++ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons
+                                             inContext:(NSManagedObjectContext *)context;
+@end
+
+@interface CXCallAction (Conversation)
+/// Fetches the conversation associated by @c callUUID with the call action.
+- (nullable ZMConversation *)conversationInContext:(NSManagedObjectContext *)context;
+@end
+
 
 /*
  * @c ZMCallKitDelegate is designed to provide the interaction with iOS integrated calling UI as a replacement of
@@ -58,10 +79,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ZMCallKitDelegate : NSObject
 - (instancetype)initWithCallKitProvider:(id<CallKitProviderType>)callKitProvider
                          callController:(id<CallKitCallController>)callController
-                            userSession:(ZMUserSession *)userSession
-                               flowSync:(ZMFlowSync *)flowSync
-                    onDemandFlowManager:(ZMOnDemandFlowManager *)onDemandFlowManager
-                           mediaManager:(AVSMediaManager *)mediaManager;
+                            userSession:(nullable ZMUserSession *)userSession
+                           mediaManager:(nullable AVSMediaManager *)mediaManager;
 
 /// Provides default configuration for CallKit provider.
 + (CXProviderConfiguration *)providerConfiguration;

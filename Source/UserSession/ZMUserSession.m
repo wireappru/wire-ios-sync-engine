@@ -338,8 +338,6 @@ ZM_EMPTY_ASSERTING_INIT()
             self.callKitDelegate = [[ZMCallKitDelegate alloc] initWithCallKitProvider:provider
                                                                        callController:callController
                                                                           userSession:self
-                                                                             flowSync:self.operationLoop.syncStrategy.flowTranscoder
-                                                                  onDemandFlowManager:self.onDemandFlowManager
                                                                          mediaManager:(AVSMediaManager *)mediaManager];
         }
     }

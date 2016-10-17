@@ -86,33 +86,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)inActiveState;
 @end
 
-@interface ZMUser (Handle)
-/// Generates the handle for CallKit, either a phone number or an email one.
-- (CXHandle *)callKitHandle;
-@end
-
-@interface ZMConversation (Handle)
-/// Generates the handle for CallKit, either a phone number or an email one for one to one conversations and generic one
-/// for the group chats.
-- (CXHandle *)callKitHandle;
-
-/// Finds the appropriate conversation described by the list of @c INPerson objects.
-+ (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons
-                                             inContext:(NSManagedObjectContext *)context;
-@end
-
-@interface CXCallAction (Conversation)
-/// Fetches the conversation associated by @c callUUID with the call action.
-- (nullable ZMConversation *)conversationInContext:(NSManagedObjectContext *)context;
-@end
-
-
 @interface ZMCallKitDelegate ()
 @property (nonatomic) id<CallKitProviderType> provider;
 @property (nonatomic) id<CallKitCallController> callController;
 @property (nonatomic) ZMUserSession *userSession;
-@property (nonatomic) ZMFlowSync *flowSync;
-@property (nonatomic) ZMOnDemandFlowManager *onDemandFlowManager;
 @property (nonatomic) AVSMediaManager *mediaManager;
 
 @property (nonatomic) id <ZMVoiceChannelStateObserverOpaqueToken> voiceChannelStateObserverToken;
@@ -259,8 +236,6 @@ NS_ASSUME_NONNULL_END
 - (instancetype)initWithCallKitProvider:(id<CallKitProviderType>)callKitProvider
                          callController:(id<CallKitCallController>)callController
                             userSession:(ZMUserSession *)userSession
-                               flowSync:(ZMFlowSync *)flowSync
-                    onDemandFlowManager:(ZMOnDemandFlowManager *)onDemandFlowManager
                            mediaManager:(AVSMediaManager *)mediaManager
 
 {
@@ -268,17 +243,11 @@ NS_ASSUME_NONNULL_END
     if (nil != self) {
         Require(callKitProvider);
         Require(callController);
-        Require(userSession);
-        Require(flowSync);
-        Require(onDemandFlowManager);
-        Require(mediaManager);
         
         self.provider = callKitProvider;
         self.callController = callController;
         [self.provider setDelegate:self queue:nil];
         self.userSession = userSession;
-        self.flowSync = flowSync;
-        self.onDemandFlowManager = onDemandFlowManager;
         self.mediaManager = mediaManager;
         
         self.voiceChannelStateObserverToken = [ZMVoiceChannel addGlobalVoiceChannelStateObserver:self
@@ -313,7 +282,8 @@ NS_ASSUME_NONNULL_END
 {
     ZMUser *selfUser = [ZMUser selfUserInUserSession:self.userSession];
     
-    CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:conversation.remoteIdentifier handle:selfUser.callKitHandle];
+    CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:conversation.remoteIdentifier
+                                                                              handle:selfUser.callKitHandle];
     startCallAction.video = video;
     
     CXTransaction *startCallTransaction = [[CXTransaction alloc] initWithAction:startCallAction];
