@@ -659,17 +659,26 @@ static int32_t eventIdCounter;
     XCTAssertNil(error, @"Error establishing session: %@", error);
 }
 
+- (UserClient *)setupSelfClientInMoc:(NSManagedObjectContext *)moc;
+{
+    ZMUser *selfUser = [ZMUser selfUserInContext:moc];
+    if (selfUser.remoteIdentifier == nil) {
+        selfUser.remoteIdentifier = [NSUUID createUUID];
+    }
+    
+    UserClient *client = [UserClient insertNewObjectInManagedObjectContext:moc];
+    client.remoteIdentifier = [NSString createAlphanumericalString];
+    client.user = selfUser;
+    
+    [moc setPersistentStoreMetadata:client.remoteIdentifier forKey:ZMPersistedClientIdKey];
+    [moc saveOrRollback];
+    
+    return client;
+}
+
 - (UserClient *)createSelfClient
 {
-    ZMUser *selfUser = [ZMUser selfUserInContext:self.syncMOC];
-    selfUser.remoteIdentifier = selfUser.remoteIdentifier ?: [NSUUID createUUID];
-    
-    UserClient *selfClient = [UserClient insertNewObjectInManagedObjectContext:self.syncMOC];
-    selfClient.remoteIdentifier = [NSString createAlphanumericalString];
-    selfClient.user = selfUser;
-    
-    [self.syncMOC setPersistentStoreMetadata:selfClient.remoteIdentifier forKey:ZMPersistedClientIdKey];
-    
+    UserClient *selfClient = [self setupSelfClientInMoc:self.syncMOC];
     [UserClient createOrUpdateClient:@{@"id": selfClient.remoteIdentifier, @"type": @"permanent", @"time": [[NSDate date] transportString]} context:self.syncMOC];
     [self.syncMOC saveOrRollback];
     
@@ -710,7 +719,7 @@ static int32_t eventIdCounter;
 {
     ZMClientMessage *message = [ZMClientMessage insertNewObjectInManagedObjectContext:self.syncMOC];
     NSUUID *messageNonce = [NSUUID createUUID];
-    ZMGenericMessage *textMessage = [ZMGenericMessage messageWithText:text nonce:messageNonce.transportString];
+    ZMGenericMessage *textMessage = [ZMGenericMessage messageWithText:text nonce:messageNonce.transportString expiresAfter:nil];
     [message addData:textMessage.data];
     message.isEncrypted = encrypted;
     return message;
@@ -719,7 +728,7 @@ static int32_t eventIdCounter;
 - (ZMAssetClientMessage *)createImageMessageWithImageData:(NSData *)imageData format:(ZMImageFormat)format processed:(BOOL)processed stored:(BOOL)stored encrypted:(BOOL)encrypted moc:(NSManagedObjectContext *)moc
 {
     NSUUID *nonce = [NSUUID createUUID];
-    ZMAssetClientMessage *imageMessage = [ZMAssetClientMessage assetClientMessageWithOriginalImageData:imageData nonce:nonce managedObjectContext:moc];
+    ZMAssetClientMessage *imageMessage = [ZMAssetClientMessage assetClientMessageWithOriginalImageData:imageData nonce:nonce managedObjectContext:moc expiresAfter:0];
     imageMessage.isEncrypted = encrypted;
     
     if(processed) {
@@ -735,7 +744,7 @@ static int32_t eventIdCounter;
                                                                   mac:[NSData zmRandomSHA256Key]];
         }
         
-        ZMGenericMessage *message = [ZMGenericMessage messageWithMediumImageProperties:properties processedImageProperties:properties encryptionKeys:keys nonce:nonce.transportString format:format];
+        ZMGenericMessage *message = [ZMGenericMessage genericMessageWithMediumImageProperties:properties processedImageProperties:properties encryptionKeys:keys nonce:nonce.transportString format:format expiresAfter:nil];
         [imageMessage addGenericMessage:message];
         
         ImageAssetCache *directory = self.uiMOC.zm_imageAssetCache;
