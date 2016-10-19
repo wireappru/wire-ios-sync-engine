@@ -85,6 +85,7 @@ static const int32_t Mersenne3 = 8191;
 
 
 @implementation MessagingTest
+@synthesize mockUserSession = _mockUserSession;
 
 - (BOOL)shouldSlowTestTimers
 {
@@ -167,6 +168,7 @@ static const int32_t Mersenne3 = 8191;
 
 - (void)tearDown;
 {
+    _mockUserSession = nil;
     ZMConversationDefaultLastReadEventIDSaveDelay = self.originalConversationLastReadEventIDTimerValue;
     [self resetState];
     [MessagingTest deleteAllFilesInCache];
@@ -433,6 +435,16 @@ static int32_t eventIdCounter;
                                  minor:(uint64_t)minor];
 }
 
+- (ZMUserSession *)mockUserSession
+{
+    if (nil == _mockUserSession) {
+        id mockUserSession = [OCMockObject niceMockForClass:[ZMUserSession class]];
+        [[[mockUserSession stub] andReturn:self.uiMOC] managedObjectContext];
+        _mockUserSession = mockUserSession;
+    }
+    
+    return _mockUserSession;
+}
 
 + (NSInteger)randomSignedIntWithMax:(NSInteger)max;
 {

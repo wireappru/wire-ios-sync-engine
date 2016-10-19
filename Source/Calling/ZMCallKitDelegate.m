@@ -222,9 +222,6 @@ NS_ASSUME_NONNULL_END
 @interface ZMCallKitDelegate (ProviderDelegate) <CXProviderDelegate>
 @end
 
-@interface ZMCallKitDelegate (VoiceChannelObserver) <ZMVoiceChannelStateObserver>
-@end
-
 @implementation ZMCallKitDelegate
 
 - (void)dealloc
@@ -273,7 +270,8 @@ NS_ASSUME_NONNULL_END
                                                   @(CXHandleTypeGeneric), nil];
     
     providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:@"AppIcon"]); // TODO add correct icon
-    providerConfiguration.ringtoneSound = [ZMCustomSound notificationRingingSoundName];
+    NSString *ringtoneSound = [ZMCustomSound notificationRingingSoundName];
+    providerConfiguration.ringtoneSound = ringtoneSound;
 
     return providerConfiguration;
 }
@@ -496,16 +494,6 @@ NS_ASSUME_NONNULL_END
 {
     ZMLogInfo(@"CXProvider %@ didReset", provider);
     [self leaveAllActiveCalls];
-}
-
-- (BOOL)provider:(CXProvider *)provider executeTransaction:(CXTransaction *)transaction
-{
-    NOT_USED(provider);
-    [[transaction actions] enumerateObjectsUsingBlock:^(__kindof CXAction * _Nonnull obj, NSUInteger __unused idx, BOOL * _Nonnull __unused stop) {
-        NSLog(@"action = %@", obj);
-    }];
-    
-    return NO;
 }
 
 - (void)provider:(CXProvider *)provider performStartCallAction:(CXStartCallAction *)action
