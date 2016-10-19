@@ -17,7 +17,15 @@
 //
 
 @import Foundation;
+@import zmessaging;
+
+NS_ASSUME_NONNULL_BEGIN
 
 @interface ZMCallKitDelegateTestsMocking: NSObject
 + (void)mockUserSession:(id)userSession callKitDelegate:(id)callKitDelegate;
++ (VoiceChannelStateChangeInfo *)stateChangeFrom:(ZMVoiceChannelState)state
+                                              to:(ZMVoiceChannelState)newState
+                                  inConversation:(ZMConversation *)conversation;
 @end
+
+NS_ASSUME_NONNULL_END

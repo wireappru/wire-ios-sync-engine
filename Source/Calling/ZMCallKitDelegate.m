@@ -166,7 +166,16 @@ NS_ASSUME_NONNULL_END
                 // Due to iOS bug the email caller is indicated as one with the INPersonHandleTypePhoneNumber in iOS 10.0.2
                 user = [ZMUser userWithEmailAddress:person.personHandle.value inContext:context];
                 
-                return user.oneToOneConversation;
+                if (nil == user) {
+                    NSUUID *personHandle = [NSUUID uuidWithTransportString:person.personHandle.value];
+                    ZMConversation *result = [ZMConversation conversationWithRemoteID:personHandle
+                                                                       createIfNeeded:NO
+                                                                            inContext:context];
+                    return result;
+                }
+                else {
+                    return user.oneToOneConversation;
+                }
             }
             else {
                 return user.oneToOneConversation;
@@ -442,7 +451,7 @@ NS_ASSUME_NONNULL_END
     ZMLogInfo(@"Call state %d -> %d", info.previousState, info.currentState);
     ZMConversation *conversation = info.voiceChannel.conversation;
     
-    switch (info.voiceChannel.state) {
+    switch (info.currentState) {
     case ZMVoiceChannelStateIncomingCall:
             [self indicateIncomingCallInConversation:conversation];
         break;

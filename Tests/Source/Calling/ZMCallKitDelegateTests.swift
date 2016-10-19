@@ -82,6 +82,17 @@ class ZMCallKitDelegateTest: MessagingTest {
         return otherUser
     }
     
+    func createOneOnOneConversation(user: ZMUser) {
+        let oneToOne = ZMConversation.insertNewObject(in: self.uiMOC)
+        oneToOne.conversationType = .oneOnOne
+        oneToOne.remoteIdentifier = UUID()
+        
+        let connection = ZMConnection.insertNewObject(in: self.uiMOC)
+        connection.status = .accepted
+        connection.conversation = oneToOne
+        connection.to = user
+    }
+    
     func conversation(type: ZMConversationType = .oneOnOne, moc: NSManagedObjectContext? = .none) -> ZMConversation {
         let moc = moc ?? self.uiMOC
         let conversation = ZMConversation(context: moc)
@@ -237,29 +248,29 @@ class ZMCallKitDelegateTest: MessagingTest {
     
     // Public API - activity & intents
     
-    func userActivityFor(contacts: [INPerson]?) -> NSUserActivity {
+    func userActivityFor(contacts: [INPerson]?, isVideo: Bool = false) -> NSUserActivity {
+
+        let intent: INIntent
         
-        let intent = INStartAudioCallIntent(contacts: contacts)
-        
+        if isVideo {
+            intent = INStartVideoCallIntent(contacts: contacts)
+        }
+        else {
+            intent = INStartAudioCallIntent(contacts: contacts)
+        }
+            
         let interaction = INInteraction(intent: intent, response: .none)
         
         let activity = NSUserActivity(activityType: "voip")
         activity.setValue(interaction, forKey: "interaction")
-        
         return activity
     }
     
     func testThatItStartsCallForUserKnownByEmail() {
         // given
         let otherUser = self.otherUser(moc: self.uiMOC)
-        otherUser.emailAddress = "user@email.com"
-        let oneToOne = ZMConversation.insertNewObject(in: self.uiMOC)
-        oneToOne.conversationType = .oneOnOne
-
-        let connection = ZMConnection.insertNewObject(in: self.uiMOC)
-        connection.status = .accepted
-        connection.conversation = oneToOne
-        connection.to = otherUser
+        otherUser.emailAddress = "testThatItStartsCallForUserKnownByEmail@email.com"
+        createOneOnOneConversation(user: otherUser)
         
         let handle = INPersonHandle(value: otherUser.emailAddress!, type: .emailAddress)
         let person = INPerson(personHandle: handle, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: .none)
@@ -274,15 +285,16 @@ class ZMCallKitDelegateTest: MessagingTest {
         XCTAssertTrue(self.callKitController.requestedTransaction!.actions.first! is CXStartCallAction)
         
         let action = self.callKitController.requestedTransaction!.actions.first! as! CXStartCallAction
-        XCTAssertEqual(action.handle.type, .emailAddress)
-        XCTAssertEqual(action.handle.value, ZMUser.selfUser(in: self.uiMOC).emailAddress)
+        XCTAssertEqual(action.callUUID, otherUser.oneToOneConversation.remoteIdentifier)
         XCTAssertFalse(action.isVideo)
     }
     
     func testThatItStartsCallForUserKnownByPhone() {
         // given
         let otherUser = self.otherUser(moc: self.uiMOC)
+        otherUser.emailAddress = nil
         otherUser.phoneNumber = "+123456789"
+        createOneOnOneConversation(user: otherUser)
         
         let handle = INPersonHandle(value: otherUser.phoneNumber!, type: .phoneNumber)
         let person = INPerson(personHandle: handle, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: .none)
@@ -297,32 +309,261 @@ class ZMCallKitDelegateTest: MessagingTest {
         XCTAssertTrue(self.callKitController.requestedTransaction!.actions.first! is CXStartCallAction)
         
         let action = self.callKitController.requestedTransaction!.actions.first! as! CXStartCallAction
-        XCTAssertEqual(action.handle.type, .phoneNumber)
-        XCTAssertEqual(action.handle.value, ZMUser.selfUser(in: self.uiMOC).phoneNumber)
+        XCTAssertEqual(action.callUUID, otherUser.oneToOneConversation.remoteIdentifier)
         XCTAssertFalse(action.isVideo)
     }
     
-    func testThatItStartsCallForGroup() {
+    func testThatItStartsCallForUserKnownByPhone_Video() {
+        // given
+        let otherUser = self.otherUser(moc: self.uiMOC)
+        otherUser.emailAddress = nil
+        otherUser.phoneNumber = "+123456789"
+        createOneOnOneConversation(user: otherUser)
         
+        let handle = INPersonHandle(value: otherUser.phoneNumber!, type: .phoneNumber)
+        let person = INPerson(personHandle: handle, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: .none)
+        
+        let activity = self.userActivityFor(contacts: [person], isVideo: true)
+        
+        // when
+        self.sut.`continue`(activity)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
+        XCTAssertTrue(self.callKitController.requestedTransaction!.actions.first! is CXStartCallAction)
+        
+        let action = self.callKitController.requestedTransaction!.actions.first! as! CXStartCallAction
+        XCTAssertEqual(action.callUUID, otherUser.oneToOneConversation.remoteIdentifier)
+        XCTAssertTrue(action.isVideo)
+    }
+    
+    func testThatItStartsCallForGroup() {
+        // given
+        let conversation = self.conversation(type: .group)
+        
+        let handle = INPersonHandle(value: conversation.remoteIdentifier!.transportString(), type: .unknown)
+        let person = INPerson(personHandle: handle, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: .none)
+        
+        let activity = self.userActivityFor(contacts: [person])
+        
+        // when
+        self.sut.`continue`(activity)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
+        XCTAssertTrue(self.callKitController.requestedTransaction!.actions.first! is CXStartCallAction)
+        
+        let action = self.callKitController.requestedTransaction!.actions.first! as! CXStartCallAction
+        XCTAssertEqual(action.callUUID, conversation.remoteIdentifier)
+        XCTAssertFalse(action.isVideo)
     }
     
     func testThatItIgnoresUnknownActivity() {
+        // given
+        let activity = NSUserActivity(activityType: "random-handoff")
         
+        // when
+        self.sut.`continue`(activity)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 0)
     }
     
     func testThatItIgnoresActivityWitoutContacts() {
+        // given
+        let activity = self.userActivityFor(contacts: [], isVideo: false)
         
+        // when
+        self.sut.`continue`(activity)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 0)
     }
     
     func testThatItIgnoresActivityWithManyContacts() {
+        // given
+
+        let handle1 = INPersonHandle(value: "+987654321", type: .phoneNumber)
+        let person1 = INPerson(personHandle: handle1, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: .none)
+
+        let handle2 = INPersonHandle(value: "+987654300", type: .phoneNumber)
+        let person2 = INPerson(personHandle: handle2, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: .none)
+
+        let activity = self.userActivityFor(contacts: [person1, person2], isVideo: false)
         
+        // when
+        self.sut.`continue`(activity)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 0)
     }
     
     func testThatItIgnoresActivityWithContactUnknown() {
+        // given
+        let otherUser = self.otherUser(moc: self.uiMOC)
+        otherUser.emailAddress = nil
+        otherUser.phoneNumber = "+123456789"
+        createOneOnOneConversation(user: otherUser)
         
+        let handle = INPersonHandle(value: "+987654321", type: .phoneNumber)
+        let person = INPerson(personHandle: handle, nameComponents: .none, displayName: .none, image: .none, contactIdentifier: .none, customIdentifier: .none)
+        
+        let activity = self.userActivityFor(contacts: [person], isVideo: false)
+        
+        // when
+        performIgnoringZMLogError {
+            self.sut.`continue`(activity)
+        }
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 0)
     }
     
     // Observer API - report incoming call
     
+    func testThatItDoesNotRequestCallStart_Outgoing() {
+        // given
+        let conversation = self.conversation()
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .outgoingCall, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 0)
+        
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallConnectedAtCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallStartedConnectingCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportCallEndedAtCalled, 0)
+    }
+    
+    func testThatItRequestsCallStart_Incoming() {
+        // given
+        let conversation = self.conversation()
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .incomingCall, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 1)
+        
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallConnectedAtCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallStartedConnectingCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportCallEndedAtCalled, 0)
+    }
+    
+    func testThatItRequestsCallStartedConnecting_Incoming() {
+        // given
+        let conversation = self.conversation()
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .incomingCall, to: .selfIsJoiningActiveChannel, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallStartedConnectingCalled, 1)
+        
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallConnectedAtCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportCallEndedAtCalled, 0)
+    }
+    
+    func testThatItRequestsCallConnected_Incoming() {
+        // given
+        let conversation = self.conversation()
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .selfIsJoiningActiveChannel, to: .selfConnectedToActiveChannel, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallConnectedAtCalled, 1)
+        
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallStartedConnectingCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportCallEndedAtCalled, 0)
+    }
+    
+    func testThatItDoesNotRequestsCallStart_OutgoingInGroupConversation() {
+        // given
+        let conversation = self.conversation(type: .group)
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .outgoingCall, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 0)
+        
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallConnectedAtCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallStartedConnectingCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportCallEndedAtCalled, 0)
+    }
+    
+    func testThatItRequestsCallStart_IncomingInGroupConversation() {
+        // given
+        let conversation = self.conversation(type: .group)
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .incomingCall, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 1)
+        
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallConnectedAtCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallStartedConnectingCalled, 0)
+        XCTAssertEqual(self.callKitProvider.timesReportCallEndedAtCalled, 0)
+    }
+    
     // Observer API - report end of call
+    
+    func testThatItRequestsEndCall_Outgoing() {
+        // given
+        let conversation = self.conversation()
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .outgoingCall, to: .noActiveUsers, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
+    }
+    
+    func testThatItRequestsEndCall_Incoming() {
+        // given
+        let conversation = self.conversation()
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .selfConnectedToActiveChannel, to: .noActiveUsers, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
+    }
+    
+    func testThatItRequestsEndCall_OutgoingInGroupConversation() {
+        // given
+        let conversation = self.conversation(type: .group)
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .outgoingCall, to: .noActiveUsers, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
+    }
+    
+    func testThatItRequestsEndCall_IncomingInGroupConversation() {
+        // given
+        let conversation = self.conversation(type: .group)
+        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .selfConnectedToActiveChannel, to: .noActiveUsers, in: conversation)
+        
+        // when
+        self.sut.voiceChannelStateDidChange(change)
+        
+        // then
+        XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
+    }
 }

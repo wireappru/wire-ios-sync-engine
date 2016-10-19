@@ -25,7 +25,18 @@
 
 + (void)mockUserSession:(id)userSession callKitDelegate:(id)callKitDelegate
 {
-    [[(id)[userSession stub] andReturnValue:callKitDelegate] callKitDelegate];
+    [[(id)[userSession stub] andReturn:callKitDelegate] callKitDelegate];
+}
+
++ (VoiceChannelStateChangeInfo *)stateChangeFrom:(ZMVoiceChannelState)state
+                                              to:(ZMVoiceChannelState)newState
+                                  inConversation:(ZMConversation *)conversation
+{
+    id stateMock = [OCMockObject niceMockForClass:VoiceChannelStateChangeInfo.class];
+    [[[stateMock stub] andReturnValue:[NSNumber numberWithInt:newState]] currentState];
+    [[[stateMock stub] andReturnValue:[NSNumber numberWithInt:state]] previousState];
+    [[[stateMock stub] andReturn:conversation.voiceChannel] voiceChannel];
+    return stateMock;
 }
 
 @end
