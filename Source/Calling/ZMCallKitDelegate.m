@@ -379,15 +379,8 @@ NS_ASSUME_NONNULL_END
         ZMLogError(@"couldn't set session's audio mode: %ld", (long)error.code);
     }
     
-    // set the buffer duration to 5 ms
-    NSTimeInterval bufferDuration = .005;
-    [sessionInstance setPreferredIOBufferDuration:bufferDuration error:&error];
-    if (error.code != 0) {
-        ZMLogError(@"couldn't set session's I/O buffer duration: %ld", (long)error.code);
-    }
-    
     // set the session's sample rate
-    [sessionInstance setPreferredSampleRate:44100 error:&error];
+    [sessionInstance setPreferredSampleRate:16000 error:&error];
     if (error.code != 0) {
         ZMLogError(@"couldn't set session's preferred sample rate: %ld", (long)error.code);
     }
