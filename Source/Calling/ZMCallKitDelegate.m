@@ -91,6 +91,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) id<CallKitCallController> callController;
 @property (nonatomic) ZMUserSession *userSession;
 @property (nonatomic) AVSMediaManager *mediaManager;
+@property (nonatomic) ZMConversationList *conversationList;
 
 @property (nonatomic) id <ZMVoiceChannelStateObserverOpaqueToken> voiceChannelStateObserverToken;
 @end
@@ -249,13 +250,15 @@ NS_ASSUME_NONNULL_END
     if (nil != self) {
         Require(callKitProvider);
         Require(callController);
-        
+        Require(userSession);
+
         self.provider = callKitProvider;
         self.callController = callController;
         [self.provider setDelegate:self queue:nil];
         self.userSession = userSession;
         self.mediaManager = mediaManager;
         
+        self.conversationList = [ZMConversationList conversationsInUserSession:self.userSession];
         self.voiceChannelStateObserverToken = [ZMVoiceChannel addGlobalVoiceChannelStateObserver:self
                                                                                    inUserSession:self.userSession
                                                                                 runsInBackground:YES];
@@ -463,6 +466,7 @@ NS_ASSUME_NONNULL_END
     case ZMVoiceChannelStateSelfConnectedToActiveChannel:
             [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier
                                       connectedAtDate:[NSDate date]];
+            conversation.voiceChannel.callStartDate = [NSDate date];
         break;
     case ZMVoiceChannelStateNoActiveUsers:
         {
@@ -475,6 +479,7 @@ NS_ASSUME_NONNULL_END
                     ZMLogError(@"Cannot end call: %@", error);
                 }
             }];
+            conversation.voiceChannel.callStartDate = nil;
         }
         break;
     default:

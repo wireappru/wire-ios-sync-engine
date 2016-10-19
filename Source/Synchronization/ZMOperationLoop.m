@@ -355,14 +355,14 @@ static char* const ZMLogTag ZM_UNUSED = "OperationLoop";
 - (void)pushChannelDidClose:(ZMPushChannelConnection *)channel withResponse:(NSHTTPURLResponse *)response;
 {
     NOT_USED(response);
-        [[NSNotificationCenter defaultCenter] postNotificationName:ZMPushChannelStateChangeNotificationName object:self userInfo:@{ZMPushChannelIsOpenKey : @(NO), ZMPushChannelResponseStatusKey : @(response.statusCode)}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:ZMPushChannelStateChangeNotificationName object:self userInfo:@{ZMPushChannelIsOpenKey : @(NO), ZMPushChannelResponseStatusKey : @(response.statusCode)}];
     [self.syncStrategy didInterruptUpdateEventsStream];
     [ZMRequestAvailableNotification notifyNewRequestsAvailable:channel];
 }
 
 - (void)pushChannelDidOpen:(ZMPushChannelConnection *)channel withResponse:(NSHTTPURLResponse *)response;
 {
-        [[NSNotificationCenter defaultCenter] postNotificationName:ZMPushChannelStateChangeNotificationName object:self userInfo:@{ZMPushChannelIsOpenKey : @(YES), ZMPushChannelResponseStatusKey : @(response.statusCode)}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:ZMPushChannelStateChangeNotificationName object:self userInfo:@{ZMPushChannelIsOpenKey : @(YES), ZMPushChannelResponseStatusKey : @(response.statusCode)}];
     [self.syncStrategy didEstablishUpdateEventsStream];
     [ZMRequestAvailableNotification notifyNewRequestsAvailable:channel];
 }
