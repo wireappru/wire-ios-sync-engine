@@ -91,9 +91,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) id<CallKitCallController> callController;
 @property (nonatomic) ZMUserSession *userSession;
 @property (nonatomic) AVSMediaManager *mediaManager;
-@property (nonatomic) ZMConversationList *conversationList;
-
-@property (nonatomic) id <ZMVoiceChannelStateObserverOpaqueToken> voiceChannelStateObserverToken;
+@property (nonatomic) NSMutableDictionary <NSString *, NSNumber *> *lastConversationsState;
 @end
 
 NS_ASSUME_NONNULL_END
@@ -236,8 +234,7 @@ NS_ASSUME_NONNULL_END
 
 - (void)dealloc
 {
-    [ZMVoiceChannel removeGlobalVoiceChannelStateObserverForToken:self.voiceChannelStateObserverToken
-                                                    inUserSession:self.userSession];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (instancetype)initWithCallKitProvider:(id<CallKitProviderType>)callKitProvider
@@ -258,10 +255,12 @@ NS_ASSUME_NONNULL_END
         self.userSession = userSession;
         self.mediaManager = mediaManager;
         
-        self.conversationList = [ZMConversationList conversationsInUserSession:self.userSession];
-        self.voiceChannelStateObserverToken = [ZMVoiceChannel addGlobalVoiceChannelStateObserver:self
-                                                                                   inUserSession:self.userSession
-                                                                                runsInBackground:YES];
+        self.lastConversationsState = [[NSMutableDictionary alloc] init];
+
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(managedObjectsDidChange:)
+                                                     name:NSManagedObjectContextObjectsDidChangeNotification
+                                                   object:self.userSession.managedObjectContext];
     }
     return self;
 }
@@ -449,12 +448,40 @@ NS_ASSUME_NONNULL_END
 
 @implementation ZMCallKitDelegate (VoiceChannelObserver)
 
-- (void)voiceChannelStateDidChange:(VoiceChannelStateChangeInfo *)info
+- (void)managedObjectsDidChange:(NSNotification *)notification
 {
-    ZMLogInfo(@"Call state %d -> %d", info.previousState, info.currentState);
-    ZMConversation *conversation = info.voiceChannel.conversation;
+    NSSet<ZMManagedObject *> *changeSet = notification.userInfo[NSUpdatedObjectsKey];
+    if (changeSet.count > 0 && [changeSet.anyObject isKindOfClass:[ZMConversation class]]) {
+        for (ZMConversation *conversation in changeSet) {
+            [self updateConversationIfNeeded:conversation];
+        }
+    }
     
-    switch (info.currentState) {
+    NSSet<ZMManagedObject *> *refreshSet = notification.userInfo[NSRefreshedObjectsKey];
+    if (refreshSet.count > 0 && [refreshSet.anyObject isKindOfClass:[ZMConversation class]]) {
+        for (ZMConversation *conversation in refreshSet) {
+            [self updateConversationIfNeeded:conversation];
+        }
+    }
+}
+
+- (void)updateConversationIfNeeded:(ZMConversation *)conversation
+{
+    ZMVoiceChannelState newState = conversation.voiceChannel.state;
+    NSNumber *knownStateNumber = self.lastConversationsState[conversation.remoteIdentifier.transportString];
+    ZMVoiceChannelState knownState = (ZMVoiceChannelState)[knownStateNumber integerValue];
+    if (knownStateNumber == nil || knownState != newState) {
+        [self conversationVoiceChannelStateDidChange:conversation];
+    }
+    
+    self.lastConversationsState[conversation.remoteIdentifier.transportString] = @(newState);
+}
+
+- (void)conversationVoiceChannelStateDidChange:(ZMConversation *)conversation
+{
+    ZMLogInfo(@"Call state %d in %@", conversation.voiceChannel.state, conversation.displayName);
+    
+    switch (conversation.voiceChannel.state) {
     case ZMVoiceChannelStateIncomingCall:
             [self indicateIncomingCallInConversation:conversation];
         break;

@@ -97,7 +97,4 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)continueUserActivity:(NSUserActivity *)userActivity;
 @end
 
-@interface ZMCallKitDelegate (VoiceChannelObserver) <ZMVoiceChannelStateObserver>
-@end
-
 NS_ASSUME_NONNULL_END
