@@ -79,6 +79,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ZMCallKitDelegate : NSObject
 - (instancetype)initWithCallKitProvider:(id<CallKitProviderType>)callKitProvider
                          callController:(id<CallKitCallController>)callController
+                    onDemandFlowManager:(ZMOnDemandFlowManager *)onDemandFlowManager
                             userSession:(ZMUserSession *)userSession
                            mediaManager:(nullable AVSMediaManager *)mediaManager;
 

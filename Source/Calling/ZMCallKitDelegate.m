@@ -89,6 +89,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ZMCallKitDelegate ()
 @property (nonatomic) id<CallKitProviderType> provider;
 @property (nonatomic) id<CallKitCallController> callController;
+@property (nonatomic) ZMOnDemandFlowManager *onDemandFlowManager;
 @property (nonatomic) ZMUserSession *userSession;
 @property (nonatomic) AVSMediaManager *mediaManager;
 @property (nonatomic) NSMutableDictionary <NSString *, NSNumber *> *lastConversationsState;
@@ -239,6 +240,7 @@ NS_ASSUME_NONNULL_END
 
 - (instancetype)initWithCallKitProvider:(id<CallKitProviderType>)callKitProvider
                          callController:(id<CallKitCallController>)callController
+                    onDemandFlowManager:(ZMOnDemandFlowManager *)onDemandFlowManager
                             userSession:(ZMUserSession *)userSession
                            mediaManager:(AVSMediaManager *)mediaManager
 
@@ -254,6 +256,7 @@ NS_ASSUME_NONNULL_END
         [self.provider setDelegate:self queue:nil];
         self.userSession = userSession;
         self.mediaManager = mediaManager;
+        self.onDemandFlowManager = onDemandFlowManager;
         
         self.lastConversationsState = [[NSMutableDictionary alloc] init];
 
@@ -261,6 +264,11 @@ NS_ASSUME_NONNULL_END
                                                  selector:@selector(managedObjectsDidChange:)
                                                      name:NSManagedObjectContextObjectsDidChangeNotification
                                                    object:self.userSession.managedObjectContext];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(applicationDidBecomeActive:)
+                                                     name:UIApplicationDidBecomeActiveNotification
+                                                   object:nil];
     }
     return self;
 }
@@ -513,6 +521,21 @@ NS_ASSUME_NONNULL_END
         break;
     default:
         break;
+    }
+}
+
+@end
+
+@implementation ZMCallKitDelegate (ApplicationStateObserver)
+
+- (void)applicationDidBecomeActive:(NSNotification *)notification
+{
+    NOT_USED(notification);
+    // We need to start video in conversation that accepted video call in background but did not start the recording yet
+    ZMConversation *callConversation = [self activeCallConversation];
+    if (callConversation != nil && callConversation.isVideoCall) {
+        [self.onDemandFlowManager.flowManager setVideoSendState:FLOWMANAGER_VIDEO_SEND
+                                                forConversation:callConversation.remoteIdentifier.transportString];
     }
 }
 

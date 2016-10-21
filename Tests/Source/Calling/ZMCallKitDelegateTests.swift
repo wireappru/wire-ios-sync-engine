@@ -120,6 +120,7 @@ class ZMCallKitDelegateTest: MessagingTest {
         
         self.sut = ZMCallKitDelegate(callKitProvider: self.callKitProvider,
                                      callController: self.callKitController,
+                                     onDemandFlowManager: nil,
                                      userSession: self.mockUserSession,
                                      mediaManager: nil)
         
