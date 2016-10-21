@@ -70,7 +70,7 @@
  */
 
 
-static NSString * const ZMCallKitDelegateCallStartedInGroup = @"callkit.call.started.group";
+static NSString * const ZMCallKitDelegateCallStartedInGroup = @"callkit.call.started";
 
 static char* const ZMLogTag ZM_UNUSED = "CallKit";
 
@@ -288,7 +288,7 @@ NS_ASSUME_NONNULL_END
                                                   @(CXHandleTypeEmailAddress),
                                                   @(CXHandleTypeGeneric), nil];
     
-    providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:@"AppIcon"]); // TODO add correct icon
+    providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:@"logo"]);
     NSString *ringtoneSound = [ZMCustomSound notificationRingingSoundName];
     providerConfiguration.ringtoneSound = ringtoneSound;
 
