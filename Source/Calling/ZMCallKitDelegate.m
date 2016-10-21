@@ -450,20 +450,21 @@ NS_ASSUME_NONNULL_END
 
 - (void)managedObjectsDidChange:(NSNotification *)notification
 {
-    NSSet<ZMManagedObject *> *changeSet = notification.userInfo[NSUpdatedObjectsKey];
-    
-    for (id object in changeSet) {
-        if ([object isKindOfClass:[ZMConversation class]]) {
-            [self updateConversationIfNeeded:object];
-        }
-    }
-    
+    NSSet<ZMManagedObject *> *updateSet = notification.userInfo[NSUpdatedObjectsKey];
     NSSet<ZMManagedObject *> *refreshSet = notification.userInfo[NSRefreshedObjectsKey];
-    for (id object in refreshSet) {
-        if ([object isKindOfClass:[ZMConversation class]]) {
-            [self updateConversationIfNeeded:object];
+    NSSet<ZMManagedObject *> *insertedSet = notification.userInfo[NSInsertedObjectsKey];
+
+    void (^handleChangeset)(NSSet <ZMManagedObject *> *changeset) = ^(NSSet <ZMManagedObject *> *changeset) {
+        for (id object in changeset) {
+            if ([object isKindOfClass:[ZMConversation class]]) {
+                [self updateConversationIfNeeded:object];
+            }
         }
-    }
+    };
+    
+    handleChangeset(updateSet);
+    handleChangeset(refreshSet);
+    handleChangeset(insertedSet);
 }
 
 - (void)updateConversationIfNeeded:(ZMConversation *)conversation

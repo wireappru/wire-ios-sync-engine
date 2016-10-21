@@ -17,7 +17,7 @@
 //
 
 import Foundation
-import ZMCDataModel
+@testable import ZMCDataModel
 import Intents
 @testable import zmessaging
 
@@ -98,6 +98,7 @@ class ZMCallKitDelegateTest: MessagingTest {
         let conversation = ZMConversation(context: moc)
         conversation.remoteIdentifier = UUID()
         conversation.conversationType = type
+        conversation.isSelfAnActiveMember = true
         
         if type == .group {
             conversation.addParticipant(self.otherUser(moc: moc))
@@ -421,14 +422,59 @@ class ZMCallKitDelegateTest: MessagingTest {
     
     // Observer API - report incoming call
     
+ /*   - (ZMVoiceChannelState)stateForIsSelfJoined:(BOOL)selfJoined otherJoined:(BOOL)otherJoined isDeviceActive:(BOOL)isDeviceActive flowActive:(BOOL)flowActive isIgnoringCall:(BOOL)isIgnoringCall
+    {
+    const BOOL selfActiveInCall = selfJoined || isDeviceActive;
+    ZMConversation *conversation = self.conversation;
+     
+        if (!conversation.isSelfAnActiveMember) {
+            return ZMVoiceChannelStateNoActiveUsers;
+        }
+        else if (isIgnoringCall) {
+            if (conversation.conversationType == ZMConversationTypeOneOnOne ||
+            (conversation.isOutgoingCall && !otherJoined)) // we cancelled an outgoing call
+            {
+                return ZMVoiceChannelStateNoActiveUsers;
+            }
+        
+            if (otherJoined) {
+                return ZMVoiceChannelStateIncomingCallInactive;
+            }
+            else {
+                return ZMVoiceChannelStateNoActiveUsers;
+            }
+        }
+        else if (selfJoined && !isDeviceActive && !conversation.isOutgoingCall)
+        {
+            return ZMVoiceChannelStateDeviceTransferReady;
+        }
+        else if (selfActiveInCall && !otherJoined) {
+            return [self currentOutgoingCallState];
+        }
+        else if (!selfActiveInCall && otherJoined) {
+            return [self currentIncomingCallState];
+        }
+        else if (selfActiveInCall && otherJoined) {
+            if (flowActive) {
+                return ZMVoiceChannelStateSelfConnectedToActiveChannel;
+            } else {
+                return ZMVoiceChannelStateSelfIsJoiningActiveChannel;
+            }
+        } else {
+            return  ZMVoiceChannelStateNoActiveUsers;
+        }
+    
+    }
+*/
     func testThatItDoesNotRequestCallStart_Outgoing() {
         // given
         let conversation = self.conversation()
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .outgoingCall, in: conversation)
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
-        
+        conversation.isOutgoingCall = true
+        self.uiMOC.saveOrRollback()
+        XCTAssertEqual(conversation.voiceChannel.state, .outgoingCall)
+
         // then
         XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 0)
         
@@ -440,10 +486,14 @@ class ZMCallKitDelegateTest: MessagingTest {
     func testThatItRequestsCallStart_Incoming() {
         // given
         let conversation = self.conversation()
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .incomingCall, in: conversation)
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(self.otherUser(moc: self.uiMOC))
+        self.uiMOC.saveOrRollback()
+        
+        XCTAssertEqual(conversation.voiceChannel.state, .incomingCall)
+
         
         // then
         XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 1)
@@ -456,10 +506,15 @@ class ZMCallKitDelegateTest: MessagingTest {
     func testThatItRequestsCallStartedConnecting_Incoming() {
         // given
         let conversation = self.conversation()
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .incomingCall, to: .selfIsJoiningActiveChannel, in: conversation)
+        conversation.callDeviceIsActive = true
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(self.otherUser(moc: self.uiMOC))
+        mutableCallParticipants.add(ZMUser.selfUser(in: self.uiMOC))
+        self.uiMOC.saveOrRollback()
+        
+        XCTAssertEqual(conversation.voiceChannel.state, .selfIsJoiningActiveChannel)
         
         // then
         XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallStartedConnectingCalled, 1)
@@ -472,10 +527,16 @@ class ZMCallKitDelegateTest: MessagingTest {
     func testThatItRequestsCallConnected_Incoming() {
         // given
         let conversation = self.conversation()
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .selfIsJoiningActiveChannel, to: .selfConnectedToActiveChannel, in: conversation)
+        conversation.callDeviceIsActive = true
+        conversation.isFlowActive = true
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(self.otherUser(moc: self.uiMOC))
+        mutableCallParticipants.add(ZMUser.selfUser(in: self.uiMOC))
+        self.uiMOC.saveOrRollback()
+        
+        XCTAssertEqual(conversation.voiceChannel.state, .selfConnectedToActiveChannel)
         
         // then
         XCTAssertEqual(self.callKitProvider.timesReportOutgoingCallConnectedAtCalled, 1)
@@ -488,11 +549,15 @@ class ZMCallKitDelegateTest: MessagingTest {
     func testThatItDoesNotRequestsCallStart_OutgoingInGroupConversation() {
         // given
         let conversation = self.conversation(type: .group)
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .outgoingCall, in: conversation)
+        conversation.callDeviceIsActive = true
+        conversation.isOutgoingCall = true
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(ZMUser.selfUser(in: self.uiMOC))
+        self.uiMOC.saveOrRollback()
         
+        XCTAssertEqual(conversation.voiceChannel.state, .outgoingCall)
         // then
         XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 0)
         
@@ -504,10 +569,13 @@ class ZMCallKitDelegateTest: MessagingTest {
     func testThatItRequestsCallStart_IncomingInGroupConversation() {
         // given
         let conversation = self.conversation(type: .group)
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .noActiveUsers, to: .incomingCall, in: conversation)
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(self.otherUser(moc: self.uiMOC))
+        self.uiMOC.saveOrRollback()
+        
+        XCTAssertEqual(conversation.voiceChannel.state, .incomingCall)
         
         // then
         XCTAssertEqual(self.callKitProvider.timesReportNewIncomingCallCalled, 1)
@@ -521,11 +589,27 @@ class ZMCallKitDelegateTest: MessagingTest {
     
     func testThatItRequestsEndCall_Outgoing() {
         // given
-        let conversation = self.conversation()
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .outgoingCall, to: .noActiveUsers, in: conversation)
+        let conversation = self.conversation(type: .group)
+        self.uiMOC.saveOrRollback()
+        
+        conversation.callDeviceIsActive = true
+        conversation.isOutgoingCall = true
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(ZMUser.selfUser(in: self.uiMOC))
+        self.uiMOC.saveOrRollback()
+        self.callKitController.timesRequestTransactionCalled = 0
+        
+        XCTAssertEqual(conversation.voiceChannel.state, .outgoingCall)
+        
+        conversation.callDeviceIsActive = false
+        conversation.isOutgoingCall = false
+        let newMutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        newMutableCallParticipants.removeAllObjects()
+        self.uiMOC.saveOrRollback()
+        
+        XCTAssertEqual(conversation.voiceChannel.state, .noActiveUsers)
         
         // then
         XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
@@ -534,23 +618,52 @@ class ZMCallKitDelegateTest: MessagingTest {
     func testThatItRequestsEndCall_Incoming() {
         // given
         let conversation = self.conversation()
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .selfConnectedToActiveChannel, to: .noActiveUsers, in: conversation)
+        conversation.callDeviceIsActive = true
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(self.otherUser(moc: self.uiMOC))
+        mutableCallParticipants.add(ZMUser.selfUser(in: self.uiMOC))
+        self.uiMOC.saveOrRollback()
         
+        self.callKitController.timesRequestTransactionCalled = 0
+
+        XCTAssertEqual(conversation.voiceChannel.state, .selfIsJoiningActiveChannel)
+        
+        
+        conversation.callDeviceIsActive = false
+        let newMutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        newMutableCallParticipants.removeAllObjects()
+        self.uiMOC.saveOrRollback()
+        
+        XCTAssertEqual(conversation.voiceChannel.state, .noActiveUsers)
         // then
         XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
     }
     
     func testThatItRequestsEndCall_OutgoingInGroupConversation() {
         // given
+        // given
         let conversation = self.conversation(type: .group)
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .outgoingCall, to: .noActiveUsers, in: conversation)
+        conversation.callDeviceIsActive = true
+        conversation.isOutgoingCall = true
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(ZMUser.selfUser(in: self.uiMOC))
+        self.uiMOC.saveOrRollback()
         
+        self.callKitController.timesRequestTransactionCalled = 0
+
+        XCTAssertEqual(conversation.voiceChannel.state, .outgoingCall)
+        
+        conversation.callDeviceIsActive = false
+        conversation.isOutgoingCall = false
+        let newMutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        newMutableCallParticipants.removeAllObjects()
+        self.uiMOC.saveOrRollback()
+        XCTAssertEqual(conversation.voiceChannel.state, .noActiveUsers)
+
         // then
         XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)
     }
@@ -558,10 +671,18 @@ class ZMCallKitDelegateTest: MessagingTest {
     func testThatItRequestsEndCall_IncomingInGroupConversation() {
         // given
         let conversation = self.conversation(type: .group)
-        let change = ZMCallKitDelegateTestsMocking.stateChange(from: .selfConnectedToActiveChannel, to: .noActiveUsers, in: conversation)
         
         // when
-        self.sut.voiceChannelStateDidChange(change)
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(self.otherUser(moc: self.uiMOC))
+        self.uiMOC.saveOrRollback()
+        self.callKitController.timesRequestTransactionCalled = 0
+
+        XCTAssertEqual(conversation.voiceChannel.state, .incomingCall)
+        let newMutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        newMutableCallParticipants.removeAllObjects()
+        self.uiMOC.saveOrRollback()
+        XCTAssertEqual(conversation.voiceChannel.state, .noActiveUsers)
         
         // then
         XCTAssertEqual(self.callKitController.timesRequestTransactionCalled, 1)

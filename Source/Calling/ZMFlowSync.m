@@ -453,7 +453,8 @@ static char* const ZMLogTag ZM_UNUSED = "Calling";
     
     BOOL canSendVideo = NO;
     if (conversation.isVideoCall) {
-        if ([self.flowManager canSendVideoForConversation:conversationIdentifier]) {
+        BOOL useCallKit = [ZMUserSession useCallKit];
+        if ([self.flowManager canSendVideoForConversation:conversationIdentifier] && (!useCallKit || self.application.applicationState == UIApplicationStateActive)) {
             [self.flowManager setVideoSendState:FLOWMANAGER_VIDEO_SEND forConversation:conversationIdentifier];
             canSendVideo = YES;
         } else {
