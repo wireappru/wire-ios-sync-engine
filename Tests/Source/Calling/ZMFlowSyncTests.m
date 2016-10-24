@@ -870,6 +870,8 @@ static NSString * const FlowEventName2 = @"conversation.member-join";
     
     // then
     [self.internalFlowManager verify];
+    
+    [ZMUserSession setUseCallKit:NO];
 }
 
 - (void)testThatItDoesNotTryToEstablishVideoCallIfCanNotSendVideoCall

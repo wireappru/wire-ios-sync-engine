@@ -127,6 +127,11 @@ class ZMCallKitDelegateTest: MessagingTest {
         ZMCallKitDelegateTestsMocking.mockUserSession(self.mockUserSession, callKitDelegate: self.sut)
     }
     
+    override func tearDown() {
+        super.tearDown()
+        ZMUserSession.setUseCallKit(false)
+    }
+    
     // Public API - provider configuration
     func testThatItReturnsTheProviderConfiguration() {
         // when
