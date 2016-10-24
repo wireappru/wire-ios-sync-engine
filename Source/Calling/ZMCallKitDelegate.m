@@ -273,7 +273,7 @@ NS_ASSUME_NONNULL_END
                                                      name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
         
-        for (ZMConversation *conversation in self.activeCallConversations) {
+        for (ZMConversation *conversation in self.nonIdleCallConversations) {
             [self conversationVoiceChannelStateDidChange:conversation];
         }
     }
@@ -333,7 +333,7 @@ NS_ASSUME_NONNULL_END
     }];
 }
 
-- (NSArray<ZMConversation *> *)activeCallConversations
+- (NSArray<ZMConversation *> *)nonIdleCallConversations
 {
     ZMConversationList *nonIdleConversations = [ZMConversationList conversationsInUserSession:self.userSession];
     
@@ -536,7 +536,7 @@ NS_ASSUME_NONNULL_END
 {
     NOT_USED(notification);
     // We need to start video in conversation that accepted video call in background but did not start the recording yet
-    ZMConversation *callConversation = [[self activeCallConversations] firstObject];
+    ZMConversation *callConversation = [[self nonIdleCallConversations] firstObject];
     if (callConversation != nil && callConversation.isVideoCall) {
         [self.onDemandFlowManager.flowManager setVideoSendState:FLOWMANAGER_VIDEO_SEND
                                                 forConversation:callConversation.remoteIdentifier.transportString];
