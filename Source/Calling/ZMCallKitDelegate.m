@@ -95,6 +95,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSMutableDictionary <NSString *, NSNumber *> *lastConversationsState;
 @end
 
+@interface ZMCallKitDelegate (VoiceChannelObserver)
+- (void)conversationVoiceChannelStateDidChange:(ZMConversation *)conversation;
+@end
+
 NS_ASSUME_NONNULL_END
 
 @implementation ZMUser (Handle)
@@ -217,7 +221,9 @@ NS_ASSUME_NONNULL_END
     return [NSSet setWithObjects:@(ZMVoiceChannelStateOutgoingCall),
             @(ZMVoiceChannelStateOutgoingCallInactive),
             @(ZMVoiceChannelStateSelfIsJoiningActiveChannel),
-            @(ZMVoiceChannelStateSelfConnectedToActiveChannel),  nil];
+            @(ZMVoiceChannelStateSelfConnectedToActiveChannel),
+            @(ZMVoiceChannelStateIncomingCall),
+            @(ZMVoiceChannelStateIncomingCallInactive), nil];
 }
 
 - (BOOL)inActiveState
@@ -269,6 +275,10 @@ NS_ASSUME_NONNULL_END
                                                  selector:@selector(applicationDidBecomeActive:)
                                                      name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
+        
+        for (ZMConversation *conversation in self.activeCallConversations) {
+            [self conversationVoiceChannelStateDidChange:conversation];
+        }
     }
     return self;
 }
@@ -326,9 +336,9 @@ NS_ASSUME_NONNULL_END
     }];
 }
 
-- (ZMConversation *)activeCallConversation
+- (NSArray<ZMConversation *> *)activeCallConversations
 {
-    ZMConversationList *nonIdleConversations = [ZMConversationList nonIdleVoiceChannelConversationsInUserSession:self.userSession];
+    ZMConversationList *nonIdleConversations = [ZMConversationList conversationsInUserSession:self.userSession];
     
     NSArray *activeCallConversations = [nonIdleConversations objectsAtIndexes:[nonIdleConversations
                                                                                indexesOfObjectsPassingTest:
@@ -336,7 +346,7 @@ NS_ASSUME_NONNULL_END
         return conversation.voiceChannel.inActiveState;
     }]];
     
-    return activeCallConversations.firstObject;
+    return activeCallConversations;
 }
 
 - (void)indicateIncomingCallInConversation:(ZMConversation *)conversation
@@ -458,8 +468,8 @@ NS_ASSUME_NONNULL_END
 
 - (void)managedObjectsDidChange:(NSNotification *)notification
 {
-    NSSet<ZMManagedObject *> *updateSet = notification.userInfo[NSUpdatedObjectsKey];
-    NSSet<ZMManagedObject *> *refreshSet = notification.userInfo[NSRefreshedObjectsKey];
+    NSSet<ZMManagedObject *> *updateSet   = notification.userInfo[NSUpdatedObjectsKey];
+    NSSet<ZMManagedObject *> *refreshSet  = notification.userInfo[NSRefreshedObjectsKey];
     NSSet<ZMManagedObject *> *insertedSet = notification.userInfo[NSInsertedObjectsKey];
 
     void (^handleChangeset)(NSSet <ZMManagedObject *> *changeset) = ^(NSSet <ZMManagedObject *> *changeset) {
@@ -532,7 +542,7 @@ NS_ASSUME_NONNULL_END
 {
     NOT_USED(notification);
     // We need to start video in conversation that accepted video call in background but did not start the recording yet
-    ZMConversation *callConversation = [self activeCallConversation];
+    ZMConversation *callConversation = [[self activeCallConversations] firstObject];
     if (callConversation != nil && callConversation.isVideoCall) {
         [self.onDemandFlowManager.flowManager setVideoSendState:FLOWMANAGER_VIDEO_SEND
                                                 forConversation:callConversation.remoteIdentifier.transportString];
