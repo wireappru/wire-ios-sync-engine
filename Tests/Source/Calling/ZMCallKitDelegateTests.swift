@@ -428,56 +428,14 @@ class ZMCallKitDelegateTest: MessagingTest {
     
     // Observer API - report incoming call
     
- /*   - (ZMVoiceChannelState)stateForIsSelfJoined:(BOOL)selfJoined otherJoined:(BOOL)otherJoined isDeviceActive:(BOOL)isDeviceActive flowActive:(BOOL)flowActive isIgnoringCall:(BOOL)isIgnoringCall
-    {
-    const BOOL selfActiveInCall = selfJoined || isDeviceActive;
-    ZMConversation *conversation = self.conversation;
-     
-        if (!conversation.isSelfAnActiveMember) {
-            return ZMVoiceChannelStateNoActiveUsers;
-        }
-        else if (isIgnoringCall) {
-            if (conversation.conversationType == ZMConversationTypeOneOnOne ||
-            (conversation.isOutgoingCall && !otherJoined)) // we cancelled an outgoing call
-            {
-                return ZMVoiceChannelStateNoActiveUsers;
-            }
-        
-            if (otherJoined) {
-                return ZMVoiceChannelStateIncomingCallInactive;
-            }
-            else {
-                return ZMVoiceChannelStateNoActiveUsers;
-            }
-        }
-        else if (selfJoined && !isDeviceActive && !conversation.isOutgoingCall)
-        {
-            return ZMVoiceChannelStateDeviceTransferReady;
-        }
-        else if (selfActiveInCall && !otherJoined) {
-            return [self currentOutgoingCallState];
-        }
-        else if (!selfActiveInCall && otherJoined) {
-            return [self currentIncomingCallState];
-        }
-        else if (selfActiveInCall && otherJoined) {
-            if (flowActive) {
-                return ZMVoiceChannelStateSelfConnectedToActiveChannel;
-            } else {
-                return ZMVoiceChannelStateSelfIsJoiningActiveChannel;
-            }
-        } else {
-            return  ZMVoiceChannelStateNoActiveUsers;
-        }
-    
-    }
-*/
     func testThatItDoesNotRequestCallStart_Outgoing() {
         // given
         let conversation = self.conversation()
         
         // when
         conversation.isOutgoingCall = true
+        let mutableCallParticipants = conversation.mutableOrderedSetValue(forKey: ZMConversationCallParticipantsKey)
+        mutableCallParticipants.add(ZMUser.selfUser(in: self.uiMOC))
         self.uiMOC.saveOrRollback()
         XCTAssertEqual(conversation.voiceChannel.state, .outgoingCall)
 
