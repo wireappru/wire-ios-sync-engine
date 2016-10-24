@@ -69,6 +69,8 @@
 - (void)joinInUserSession:(ZMUserSession *)userSession
 {
     if ([ZMUserSession useCallKit]) {
+        [userSession.transportSession restartPushChannel];
+        
         [userSession.callKitDelegate requestStartCallInConversation:self.conversation videoCall:NO];
     }
     else {
