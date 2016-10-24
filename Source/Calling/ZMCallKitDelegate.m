@@ -79,19 +79,19 @@ NS_ASSUME_NONNULL_BEGIN
 @implementation CXProvider (TypeConformance)
 @end
 
-@interface ZMVoiceChannel (ActiveStates)
+@interface ZMVoiceChannel (NonIdleStates)
 /// Returns the list of @c ZMVoiceChannelState that are considered as an active call.
-+ (NSSet *)activeStates;
++ (NSSet *)nonIdleStates;
 /// Checks if current state of voice channel is one of the active ones.
-- (BOOL)inActiveState;
+- (BOOL)inNonIdleState;
 @end
 
 @interface ZMCallKitDelegate ()
 @property (nonatomic) id<CallKitProviderType> provider;
 @property (nonatomic) id<CallKitCallController> callController;
 @property (nonatomic) ZMOnDemandFlowManager *onDemandFlowManager;
-@property (nonatomic) ZMUserSession *userSession;
-@property (nonatomic) AVSMediaManager *mediaManager;
+@property (nonatomic, weak) ZMUserSession *userSession;
+@property (nonatomic, weak) AVSMediaManager *mediaManager;
 @property (nonatomic) NSMutableDictionary <NSString *, NSNumber *> *lastConversationsState;
 @end
 
@@ -127,9 +127,6 @@ NS_ASSUME_NONNULL_END
         case ZMConversationTypeOneOnOne:
         case ZMConversationTypeConnection:
             return self.connectedUser.callKitHandle;
-            break;
-        case ZMConversationTypeSelf:
-            return [ZMUser selfUserInContext:self.managedObjectContext].callKitHandle;
             break;
         case ZMConversationTypeGroup:
             return [[CXHandle alloc] initWithType:CXHandleTypeGeneric value:self.remoteIdentifier.transportString];
@@ -215,9 +212,9 @@ NS_ASSUME_NONNULL_END
 
 @end
 
-@implementation ZMVoiceChannel (ActiveStates)
+@implementation ZMVoiceChannel (NonIdleStates)
 
-+ (NSSet *)activeStates {
++ (NSSet *)nonIdleStates {
     return [NSSet setWithObjects:@(ZMVoiceChannelStateOutgoingCall),
             @(ZMVoiceChannelStateOutgoingCallInactive),
             @(ZMVoiceChannelStateSelfIsJoiningActiveChannel),
@@ -226,9 +223,9 @@ NS_ASSUME_NONNULL_END
             @(ZMVoiceChannelStateIncomingCallInactive), nil];
 }
 
-- (BOOL)inActiveState
+- (BOOL)inNonIdleState
 {
-    return [self.class.activeStates containsObject:@(self.state)];
+    return [self.class.nonIdleStates containsObject:@(self.state)];
 }
 
 @end
@@ -269,7 +266,7 @@ NS_ASSUME_NONNULL_END
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(managedObjectsDidChange:)
                                                      name:NSManagedObjectContextObjectsDidChangeNotification
-                                                   object:self.userSession.managedObjectContext];
+                                                   object:userSession.managedObjectContext];
         
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(applicationDidBecomeActive:)
@@ -340,13 +337,9 @@ NS_ASSUME_NONNULL_END
 {
     ZMConversationList *nonIdleConversations = [ZMConversationList conversationsInUserSession:self.userSession];
     
-    NSArray *activeCallConversations = [nonIdleConversations objectsAtIndexes:[nonIdleConversations
-                                                                               indexesOfObjectsPassingTest:
-                                                                               ^BOOL(ZMConversation *conversation, NSUInteger __unused idx, BOOL __unused *stop) {
-        return conversation.voiceChannel.inActiveState;
-    }]];
-    
-    return activeCallConversations;
+    return [nonIdleConversations filterWithBlock:^BOOL(ZMConversation *conversation) {
+        return conversation.voiceChannel.inNonIdleState;
+    }];
 }
 
 - (void)indicateIncomingCallInConversation:(ZMConversation *)conversation
@@ -384,7 +377,7 @@ NS_ASSUME_NONNULL_END
             if (conversation.voiceChannel.state == ZMVoiceChannelStateIncomingCall) {
                 [conversation.voiceChannel ignoreIncomingCall];
             }
-            else if (conversation.voiceChannel.inActiveState) {
+            else if (conversation.voiceChannel.inNonIdleState) {
                 [conversation.voiceChannel leave];
             }
         }
@@ -417,6 +410,7 @@ NS_ASSUME_NONNULL_END
 
 - (BOOL)continueUserActivity:(NSUserActivity *)userActivity
 {
+    ZMUserSession *userSession = self.userSession;
     INInteraction* interaction = userActivity.interaction;
     if (interaction == nil) {
         return NO;
@@ -439,17 +433,17 @@ NS_ASSUME_NONNULL_END
     
     if (1 == contacts.count) {
         ZMConversation *callConversation = [ZMConversation resolveConversationForPersons:contacts
-                                                                               inContext:self.userSession.managedObjectContext];
+                                                                               inContext:userSession.managedObjectContext];
         if (nil != callConversation) {
             if (isVideo) {
                 NSError *joinError = nil;
-                [callConversation.voiceChannel joinVideoCall:&joinError inUserSession:self.userSession];
+                [callConversation.voiceChannel joinVideoCall:&joinError inUserSession:userSession];
                 if (nil != joinError) {
                     ZMLogError(@"Cannot start the video call: %@", joinError);
                 }
             }
             else {
-                [callConversation.voiceChannel joinInUserSession:self.userSession];
+                [callConversation.voiceChannel joinInUserSession:userSession];
             }
             
             return YES;
@@ -568,8 +562,9 @@ NS_ASSUME_NONNULL_END
 - (void)provider:(CXProvider *)provider performStartCallAction:(CXStartCallAction *)action
 {
     ZMLogInfo(@"CXProvider %@ performStartCallAction", provider);
-    ZMConversation *callConversation = [action conversationInContext:self.userSession.managedObjectContext];
-    [self.userSession performChanges:^{
+    ZMUserSession *userSession = self.userSession;
+    ZMConversation *callConversation = [action conversationInContext:userSession.managedObjectContext];
+    [userSession performChanges:^{
         [self configureAudioSession];
 
         if (action.video) {
@@ -608,9 +603,10 @@ NS_ASSUME_NONNULL_END
 - (void)provider:(CXProvider *)provider performEndCallAction:(nonnull CXEndCallAction *)action
 {
     ZMLogInfo(@"CXProvider %@ performEndCallAction", provider);
+    ZMUserSession *userSession = self.userSession;
 
-    ZMConversation *callConversation = [action conversationInContext:self.userSession.managedObjectContext];
-    [self.userSession performChanges:^{
+    ZMConversation *callConversation = [action conversationInContext:userSession.managedObjectContext];
+    [userSession performChanges:^{
         if (callConversation.voiceChannel.selfUserConnectionState == ZMVoiceChannelConnectionStateNotConnected) {
             [callConversation.voiceChannel ignoreIncomingCall];
         }

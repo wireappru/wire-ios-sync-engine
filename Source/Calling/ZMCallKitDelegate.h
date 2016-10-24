@@ -95,6 +95,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// Must be called with the @c NSUserActivity that is provided to the application via @c UIApplicationDelegate protocol.
 /// Needed to handle the action to select the call from user's "Phone" app.
+/// Returns NO if action is not known to the receiver.
 - (BOOL)continueUserActivity:(NSUserActivity *)userActivity;
 @end
 

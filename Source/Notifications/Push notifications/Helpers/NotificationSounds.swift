@@ -39,7 +39,6 @@ let ZMLocalNotificationNewMessageDefaultSoundName = "new_message_apns.caf"
 
 func ZMCustomSoundName(_ key: String) -> String? {
     guard let soundName = UserDefaults.standard.object(forKey: key) as? String else { return nil }
-    print("soundName: \(soundName)")
     return ZMSound(rawValue: soundName)?.filename()
 }
 
