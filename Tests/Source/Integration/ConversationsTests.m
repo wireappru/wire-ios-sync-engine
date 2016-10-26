@@ -223,7 +223,6 @@
         ZMUser *user = [self userForMockUser:self.user3];
 
         XCTAssertFalse([conversation.activeParticipants containsObject:user]);
-        XCTAssertTrue([conversation.inactiveParticipants containsObject:user]);
     }
     
 }
@@ -282,7 +281,6 @@
         ZMUser *user = [self userForMockUser:connectedUserNotInConv];
         
         XCTAssertTrue([conversation.activeParticipants containsObject:user]);
-        XCTAssertFalse([conversation.inactiveParticipants containsObject:user]);
     }
     
 }
@@ -346,7 +344,6 @@
     // then
     ZMUser *user4 = [self userForMockUser:self.user4];
     XCTAssertTrue([groupConversation.activeParticipants containsObject:user4]);
-    XCTAssertFalse([groupConversation.inactiveParticipants containsObject:user4]);
     XCTAssertEqual(groupConversation.keysThatHaveLocalModifications.count, 0u);
 }
 
@@ -369,7 +366,6 @@
     
     // then
     XCTAssertFalse([groupConversation.activeParticipants containsObject:user3]);
-    XCTAssertTrue([groupConversation.inactiveParticipants containsObject:user3]);
     XCTAssertEqual(groupConversation.keysThatHaveLocalModifications.count, 0u);
 }
 
@@ -608,7 +604,6 @@
     [self.userSession saveOrRollbackChanges];
     
     XCTAssertEqual(conversation.activeParticipants.count, 2u);
-    XCTAssertEqual(conversation.inactiveParticipants.count, 0u);
 }
 
 - (void)testThatActiveParticipantsInOneOnOneConversationWithABlockedUserAreAllParticipants
@@ -623,7 +618,6 @@
     [self.userSession saveOrRollbackChanges];
     
     XCTAssertEqual(conversation.activeParticipants.count, 2u);
-    XCTAssertEqual(conversation.inactiveParticipants.count, 0u);
     
     // when
     ZMUser *user1 = [self userForMockUser:self.user1];
@@ -635,7 +629,6 @@
     
     XCTAssertTrue(user1.isBlocked);
     XCTAssertEqual(conversation.activeParticipants.count, 2u);
-    XCTAssertEqual(conversation.inactiveParticipants.count, 0u);
 }
 
 - (NSArray *)movedIndexPairsForChangeSet:(ConversationListChangeInfo *)note
@@ -718,7 +711,7 @@
     ZMUser *user = [self userForMockUser:self.selfUser];
 
     XCTAssertEqualObjects(conversationList.firstObject, newConv);
-    XCTAssertTrue([[newConv allParticipants] containsObject:user]);
+    XCTAssertTrue([newConv.activeParticipants containsObject:user]);
 }
 
 
@@ -2257,34 +2250,6 @@
     }];
     WaitForEverythingToBeDone();
 
-    // then
-    conversation = [self conversationForMockConversation:self.groupConversation];
-    ZMConversationMessageWindow *window = [conversation conversationWindowWithSize:messagesCount];
-    XCTAssertEqual(window.messages.count, 1u);
-    XCTAssertEqual(conversation.messages.count, 1u);
-    XCTAssertFalse(conversation.isArchived);
-}
-
-- (void)testThatReceivingRemoteKnockMessageRevealsClearedConversation
-{
-    //given
-    const NSUInteger messagesCount = 5;
-    [self loginAndFillConversationWithMessages:self.groupConversation messagesCount:messagesCount];
-    ZMConversation *conversation = [self conversationForMockConversation:self.groupConversation];
-    
-    [self.userSession performChanges:^{
-        [conversation clearMessageHistory];
-    }];
-    WaitForEverythingToBeDone();
-    XCTAssertEqual(conversation.messages.count, 0u);
-    // when
-    
-    [self.mockTransportSession performRemoteChanges:^(ZM_UNUSED id session) {
-        [self spinMainQueueWithTimeout:1]; // if the action happens within the same second the user clears the history, the event is not added
-        [self.groupConversation insertKnockFromUser:self.user2 nonce:[NSUUID createUUID]];
-    }];
-    WaitForEverythingToBeDone();
-    
     // then
     conversation = [self conversationForMockConversation:self.groupConversation];
     ZMConversationMessageWindow *window = [conversation conversationWindowWithSize:messagesCount];

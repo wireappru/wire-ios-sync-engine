@@ -36,7 +36,6 @@
 #import "ZMSlowSyncPhaseTwoState.h"
 #import "ZMConversationTranscoder.h"
 #import "ZMSelfTranscoder.h"
-#import "ZMConversationEventsTranscoder.h"
 #import "ZMAssetTranscoder.h"
 #import "ZMUserImageTranscoder.h"
 #import "ZMSyncStateMachine.h"
@@ -49,7 +48,6 @@
 #import "ZMPushTokenTranscoder.h"
 #import "ZMCallStateTranscoder.h"
 #import "ZMOperationLoop.h"
-#import "ZMKnockTranscoder.h"
 #import "ZMTypingTranscoder.h"
 #import "ZMRemovedSuggestedPeopleTranscoder.h"
 #import "AVSMediaManager.h"
@@ -122,10 +120,6 @@
     id clientMessageTranscoder = [OCMockObject mockForClass:ZMClientMessageTranscoder.class];
     [[[[clientMessageTranscoder expect] andReturn:clientMessageTranscoder] classMethod] alloc];
     (void) [[[clientMessageTranscoder expect] andReturn:clientMessageTranscoder] initWithManagedObjectContext:self.syncMOC localNotificationDispatcher:self.mockDispatcher clientRegistrationStatus:OCMOCK_ANY apnsConfirmationStatus:OCMOCK_ANY];
-
-    id knockTranscoder = [OCMockObject mockForClass:ZMKnockTranscoder.class];
-    [[[[knockTranscoder expect] andReturn:knockTranscoder] classMethod] alloc];
-    (void) [[[knockTranscoder expect] andReturn:knockTranscoder] initWithManagedObjectContext:self.syncMOC];
 
     id selfTranscoder = [OCMockObject mockForClass:ZMSelfTranscoder.class];
     [[[[selfTranscoder expect] andReturn:selfTranscoder] classMethod] alloc];
@@ -209,7 +203,6 @@
                          selfTranscoder,
                          systemMessageTranscoder,
                          clientMessageTranscoder,
-                         knockTranscoder,
                          assetTranscoder,
                          userImageTranscoder,
                          missingUpdateEventsTranscoder,
@@ -258,7 +251,6 @@
     XCTAssertEqual(self.sut.conversationTranscoder, self.conversationTranscoder);
     XCTAssertEqual(self.sut.systemMessageTranscoder, systemMessageTranscoder);
     XCTAssertEqual(self.sut.clientMessageTranscoder, clientMessageTranscoder);
-    XCTAssertEqual(self.sut.knockTranscoder, knockTranscoder);
     XCTAssertEqual(self.sut.assetTranscoder, assetTranscoder);
     XCTAssertEqual(self.sut.selfTranscoder, selfTranscoder);
     XCTAssertEqual(self.sut.connectionTranscoder, connectionTranscoder);
@@ -1136,7 +1128,6 @@
     return @[
              ZMAssetTranscoder.class,
              ZMClientMessageTranscoder.class,
-             ZMKnockTranscoder.class
              ].set;
 }
 
