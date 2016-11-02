@@ -110,8 +110,8 @@
                             directory.systemMessageTranscoder,
                             directory.clientMessageTranscoder,
                             directory.selfTranscoder,
-                            directory.assetTranscoder,
                             ].mutableCopy;
+
     if ([ZMUserSession useCallKit]) {
         [transcoders addObject:directory.callStateTranscoder];
     }

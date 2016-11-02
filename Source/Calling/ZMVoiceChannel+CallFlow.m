@@ -271,7 +271,9 @@
 
 - (void)prepareForDeletion
 {
-    [self.managedObjectContext zm_resetCallTimer:self];
+    if(self.managedObjectContext.zm_isSyncContext) {
+        [self.managedObjectContext zm_resetCallTimer:self];
+    }
     [super prepareForDeletion];
 }
 
