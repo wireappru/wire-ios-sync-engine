@@ -28,6 +28,7 @@
 #import "AVSFlowManager.h"
 #import "AVSMediaManager.h"
 #import "AVSMediaManager+Client.h"
+#import "ZMCallKitDelegate+TypeConformance.h"
 #import <zmessaging/zmessaging-Swift.h>
 
 /**

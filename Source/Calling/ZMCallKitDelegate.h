@@ -17,7 +17,6 @@
 //
 
 #import <Foundation/Foundation.h>
-@import CallKit;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,6 +26,11 @@ NS_ASSUME_NONNULL_BEGIN
 @class ZMFlowSync;
 @class ZMOnDemandFlowManager;
 @class AVSMediaManager;
+@class CXProviderConfiguration;
+@protocol CXProviderDelegate;
+@class CXCallUpdate;
+@class CXTransaction;
+@class CXHandle;
 
 /// Needed to unbound @c ZMCallKitDelegate from OS CallKit implementation (for testing).
 @protocol CallKitProviderType <NSObject>
@@ -35,20 +39,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)reportNewIncomingCallWithUUID:(NSUUID *)UUID
                                update:(CXCallUpdate *)update
                            completion:(void (^)(NSError *_Nullable error))completion;
-- (void)reportCallWithUUID:(NSUUID *)UUID endedAtDate:(nullable NSDate *)dateEnded reason:(CXCallEndedReason)endedReason;
+- (void)reportCallWithUUID:(NSUUID *)UUID endedAtDate:(nullable NSDate *)dateEnded reason:(NSUInteger)endedReason;
 - (void)reportOutgoingCallWithUUID:(NSUUID *)UUID startedConnectingAtDate:(nullable NSDate *)dateStartedConnecting;
 - (void)reportOutgoingCallWithUUID:(NSUUID *)UUID connectedAtDate:(nullable NSDate *)dateConnected;
-@end
-
-@interface CXProvider (TypeConformance) <CallKitProviderType>
 @end
 
 /// Needed to unbound @c ZMCallKitDelegate from OS CallKit implementation (for testing).
 @protocol CallKitCallController <NSObject>
 - (void)requestTransaction:(CXTransaction *)transaction completion:(void (^)(NSError *_Nullable error))completion;
-@end
-
-@interface CXCallController (TypeConformance) <CallKitCallController>
 @end
 
 @interface ZMUser (Handle)
@@ -64,11 +62,6 @@ NS_ASSUME_NONNULL_BEGIN
 /// Finds the appropriate conversation described by the list of @c INPerson objects.
 + (nullable instancetype)resolveConversationForPersons:(NSArray<INPerson *> *)persons
                                              inContext:(NSManagedObjectContext *)context;
-@end
-
-@interface CXCallAction (Conversation)
-/// Fetches the conversation associated by @c callUUID with the call action.
-- (nullable ZMConversation *)conversationInContext:(NSManagedObjectContext *)context;
 @end
 
 
