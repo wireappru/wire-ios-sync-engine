@@ -107,6 +107,10 @@ static NSString * const AppstoreURL = @"https://itunes.apple.com/us/app/zeta-cli
 @property (nonatomic) NSCache *commonContactsCache;
 @end
 
+@interface ZMUserSession(PushChannel)
+- (void)pushChannelDidChange:(NSNotification *)note;
+@end
+
 @interface ZMUserSession (AlertView) <UIAlertViewDelegate>
 @end
 
@@ -184,6 +188,11 @@ ZM_EMPTY_ASSERTING_INIT()
     return [NSManagedObjectContext storeIsReady];
 }
 
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (instancetype)initWithMediaManager:(id<AVSMediaManager>)mediaManager
                            analytics:(id<AnalyticsType>)analytics
                           appVersion:(NSString *)appVersion
@@ -251,6 +260,9 @@ ZM_EMPTY_ASSERTING_INIT()
         self.appVersion = appVersion;
         [ZMUserAgent setWireAppVersion:appVersion];
         self.didStartInitialSync = NO;
+        self.pushChannelIsOpen = NO;
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(pushChannelDidChange:) name:ZMPushChannelStateChangeNotificationName object:nil];
+        
         self.apnsEnvironment = apnsEnvironment;
         self.networkIsOnline = YES;
         self.managedObjectContext = userInterfaceContext;
@@ -784,6 +796,16 @@ ZM_EMPTY_ASSERTING_INIT()
         [self changeNetworkStateAndNotify];
         [self notifyThirdPartyServices];
     }];
+}
+
+@end
+
+@implementation ZMUserSession(PushChannel)
+
+- (void)pushChannelDidChange:(NSNotification *)note
+{
+    BOOL newValue = [note.userInfo[ZMPushChannelIsOpenKey] boolValue];
+    self.pushChannelIsOpen = newValue;
 }
 
 @end

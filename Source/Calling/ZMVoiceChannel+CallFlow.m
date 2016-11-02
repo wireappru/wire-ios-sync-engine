@@ -69,8 +69,10 @@
 - (void)joinInUserSession:(ZMUserSession *)userSession
 {
     if ([ZMUserSession useCallKit]) {
-        [userSession.transportSession restartPushChannel];
-        
+        // Push channel must be open in order to process the call signalling
+        if (!userSession.pushChannelIsOpen) {
+            [userSession.transportSession restartPushChannel];
+        }
         [userSession.callKitDelegate requestStartCallInConversation:self.conversation videoCall:NO];
     }
     else {

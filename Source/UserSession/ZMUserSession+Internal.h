@@ -60,6 +60,7 @@ extern NSString * const ZMAppendAVSLogNotificationName;
 @property (nonatomic) BOOL networkIsOnline;
 @property (nonatomic) BOOL isPerformingSync;
 @property (nonatomic) BOOL didStartInitialSync;
+@property (nonatomic) BOOL pushChannelIsOpen;
 @property (nonatomic) BOOL didNotifyThirdPartyServices;
 @property (nonatomic, readonly) id<ZMApplication> application;
 @property (nonatomic) ZMCallKitDelegate *callKitDelegate;
