@@ -27,7 +27,6 @@
 #import "ZMSyncStrategy.h"
 #import "ZMUserTranscoder.h"
 #import "ZMUserSession.h"
-#import "ZMTracing.h"
 #import <libkern/OSAtomic.h>
 #import <os/activity.h>
 #import "ZMessagingLogs.h"
@@ -336,7 +335,6 @@ static char* const ZMLogTag ZM_UNUSED = "OperationLoop";
 - (void)pushChannel:(ZMPushChannelConnection *)channel didReceiveTransportData:(id<ZMTransportData>)data;
 {
     NOT_USED(channel);
-    ZMTraceOperationLoopPushChannelData(0, 0);
     
     ZMLogWithLevelAndTag(ZMLogLevelInfo, ZMTAG_NETWORK, @"---> Push channel: %@", data);
     
@@ -349,7 +347,6 @@ static char* const ZMLogTag ZM_UNUSED = "OperationLoop";
     if(events.count > 0u) {
         [self.syncStrategy processUpdateEvents:events ignoreBuffer:NO];
     }
-    ZMTraceOperationLoopPushChannelData(1, (int) events.count);
 }
 
 - (void)pushChannelDidClose:(ZMPushChannelConnection *)channel withResponse:(NSHTTPURLResponse *)response;

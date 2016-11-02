@@ -115,7 +115,6 @@
 		54488C0F1AF11E3900CC24DB /* ZMUserProfileUpdateTrancoderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 54488C0D1AF11E3900CC24DB /* ZMUserProfileUpdateTrancoderTests.m */; };
 		544913B41B0247700044DE36 /* ZMCredentialsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 544913B21B0247700044DE36 /* ZMCredentialsTests.m */; };
 		544A08D51AED8A0500F65877 /* ZMAuthenticationStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = 544A08D31AED8A0500F65877 /* ZMAuthenticationStatus.m */; };
-		544BA10B1A433AB400D3B852 /* ZMTracingProbes.d in Sources */ = {isa = PBXBuildFile; fileRef = 3E83108819C981DA00A788EF /* ZMTracingProbes.d */; };
 		544BA11A1A433DE400D3B852 /* zmessaging.h in Headers */ = {isa = PBXBuildFile; fileRef = 542049EF196AB84B000D8A94 /* zmessaging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		544BA1231A433DE400D3B852 /* ZMUserSession.h in Headers */ = {isa = PBXBuildFile; fileRef = 54BAF1B119212E51008042FB /* ZMUserSession.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		544BA1241A433DE400D3B852 /* ZMUserSession+Background.h in Headers */ = {isa = PBXBuildFile; fileRef = 3E4F727C19EC0868002FE184 /* ZMUserSession+Background.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -582,7 +581,6 @@
 		3E5286BB1AD3DB8A00B1AB1C /* KeySetTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeySetTests.swift; sourceTree = "<group>"; };
 		3E6CD176194F435F00BAE83E /* ConversationsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConversationsTests.m; sourceTree = "<group>"; };
 		3E799CF2192140300020A438 /* zmessaging-Tests.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "zmessaging-Tests.pch"; sourceTree = "<group>"; };
-		3E83108819C981DA00A788EF /* ZMTracingProbes.d */ = {isa = PBXFileReference; explicitFileType = sourcecode.dtrace; path = ZMTracingProbes.d; sourceTree = "<group>"; };
 		3E887BA31ABC51880022797E /* ZMPushKitLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMPushKitLogging.m; sourceTree = "<group>"; };
 		3E9848BC1A65253000F7B050 /* Hack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Hack.swift; sourceTree = "<group>"; };
 		3EA1EC6519BDE3F400AA1384 /* ZMPushToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZMPushToken.h; sourceTree = "<group>"; };
@@ -645,7 +643,6 @@
 		54488C021AF1074300CC24DB /* ZMUserProfileUpdateTranscoder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMUserProfileUpdateTranscoder.m; sourceTree = "<group>"; };
 		54488C0D1AF11E3900CC24DB /* ZMUserProfileUpdateTrancoderTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMUserProfileUpdateTrancoderTests.m; sourceTree = "<group>"; };
 		544913B21B0247700044DE36 /* ZMCredentialsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMCredentialsTests.m; sourceTree = "<group>"; };
-		544922C81A0A202D00A019FB /* ZMTracing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZMTracing.h; sourceTree = "<group>"; };
 		544A08D31AED8A0500F65877 /* ZMAuthenticationStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZMAuthenticationStatus.m; sourceTree = "<group>"; };
 		5454A69B1AEFA01D0022AFA4 /* EmailRegistrationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EmailRegistrationTests.m; sourceTree = "<group>"; };
 		5454A69F1AEFA0A70022AFA4 /* PhoneRegistrationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PhoneRegistrationTests.m; sourceTree = "<group>"; };
@@ -1937,8 +1934,6 @@
 		A9EADFFF19DBF20A00FD386C /* Utility */ = {
 			isa = PBXGroup;
 			children = (
-				544922C81A0A202D00A019FB /* ZMTracing.h */,
-				3E83108819C981DA00A788EF /* ZMTracingProbes.d */,
 				5430E9231BAA0D9F00395E05 /* ZMessagingLogs.h */,
 				874F142C1C16FD9700C15118 /* Device.swift */,
 				87508E9F1D08264000162483 /* ZMSound.swift */,
@@ -2555,7 +2550,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F98EDCD81D82B913001E65CB /* ZMLocalNotificationForMessage.swift in Sources */,
-				544BA10B1A433AB400D3B852 /* ZMTracingProbes.d in Sources */,
 				3EC499941A92463D003F9E32 /* ZMBackgroundFetchState.m in Sources */,
 				092083401BA95EE100F82B29 /* UserClientRequestFactory.swift in Sources */,
 				F936DB2B1C11DF40005E93AE /* ZMClientUpdateNotification.m in Sources */,
@@ -2586,8 +2580,6 @@
 				54D175211ADE8B18001AA338 /* ZMUserSession+Registration.m in Sources */,
 				549816291A432BC800A7CE2E /* ZMConnectionTranscoder.m in Sources */,
 				F9B71F401CB28449001DB03F /* ZMNotifications+UserSession.m in Sources */,
-				5498162A1A432BC800A7CE2E /* ZMConversationEventsTranscoder.m in Sources */,
-				5442AE551BD6497E0035AD51 /* Settings.swift in Sources */,
 				5498162B1A432BC800A7CE2E /* ZMConversationTranscoder.m in Sources */,
 				F98EDCED1D82B924001E65CB /* UILocalNotification+StringProcessing.m in Sources */,
 				F93A75F21C1F219800252586 /* ConversationStatusStrategy.swift in Sources */,

@@ -37,7 +37,6 @@
 #import "ZMPushToken.h"
 #import "ZMCommonContactsSearch.h"
 #import "ZMBlacklistVerificator.h"
-#import "ZMTracing.h"
 #import "ZMSyncStateMachine.h"
 #import "ZMUserSessionAuthenticationNotification.h"
 #import "ZMUserProfileUpdateStatus.h"

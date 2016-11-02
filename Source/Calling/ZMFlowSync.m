@@ -22,7 +22,6 @@
 @import ZMCDataModel;
 
 #import "ZMFlowSync.h"
-#import "ZMTracing.h"
 #import "ZMAVSBridge.h"
 #import <zmessaging/zmessaging-Swift.h>
 #import "ZMUserSessionAuthenticationNotification.h"
@@ -286,7 +285,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Calling";
     if (identifier == nil) {
         ZMLogError(@"Trying to acquire flow for a conversation without a remote ID.");
     } else {
-        ZMTraceCallFlowAcquire(identifier);
         [self.flowManager acquireFlows:identifier];
     }
 }
@@ -306,7 +304,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Calling";
     if (identifier == nil) {
         ZMLogError(@"Trying to release flow for a conversation without a remote ID.");
     } else {
-        ZMTraceCallFlowRelease(identifier);
         [self.flowManager releaseFlows:identifier];
         conversation.isFlowActive = NO;
     }
@@ -445,9 +442,7 @@ static NSString *ZMLogTag ZM_UNUSED = @"Calling";
 }
 
 - (void)didEstablishMediaInConversation:(NSString *)conversationIdentifier;
-{
-    ZMTraceFlowManagerCategory(conversationIdentifier, 0);
-    
+{    
     NSUUID *conversationUUID = conversationIdentifier.UUID;
     ZMConversation *conversation = [ZMConversation conversationWithRemoteID:conversationUUID createIfNeeded:NO inContext:self.managedObjectContext];
     
@@ -464,7 +459,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Calling";
     }
     
     [self.managedObjectContext performGroupedBlock:^{
-        ZMTraceFlowManagerCategory(conversationIdentifier, 1);
         if (conversation.isVideoCall) {
             conversation.isSendingVideo = canSendVideo;
             if (canSendVideo) {
@@ -490,7 +484,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Calling";
 
 - (void)mediaWarningOnConversation:(NSString *)conversationIdentifier;
 {
-    ZMTraceFlowManagerCategory(conversationIdentifier, 21);
     [self leaveCallInConversationWithRemoteID:conversationIdentifier reason:@"AVS Media warning"];
 }
 
@@ -500,7 +493,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Calling";
 {
     NOT_USED(err);
     NOT_USED(ctx);
-    ZMTraceFlowManagerCategory(conversationIdentifier, 10);
     [self leaveCallInConversationWithRemoteID:conversationIdentifier reason:[NSString stringWithFormat:@"AVS error handler with error %i", err]];
 }
 
@@ -566,7 +558,6 @@ static NSString *ZMLogTag ZM_UNUSED = @"Calling";
             ZMConversation *uiConversation = (id) [self.uiManagedObjectContext objectWithID:conversationID];
             ZMUser *uiUser = (id) [self.uiManagedObjectContext objectWithID:userID];
             
-            ZMTraceCallVoiceGain(uiConversation.remoteIdentifier, uiUser.remoteIdentifier, volume);
             ZMVoiceChannelParticipantVoiceGainChangedNotification *note = [ZMVoiceChannelParticipantVoiceGainChangedNotification notificationWithConversation:uiConversation participant:uiUser voiceGain:volume];
             
             [queue enqueueNotification:note postingStyle:NSPostWhenIdle coalesceMask:NSNotificationCoalescingOnSender | NSNotificationCoalescingOnName forModes:nil];

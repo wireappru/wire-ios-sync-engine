@@ -72,7 +72,7 @@
 
 static NSString * const ZMCallKitDelegateCallStartedInGroup = @"callkit.call.started";
 
-static char* const ZMLogTag ZM_UNUSED = "CallKit";
+static NSString * const ZMLogTag ZM_UNUSED = @"CallKit";
 
 NS_ASSUME_NONNULL_BEGIN
 
