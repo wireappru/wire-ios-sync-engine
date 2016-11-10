@@ -487,6 +487,14 @@ NS_ASSUME_NONNULL_END
 
 - (void)updateConversationIfNeeded:(ZMConversation *)conversation
 {
+    if (conversation.remoteIdentifier == nil) {
+        return;
+    }
+    
+    if (conversation.isSilenced) {
+        return;
+    }
+    
     ZMVoiceChannelState newState = conversation.voiceChannel.state;
     NSNumber *knownStateNumber = self.lastConversationsState[conversation.remoteIdentifier.transportString];
     ZMVoiceChannelState knownState = (ZMVoiceChannelState)[knownStateNumber integerValue];
@@ -503,7 +511,7 @@ NS_ASSUME_NONNULL_END
     
     switch (conversation.voiceChannel.state) {
     case ZMVoiceChannelStateIncomingCall:
-            [self indicateIncomingCallInConversation:conversation];
+        [self indicateIncomingCallInConversation:conversation];
         break;
     case ZMVoiceChannelStateSelfIsJoiningActiveChannel:
             [self.provider reportOutgoingCallWithUUID:conversation.remoteIdentifier
