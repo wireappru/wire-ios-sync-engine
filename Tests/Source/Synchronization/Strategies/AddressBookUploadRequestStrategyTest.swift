@@ -414,7 +414,7 @@ extension AddressBookUploadRequestStrategyTest {
                 ""
             ],
             "id": "",
-            "card_id": ""
+            "cards": [""]
         }
     ]
  }
@@ -440,11 +440,11 @@ extension AddressBookUploadRequestStrategyTest {
             "results" : [
                 [
                     "id" : user1.remoteIdentifier!.transportString(),
-                    "card_id" : contacts[0].localIdentifier
+                    "cards" : [contacts[0].localIdentifier]
                 ],
                 [
                     "id" : user2.remoteIdentifier!.transportString(),
-                    "card_id" : contacts[1].localIdentifier
+                    "cards" : [contacts[1].localIdentifier]
                 ],
             ]
         ]
