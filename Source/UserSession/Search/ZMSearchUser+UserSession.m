@@ -21,7 +21,6 @@
 @import ZMUtilities;
 @import ZMCDataModel;
 
-#import "ZMBareUser+UserSession.h"
 #import "ZMUserSession+Internal.h"
 
 

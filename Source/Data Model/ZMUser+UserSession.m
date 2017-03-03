@@ -17,7 +17,7 @@
 // 
 
 
-#import "ZMBareUser+UserSession.h"
+@import ZMCDataModel;
 #import "ZMUserSession+Internal.h"
 
 @implementation ZMUser (UserSession)
