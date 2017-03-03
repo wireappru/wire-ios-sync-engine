@@ -50,8 +50,9 @@ final public class ZMLocalNotificationForSystemMessage : ZMLocalNotification, No
         self.application = application ?? UIApplication.shared
         super.init(conversationID: message.conversation?.remoteIdentifier)
         
-        let notification = configureNotification(message)
-        notifications.append(notification)
+        if let notification = configureNotification(message) {
+            notifications.append(notification)
+        }
     }
     
     public func configureAlertBody(_ message: ZMSystemMessage) -> String {
@@ -102,8 +103,9 @@ final public class ZMLocalNotificationForSystemMessage : ZMLocalNotification, No
         switch (contentType, otherContentType){
         case (.system(let type), .system) where type == .participantsAdded || type == .participantsRemoved:
             cancelNotifications()
-            let note = configureNotification(message)
-            notifications.append(note)
+            if let note = configureNotification(message) {
+                notifications.append(note)
+            }
             return self
         default:
             return nil

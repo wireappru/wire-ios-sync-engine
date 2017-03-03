@@ -18,7 +18,7 @@
 
 import UIKit
 import MobileCoreServices;
-
+import UserNotifications
 
 public protocol NotificationForMessage : LocalNotification {
     associatedtype MessageType : ZMMessage
@@ -41,7 +41,56 @@ extension NotificationForMessage {
         }
     }
     
-    public func configureNotification(_ message: MessageType, isEphemeral: Bool = false) -> UILocalNotification {
+    public func configureNotification(_ message: MessageType, isEphemeral: Bool = false) -> UILocalNotification? {
+
+        let shouldHideContent : Bool
+        if let hide = message.managedObjectContext!.persistentStoreMetadata(forKey: ZMShouldHideNotificationContentKey) as? NSNumber, hide.boolValue == true {
+            shouldHideContent = true
+        } else {
+            shouldHideContent = isEphemeral
+        }
+
+        return createUINotification(message, isEphemeral: isEphemeral)
+
+//        if #available(iOS 10, *) {
+//            if shouldHideContent || isEphemeral {
+//                return createUINotification(message, isEphemeral: isEphemeral)
+//            }
+//
+//            scheduleUNNotification(message)
+//            return nil
+//        } else {
+//            return createUINotification(message, isEphemeral: isEphemeral)
+//        }
+    }
+
+    @available(iOS 10, *)
+    func scheduleUNNotification(_ message: MessageType) {
+        let content = UNMutableNotificationContent()
+        content.body = ZMPushStringDefault.localizedStringForPushNotification()
+        content.categoryIdentifier = conversationCategory(ephemeral: false)
+
+        var info = [String: String]()
+        if let userId = message.sender?.remoteIdentifier?.transportString() {
+            info["sender"] = userId
+        }
+
+        if let conversationId = message.conversation?.remoteIdentifier?.transportString() {
+            info["conversation"] = conversationId
+        }
+
+        let mesageNonce = message.nonce!.transportString()
+        info["nonce"] = mesageNonce
+
+        content.userInfo = info
+
+        let request = UNNotificationRequest(identifier: mesageNonce, content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request) { error in
+            print("Error adding notification request: \(error), request: \(dump(request))")
+        }
+    }
+
+    func createUINotification(_ message: MessageType, isEphemeral: Bool = false) -> UILocalNotification {
         let notification = UILocalNotification()
 
         let shouldHideContent : Bool
@@ -120,8 +169,9 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
         self.application = application ?? UIApplication.shared
         super.init(conversationID: conversation.remoteIdentifier)
         
-        let notification = configureNotification(message, isEphemeral: message.isEphemeral)
-        notifications.append(notification)
+        if let notification = configureNotification(message, isEphemeral: message.isEphemeral) {
+            notifications.append(notification)
+        }
     }
 
     public func configureAlertBody(_ message: ZMOTRMessage) -> String {
@@ -170,8 +220,9 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
         case (.knock):
             eventCount = eventCount+1
             cancelNotifications()
-            let note = configureNotification(message)
-            notifications.append(note)
+            if let note = configureNotification(message) {
+                notifications.append(note)
+            }
             return self
         default:
             return nil
