@@ -28,7 +28,6 @@
 #import <zmessaging/ZMCredentials.h>
 #import <zmessaging/ZMUserSession+OTR.h>
 #import <zmessaging/ZMSearchRequest.h>
-#import <zmessaging/ZMBareUser+UserSession.h>
 #import <zmessaging/ZMSearchDirectory.h>
 #import <zmessaging/ZMTypingUsers.h>
 #import <zmessaging/ZMOnDemandFlowManager.h>
