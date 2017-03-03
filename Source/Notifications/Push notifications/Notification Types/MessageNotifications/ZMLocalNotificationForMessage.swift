@@ -50,24 +50,24 @@ extension NotificationForMessage {
             shouldHideContent = isEphemeral
         }
 
-        return createUINotification(message, isEphemeral: isEphemeral)
+        if #available(iOS 10, *) {
+            if shouldHideContent || isEphemeral {
+                return createUINotification(message, isEphemeral: isEphemeral)
+            }
 
-//        if #available(iOS 10, *) {
-//            if shouldHideContent || isEphemeral {
-//                return createUINotification(message, isEphemeral: isEphemeral)
-//            }
-//
-//            scheduleUNNotification(message)
-//            return nil
-//        } else {
-//            return createUINotification(message, isEphemeral: isEphemeral)
-//        }
+            scheduleUNNotification(message)
+            return nil
+        } else {
+            return createUINotification(message, isEphemeral: isEphemeral)
+        }
     }
 
     @available(iOS 10, *)
     func scheduleUNNotification(_ message: MessageType) {
         let content = UNMutableNotificationContent()
-        content.body = ZMPushStringDefault.localizedStringForPushNotification()
+        content.title = configureAlertBody(message).escapingPercentageSymbols()
+        content.subtitle = "Hello Mike"
+        content.body = "Vivamus vestibulum posuere. Integer id orci ut leo sed."
         content.categoryIdentifier = conversationCategory(ephemeral: false)
 
         var info = [String: String]()
@@ -86,7 +86,7 @@ extension NotificationForMessage {
 
         let request = UNNotificationRequest(identifier: mesageNonce, content: content, trigger: nil)
         UNUserNotificationCenter.current().add(request) { error in
-            print("Error adding notification request: \(error), request: \(dump(request))")
+            print("Error adding notification request: \(error), request: \(request)")
         }
     }
 
@@ -130,9 +130,7 @@ extension NotificationForMessage {
             if conversation.isSilenced {
                 return false
             }
-            if let timeStamp = message.serverTimestamp, let lastRead = conversation.lastReadServerTimeStamp
-                , lastRead.compare(timeStamp) != .orderedAscending
-            {
+            if let timeStamp = message.serverTimestamp, let lastRead = conversation.lastReadServerTimeStamp, lastRead.compare(timeStamp) != .orderedAscending {
                 return false
             }
         }

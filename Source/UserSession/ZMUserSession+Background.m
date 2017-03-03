@@ -19,6 +19,7 @@
 
 @import ZMTransport;
 @import ZMCDataModel;
+@import UserNotifications;
 
 #import "ZMUserSession+Internal.h"
 #import "ZMUserSession+Background+Testing.h"
@@ -142,7 +143,6 @@ static NSString *ZMLogTag = @"Push";
     [application registerForRemoteNotifications];
     NSSet *categories = [NSSet setWithArray:@[
                                               self.replyCategory,
-                                              self.replyCategoryImage,
                                               self.replyCategoryIncludingLike,
                                               self.missedCallCategory,
                                               self.incomingCallCategory,
@@ -152,6 +152,13 @@ static NSString *ZMLogTag = @"Push";
                                                                                                  UIUserNotificationTypeAlert |
                                                                                                  UIUserNotificationTypeBadge)
                                                                                      categories:categories]];
+
+    UNAuthorizationOptions options = UNAuthorizationOptionBadge | UNAuthorizationOptionSound | UNAuthorizationOptionAlert;
+    [UNUserNotificationCenter.currentNotificationCenter requestAuthorizationWithOptions:options completionHandler:^(BOOL granted,  NSError * _Nullable error) {
+        NSLog(@"Authorized: %@, error: %@", @(granted), error);
+    }];
+
+    [UNUserNotificationCenter.currentNotificationCenter setNotificationCategories:[NSSet setWithObject:self.replyCategoryImage]];
 }
 
 

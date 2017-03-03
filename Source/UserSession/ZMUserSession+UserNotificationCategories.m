@@ -19,10 +19,11 @@
 
 #import "ZMUserSession+UserNotificationCategories.h"
 
+@import UserNotifications;
 
 NSString *const ZMConversationCategory = @"conversationCategory";
 NSString *const ZMConversationCategoryIncludingLike = @"conversationCategoryWithLike";
-NSString *const ZMConversationCategoryImage = @"conversationCategoryImage";
+NSString *const ZMConversationCategoryImage = @"conversationCategoryRichImage";
 NSString *const ZMConversationOpenAction = @"conversationOpenAction";
 NSString *const ZMConversationDirectReplyAction = @"conversationDirectReplyAction";
 NSString *const ZMConversationMuteAction = @"conversationMuteAction";
@@ -53,11 +54,19 @@ static NSString * ZMPushActionLocalizedString(NSString *key)
 {
     UIMutableUserNotificationAction *action = [[UIMutableUserNotificationAction alloc] init];
     action.identifier = actionIdentifier;
-    action.title = [NSString localizedStringWithFormat:ZMPushActionLocalizedString(localizedTitleKey), nil];;
+    action.title = [NSString localizedStringWithFormat:ZMPushActionLocalizedString(localizedTitleKey), nil];
     action.destructive = NO;
     action.activationMode = activationMode;
     action.authenticationRequired = false;
     return action;
+}
+
+- (UNNotificationAction *)action:(NSString *)identifier key:(NSString *)key options:(UNNotificationActionOptions)options
+{
+    NSString *title = [NSString localizedStringWithFormat:ZMPushActionLocalizedString(key), nil];
+    return [UNNotificationAction actionWithIdentifier:identifier
+                                                title:title
+                                              options:options];
 }
 
 - (UIMutableUserNotificationAction *)mutableBackgroundAction:(NSString *)actionIdentifier localizedTitleKey:(NSString *)localizedTitleKey
@@ -77,9 +86,14 @@ static NSString * ZMPushActionLocalizedString(NSString *key)
     return [self replyCategoryInlcudingLike:NO image:NO];
 }
 
-- (UIUserNotificationCategory *)replyCategoryImage
+- (UNNotificationCategory *)replyCategoryImage
 {
-    return [self replyCategoryInlcudingLike:YES image:YES];
+
+    NSArray <UNNotificationAction *> *actions = @[
+                                                  [self action:ZMConversationMuteAction key:@"conversation.mute" options:UNNotificationActionOptionNone],
+                                                  [self action:ZMMessageLikeAction key:@"message.like" options:UNNotificationActionOptionNone],
+                                                  ];
+    return [UNNotificationCategory categoryWithIdentifier:ZMConversationCategoryImage actions:actions intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
 }
 
 - (UIUserNotificationCategory *)replyCategoryIncludingLike
