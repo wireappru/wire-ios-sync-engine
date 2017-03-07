@@ -34,6 +34,8 @@
 @class ZMProxyRequest;
 @class ZMCallKitDelegate;
 @class CallingRequestStrategy;
+@class TopConversationsDirectory;
+@class ZMNearbyUsersDirectory;
 
 @protocol UserProfile;
 @protocol AnalyticsType;
@@ -41,7 +43,6 @@
 @protocol ZMNetworkAvailabilityObserver;
 @protocol ZMRequestsToOpenViewsDelegate;
 @protocol ZMThirdPartyServicesDelegate;
-@class TopConversationsDirectory;
 
 @protocol ZMAVSLogObserver <NSObject>
 @required
@@ -122,11 +123,17 @@ extern NSString * const ZMTransportRequestLoopNotificationName;
 /// Initiates the deletion process for the current signed in user
 - (void)initiateUserDeletion;
 
+/// Nearby users directory
+@property (nonatomic, readonly) ZMNearbyUsersDirectory *nearbyUsersDirectory;
+
 /// Top conversation directory
 @property (nonatomic, readonly) TopConversationsDirectory *topConversationsDirectory;
 
 /// CallKit delegate
 @property (nonatomic, readonly) ZMCallKitDelegate *callKitDelegate;
+
+/// CallKit delegate
+@property (nonatomic, readonly) ZMTransportSession *transportSession;
 
 /// The URL of the shared container that has been determinned using the passed in application group identifier
 @property (nonatomic, readonly) NSURL *sharedContainerURL;
