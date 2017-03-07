@@ -50,7 +50,7 @@ extension NotificationForMessage {
             shouldHideContent = isEphemeral
         }
 
-        if #available(iOS 10, *) {
+        if #available(iOS 10, *), contentType == .image {
             if shouldHideContent || isEphemeral {
                 return createUINotification(message, isEphemeral: isEphemeral)
             }
@@ -106,6 +106,7 @@ extension NotificationForMessage {
             notification.soundName = soundName
             notification.category = conversationCategory(ephemeral: isEphemeral)
         }
+
         notification.setupUserInfo(message)
         return notification
     }
