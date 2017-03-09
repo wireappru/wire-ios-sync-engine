@@ -34,6 +34,10 @@ public class NearbyUsersDirectory : NSObject {
     
     public weak var delegate : NearbyUsersDirectoryDelegate?
     
+    
+    fileprivate let displayNameKey = "NearbyUsersDirectoryDisplayName"
+    fileprivate let peerIDKey = "NearbyUsersDirectoryPeerID"
+    
     fileprivate let userSession : ZMUserSession
     fileprivate let managedObjectContext : NSManagedObjectContext
     fileprivate let syncManagedObjectContext : NSManagedObjectContext
@@ -43,6 +47,26 @@ public class NearbyUsersDirectory : NSObject {
     var searchUsers : Dictionary<UUID, ZMSearchUser> = Dictionary()
     var nearbyPeers : Dictionary<MCPeerID, UUID> = Dictionary()
     
+    fileprivate var peerID : MCPeerID? {
+        let selfUser = ZMUser.selfUser(in: managedObjectContext)
+        let defaults = UserDefaults.standard
+        
+        guard let displayName = selfUser.displayName else { return nil }
+        
+        if let previousDisplayName = defaults.string(forKey: displayNameKey), previousDisplayName == displayName,
+           let peerIDData = defaults.data(forKey: peerIDKey),
+           let peerID = NSKeyedUnarchiver.unarchiveObject(with: peerIDData) as? MCPeerID {
+            return peerID
+        } else {
+            let peerID = MCPeerID(displayName: displayName)
+            let peerIDData = NSKeyedArchiver.archivedData(withRootObject: peerID)
+            defaults.set(peerIDData, forKey: peerIDKey)
+            defaults.set(displayName, forKey: displayNameKey)
+            defaults.synchronize()
+            return peerID
+        }
+    }
+    
     public init(userSession : ZMUserSession) {
         self.userSession = userSession
         self.managedObjectContext = userSession.managedObjectContext
@@ -50,6 +74,8 @@ public class NearbyUsersDirectory : NSObject {
     }
     
     public func startLookingForNearbyUsers() {
+        print("Start looking for nearby users")
+        
         createServiceAdvertiseIfNecessary()
         
         serviceBrowser?.startBrowsingForPeers()
@@ -57,18 +83,21 @@ public class NearbyUsersDirectory : NSObject {
     }
     
     public func stopLookingForNearbyUsers() {
+        print("Stop looking for nearby users")
+        
         serviceBrowser?.stopBrowsingForPeers()
-        serviceAdvertiser?.startAdvertisingPeer()
+        serviceAdvertiser?.stopAdvertisingPeer()
     }
     
     private func createServiceAdvertiseIfNecessary() {
         guard serviceAdvertiser == nil, serviceBrowser == nil else { return }
-        
-        let selfUser = ZMUser.selfUser(in: managedObjectContext)
-        let peerID = MCPeerID(displayName: selfUser.displayName ??  "Unknown")
+        guard let peerID = peerID, let remoteIdentifier = ZMUser.selfUser(in: managedObjectContext).remoteIdentifier?.transportString() else  {
+            print("Missing, displayName or remoteIdentifier, can't create advertise service")
+            return
+        }
         
         let discoveryInfo = [
-            "remoteIdentifier" : selfUser.remoteIdentifier?.transportString() ?? ""
+            "remoteIdentifier" : remoteIdentifier
         ]
         
         serviceAdvertiser = MCNearbyServiceAdvertiser(peer: peerID, discoveryInfo: discoveryInfo, serviceType: "wire-find-user")
@@ -112,8 +141,12 @@ extension NearbyUsersDirectory : MCNearbyServiceBrowserDelegate {
             self.nearbyPeers[peerID] = remoteIdentifier
             
             self.fetchUser(withRemoteIdentifier: remoteIdentifier, completion: { [weak self] (searchUser) in
+                print("fetched used connected to peer")
+                
                 if let searchUser = searchUser {
                     self?.searchUsers[remoteIdentifier] = searchUser
+                    
+                    print("notify delegate")
                     self?.delegate?.nearbyUsersDirectoryDidUpdate()
                 }
             })
@@ -126,6 +159,7 @@ extension NearbyUsersDirectory : MCNearbyServiceBrowserDelegate {
         managedObjectContext.performGroupedBlock {
             if let remoteIdentifier = self.nearbyPeers.removeValue(forKey: peerID) {
                 self.searchUsers.removeValue(forKey: remoteIdentifier)
+                self.delegate?.nearbyUsersDirectoryDidUpdate()
             }
         }
     }
