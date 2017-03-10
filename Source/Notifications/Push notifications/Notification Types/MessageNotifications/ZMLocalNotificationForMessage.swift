@@ -65,7 +65,13 @@ extension NotificationForMessage {
     @available(iOS 10, *)
     func scheduleUNNotification(_ message: MessageType) {
         let content = UNMutableNotificationContent()
+        if let name = message.sender?.displayName {
+            content.title = name
+        }
+
+        content.body = configureAlertBody(message).escapingPercentageSymbols()
         content.categoryIdentifier = conversationCategory(ephemeral: false)
+
 
         var info = [String: String]()
         if let userId = message.sender?.remoteIdentifier?.transportString() {
