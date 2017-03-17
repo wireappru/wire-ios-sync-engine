@@ -25,7 +25,6 @@
 #import "ZMUserSession+Background+Testing.h"
 #import "ZMOperationLoop+Background.h"
 #import "ZMOperationLoop+Private.h"
-#import "ZMLocalNotificationDispatcher.h"
 #import "ZMPushToken.h"
 #import "ZMCallKitDelegate.h"
 
@@ -440,7 +439,7 @@ static NSString *ZMLogTag = @"Push";
             ZM_STRONG(self);
             [self.managedObjectContext performGroupedBlock: ^{
                 if (result == ZMBackgroundTaskResultFailed) {
-                    [self.localNotificationDispatcher didFailToSendMessageInConversation:conversation];
+                    [self.localNotificationDispatcher didFailToSendMessageIn:conversation];
                 }
                 [activity endActivity];
                 if (completionHandler != nil) {
