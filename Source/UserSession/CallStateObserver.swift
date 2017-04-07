@@ -56,12 +56,13 @@ extension CallStateObserver : WireCallCenterCallStateObserver, WireCallCenterMis
         notifyIfWebsocketShouldBeOpen(forCallState: callState)
         
         managedObjectContext.performGroupedBlock {
+            
             guard
                 let userId = userId,
                 let conversation = ZMConversation(remoteID: conversationId, createIfNeeded: false, in: self.managedObjectContext),
                 let user = ZMUser(remoteID: userId, createIfNeeded: false, in: self.managedObjectContext)
-                else {
-                    return
+            else {
+                return
             }
             
             if !ZMUserSession.useCallKit {
@@ -119,8 +120,6 @@ private final class CallingSystemMessageGenerator {
         case .terminating(reason: .canceled):
             let caller = callers[conversation] ?? sender
             conversation.appendMissedCallMessage(fromUser: caller, at: Date())
-        case .terminating(reason: .timeout):
-            conversation.appendPerformedCallMessage(with: 0, caller: sender)
         default:
             break
         }
