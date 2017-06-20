@@ -96,7 +96,7 @@ class SearchTests : IntegrationTestBase {
         
         XCTAssertTrue(logInAndWaitForSyncToBeComplete())
         
-        let pendingConnections = ZMConversationList.pendingConnectionConversations(inUserSession: userSession, team: nil)
+        let pendingConnections = ZMConversationList.pendingConnectionConversations(inUserSession: userSession)
         XCTAssertEqual(pendingConnections.count, 1)
     }
     
@@ -523,6 +523,7 @@ class SearchTests : IntegrationTestBase {
         guard let searchQuery = userName?.components(separatedBy: " ").last else { XCTFail(); return }
         guard let searchUser = searchForDirectoryUser(withName: userName!, searchQuery: searchQuery) else { XCTFail(); return }
         mockTransportSession.resetReceivedRequests()
+        searchUser.requestSmallProfileImage(in: userSession)
         XCTAssertTrue(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // then
