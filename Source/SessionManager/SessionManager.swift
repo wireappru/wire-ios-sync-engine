@@ -126,6 +126,9 @@ public protocol LocalMessageNotificationResponder : class {
     
     internal var authenticatedSessionFactory: AuthenticatedSessionFactory
     internal let unauthenticatedSessionFactory: UnauthenticatedSessionFactory
+    
+    fileprivate let sessionLoadingQueue : DispatchQueue = DispatchQueue(label: "sessionLoadingQueue")
+    
     fileprivate let sharedContainerURL: URL
     fileprivate let dispatchGroup: ZMSDispatchGroup?
     fileprivate var accountTokens : [UUID : [Any]] = [:]
@@ -224,6 +227,7 @@ public protocol LocalMessageNotificationResponder : class {
             guard let `self` = self else {
                 return
             }
+            log.debug("Received memory warning, tearing down background user sessions.")
             self.tearDownAllBackgroundSessions()
         })
     }
@@ -251,6 +255,23 @@ public protocol LocalMessageNotificationResponder : class {
 
         self.sharedContainerURL = sharedContainerURL
         self.accountManager = AccountManager(sharedDirectory: sharedContainerURL)
+        
+        log.debug("Starting the session manager:")
+        
+        if self.accountManager.accounts.count > 0 {
+            log.debug("Known accounts:")
+            self.accountManager.accounts.forEach { account in
+                log.debug("\(account.userName) -- \(account.userIdentifier) -- \(account.teamName ?? "no team")")
+            }
+            
+            if let selectedAccount = accountManager.selectedAccount {
+                log.debug("Default account: \(selectedAccount.userIdentifier)")
+            }
+        }
+        else {
+            log.debug("No known accounts.")
+        }
+        
         self.authenticatedSessionFactory = authenticatedSessionFactory
         self.unauthenticatedSessionFactory = unauthenticatedSessionFactory
         self.reachability = reachability
@@ -311,6 +332,7 @@ public protocol LocalMessageNotificationResponder : class {
     }
     
     public func delete(account: Account) {
+        log.debug("Deleting account \(account.userIdentifier)...")
         if let secondAccount = accountManager.accounts.first(where: { $0.userIdentifier != account.userIdentifier }) {
             select(secondAccount)
         } else {
@@ -366,6 +388,8 @@ public protocol LocalMessageNotificationResponder : class {
     }
 
     public func deleteAccountData(for account: Account) {
+        log.debug("Deleting the data for \(account.userName) -- \(account.userIdentifier)")
+        
         account.cookieStorage().deleteKeychainItems()
         
         let accountID = account.userIdentifier
@@ -456,25 +480,31 @@ public protocol LocalMessageNotificationResponder : class {
     }
     
     // Loads user session for @c account given and executes the @c action block.
-    public func withSession(for account: Account, perform action: @escaping (ZMUserSession)->()) {
-        if let session = backgroundUserSessions[account.userIdentifier] {
-            action(session)
-        }
-        else {
-            LocalStoreProvider.createStack(
-                applicationContainer: sharedContainerURL,
-                userIdentifier: account.userIdentifier,
-                dispatchGroup: dispatchGroup,
-                migration: { [weak self] in self?.delegate?.sessionManagerWillStartMigratingLocalStore() },
-                completion: { provider in
-                    self.activateBackgroundSession(for: account, with: provider, completion: action)
-                }
-            )
-        }
+    public func withSession(for account: Account, perform completion: @escaping (ZMUserSession)->()) {
+        self.sessionLoadingQueue.serialAsync(do: { onWorkDone in
+
+            if let session = self.backgroundUserSessions[account.userIdentifier] {
+                completion(session)
+                onWorkDone()
+            }
+            else {
+                LocalStoreProvider.createStack(
+                    applicationContainer: self.sharedContainerURL,
+                    userIdentifier: account.userIdentifier,
+                    dispatchGroup: self.dispatchGroup,
+                    migration: { [weak self] in self?.delegate?.sessionManagerWillStartMigratingLocalStore() },
+                    completion: { provider in
+                        let userSession = self.activateBackgroundSession(for: account, with: provider)
+                        completion(userSession)
+                        onWorkDone()
+                    }
+                )
+            }
+        })
     }
 
     // Creates the user session for @c account given, calls @c completion when done.
-    fileprivate func activateBackgroundSession(for account: Account, with provider: LocalStoreProviderProtocol, completion: @escaping (ZMUserSession)->()) {
+    private func activateBackgroundSession(for account: Account, with provider: LocalStoreProviderProtocol) -> ZMUserSession {
         guard let newSession = authenticatedSessionFactory.session(for: account, storeProvider: provider) else {
             preconditionFailure("Unable to create session for \(account)")
         }
@@ -483,7 +513,8 @@ public protocol LocalMessageNotificationResponder : class {
         self.configure(session: newSession, for: account)
 
         log.debug("Created ZMUserSession for account \(String(describing: account.userName)) — \(account.userIdentifier)")
-        completion(newSession)
+        
+        return newSession
     }
     
     internal func tearDownBackgroundSession(for accountId: UUID) {
@@ -634,6 +665,7 @@ extension SessionManager: PostLoginAuthenticationObserver {
     }
         
     public func accountDeleted(accountId: UUID) {
+        log.debug("\(accountId): Account was deleted")
         logoutCurrentSession(deleteCookie: true, error: NSError(domain: ZMUserSessionErrorDomain, code: Int(ZMUserSessionErrorCode.accountDeleted.rawValue), userInfo: nil))
         
         if let account = accountManager.account(with: accountId) {
@@ -654,6 +686,8 @@ extension SessionManager: PostLoginAuthenticationObserver {
             return
         }
         
+        log.debug("Authenticatio invalidated for \(accountId): \(error.code)")
+        
         switch userSessionErrorCode {
         case .clientDeletedRemotely,
              .accessTokenExpired:
@@ -663,7 +697,7 @@ extension SessionManager: PostLoginAuthenticationObserver {
                     logoutCurrentSession(deleteCookie: true, error: error)
                 }
                 else {
-                    session.closeAndDeleteCookie(true)
+                    self.tearDownBackgroundSession(for: accountId)
                 }
             }
             
