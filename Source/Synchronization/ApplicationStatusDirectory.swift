@@ -23,8 +23,8 @@ import WireMessageStrategy
 @objc(ZMApplicationStatusDirectory)
 public final class ApplicationStatusDirectory : NSObject, ApplicationStatus {
 
-    public let userProfileImageUpdateStatus : UserProfileImageUpdateStatus
     public let apnsConfirmationStatus : BackgroundAPNSConfirmationStatus
+    public let userProfileImageUpdateStatus : UserProfileImageUpdateStatus
     public let userProfileUpdateStatus : UserProfileUpdateStatus
     public let clientRegistrationStatus : ZMClientRegistrationStatus
     public let clientUpdateStatus : ClientUpdateStatus
@@ -45,7 +45,7 @@ public final class ApplicationStatusDirectory : NSObject, ApplicationStatus {
         self.requestCancellation = requestCancellation
         self.apnsConfirmationStatus = BackgroundAPNSConfirmationStatus(application: application, managedObjectContext: managedObjectContext, backgroundActivityFactory: BackgroundActivityFactory.sharedInstance())
         self.operationStatus = OperationStatus()
-        self.operationStatus.isInBackground = application.applicationState == .background;
+        self.operationStatus.isInBackground = application.applicationState == .background
         self.syncStatus = SyncStatus(managedObjectContext: managedObjectContext, syncStateDelegate: syncStateDelegate)
         self.userProfileUpdateStatus = UserProfileUpdateStatus(managedObjectContext: managedObjectContext)
         self.clientUpdateStatus = ClientUpdateStatus(syncManagedObjectContext: managedObjectContext)
