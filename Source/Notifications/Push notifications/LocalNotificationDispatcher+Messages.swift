@@ -49,10 +49,12 @@ extension LocalNotificationDispatcher: PushMessageHandler {
         if userSession.operationStatus.operationState == .foreground {
             localNotificationBuffer.append(note)
         } else {
-            application.scheduleLocalNotification(note)
+            userSession.performChanges {
+                self.application.scheduleLocalNotification(note)
+            }
         }
     }
-
+    
     // Processes ZMOTRMessages and ZMSystemMessages
     @objc(processMessage:) public func process(_ message: ZMMessage) {
         if let message = message as? ZMOTRMessage {
@@ -79,7 +81,7 @@ extension LocalNotificationDispatcher: PushMessageHandler {
 
 // MARK: ZMOTRMessage
 extension LocalNotificationDispatcher {
-
+    
     fileprivate func localNotificationForMessage(_ message : ZMOTRMessage) -> ZMLocalNotificationForMessage? {
         // We don't want to create duplicate notifications (e.g. for images)
         for note in messageNotifications.notifications where note is ZMLocalNotificationForMessage {

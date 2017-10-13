@@ -36,7 +36,7 @@ public class LocalNotificationDispatcher: NSObject {
     let failedMessageNotification: ZMLocalNotificationSet
     
     let application: ZMApplication
-    let userSession: ZMUserSession
+    unowned let userSession: ZMUserSession
     let sessionTracker: SessionTracker
     let syncMOC: NSManagedObjectContext
     private(set) var isTornDown: Bool
