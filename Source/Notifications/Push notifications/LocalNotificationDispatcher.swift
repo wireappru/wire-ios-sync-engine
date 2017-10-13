@@ -36,6 +36,7 @@ public class LocalNotificationDispatcher: NSObject {
     let failedMessageNotification: ZMLocalNotificationSet
     
     let application: ZMApplication
+    let userSession: ZMUserSession
     let sessionTracker: SessionTracker
     let syncMOC: NSManagedObjectContext
     private(set) var isTornDown: Bool
@@ -43,10 +44,11 @@ public class LocalNotificationDispatcher: NSObject {
     
     var localNotificationBuffer = [UILocalNotification]()
     
-    @objc(initWithManagedObjectContext:foregroundNotificationDelegate:application:)
+    @objc(initWithManagedObjectContext:foregroundNotificationDelegate:application:userSession:)
     public init(in managedObjectContext: NSManagedObjectContext,
                 foregroundNotificationDelegate: ForegroundNotificationsDelegate,
-                application: ZMApplication) {
+                application: ZMApplication,
+                userSession: ZMUserSession) {
         self.syncMOC = managedObjectContext
         self.foregroundNotificationDelegate = foregroundNotificationDelegate
         self.eventNotifications = ZMLocalNotificationSet(application: application, archivingKey: "ZMLocalNotificationDispatcherEventNotificationsKey", keyValueStore: managedObjectContext)
@@ -54,6 +56,7 @@ public class LocalNotificationDispatcher: NSObject {
         self.callingNotifications = ZMLocalNotificationSet(application: application, archivingKey: "ZMLocalNotificationDispatcherCallingNotificationsKey", keyValueStore: managedObjectContext)
         self.messageNotifications = ZMLocalNotificationSet(application: application, archivingKey: "ZMLocalNotificationDispatcherMessageNotificationsKey", keyValueStore: managedObjectContext)
         self.application = application
+        self.userSession = userSession
         self.sessionTracker = SessionTracker(managedObjectContext: managedObjectContext)
         self.isTornDown = false
         super.init()
@@ -81,7 +84,11 @@ public class LocalNotificationDispatcher: NSObject {
 extension LocalNotificationDispatcher: ZMEventConsumer {
     
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
-        if self.application.applicationState != .background {
+        ///FIXME: reviewer: should we return in these cases? 
+//        case backgroundCall
+//        case backgroundFetch
+//        case backgroundTask
+        if userSession.operationStatus.operationState != .background {
             return
         }
         
