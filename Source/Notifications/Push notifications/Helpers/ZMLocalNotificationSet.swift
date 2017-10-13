@@ -36,13 +36,16 @@ import WireTransport
     var oldNotifications = [UILocalNotification]()
     
     weak var application: ZMApplication?
+    unowned let userSession: ZMUserSession
+    
     let archivingKey : String
     let keyValueStore : ZMSynchonizableKeyValueStore
     
-    public init(application: ZMApplication, archivingKey: String, keyValueStore: ZMSynchonizableKeyValueStore) {
+    public init(application: ZMApplication, archivingKey: String, keyValueStore: ZMSynchonizableKeyValueStore, userSession: ZMUserSession) {
         self.application = application
         self.archivingKey = archivingKey
         self.keyValueStore = keyValueStore
+        self.userSession = userSession
         super.init()
         
         unarchiveOldNotifications()
@@ -104,7 +107,11 @@ import WireTransport
         notifications.forEach{
             if($0.conversationID == conversation.remoteIdentifier) {
                 toRemove.insert($0)
-                $0.uiNotifications.forEach{ application?.cancelLocalNotification($0) }
+                $0.uiNotifications.forEach{ notification in
+                    userSession.performChanges {
+                        self.application?.cancelLocalNotification(notification)
+                    }
+                }
             }
         }
         notifications.subtract(toRemove)
@@ -114,9 +121,11 @@ import WireTransport
     internal func cancelOldNotifications(_ conversation: ZMConversation) {
         guard oldNotifications.count > 0 else { return }
 
-        oldNotifications = oldNotifications.filter{
-            if($0.zm_conversationRemoteID == conversation.remoteIdentifier) {
-                application?.cancelLocalNotification($0)
+        oldNotifications = oldNotifications.filter{ notification in
+            if(notification.zm_conversationRemoteID == conversation.remoteIdentifier) {
+                userSession.performChanges {
+                    self.application?.cancelLocalNotification(notification)
+                }
                 return false
             }
             return true
