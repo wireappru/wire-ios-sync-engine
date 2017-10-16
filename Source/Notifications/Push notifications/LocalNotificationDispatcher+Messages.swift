@@ -44,8 +44,6 @@ extension LocalNotificationDispatcher: PushMessageHandler {
     /// session, otherwise it is directed to the system via UIApplication.
     ///
     func scheduleUILocalNotification(_ note: UILocalNotification) {
-        ///FIXME: reviewer: should we notify in this cases?
-        //        case backgroundCall
         if userSession.operationStatus.operationState == .foreground {
             localNotificationBuffer.append(note)
         } else {

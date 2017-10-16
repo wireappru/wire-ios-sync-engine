@@ -84,11 +84,7 @@ public class LocalNotificationDispatcher: NSObject {
 extension LocalNotificationDispatcher: ZMEventConsumer {
     
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
-        ///FIXME: reviewer: should we return in these cases? 
-//        case backgroundCall
-//        case backgroundFetch
-//        case backgroundTask
-        if userSession.operationStatus.operationState != .background {
+        if userSession.operationStatus.operationState == .foreground {
             return
         }
         
