@@ -194,7 +194,12 @@ extension LocalNotificationDispatcher {
     
     /// Can be used for cancelling all conversations if need
     public func cancelAllNotifications() {
-        self.allNotificationSets.forEach { $0.cancelAllNotifications() }
+        self.allNotificationSets.forEach { notification in
+            self.syncMOC.performGroupedBlock {
+                notification.cancelAllNotifications()
+            }
+            
+        }
     }
     
     /// Cancels all notifications for a specific conversation
@@ -202,7 +207,11 @@ extension LocalNotificationDispatcher {
     /// ZMConversationDidChangeVisibleWindowNotification is called
     public func cancelNotification(for conversation: ZMConversation) {
         self.sessionTracker.clearSessions(conversation)
-        self.allNotificationSets.forEach { $0.cancelNotifications(conversation) }
+        self.allNotificationSets.forEach { notificationSet in
+            self.syncMOC.performGroupedBlock {
+                    notificationSet.cancelNotifications(conversation)
+                }
+            }
     }
     
     /// Cancels all notification in the conversation that is speficied as object of the notification
