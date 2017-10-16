@@ -92,7 +92,7 @@ extension LocalNotificationDispatcher {
             return newNote;
         }
         
-        if let newNote = ZMLocalNotificationForMessage(message: message, application:self.application) {
+        if let newNote = ZMLocalNotificationForMessage(message: message, application: self.application, userSession: userSession) {
             messageNotifications.addObject(newNote)
             return newNote;
         }
@@ -120,7 +120,11 @@ extension LocalNotificationDispatcher {
     fileprivate func cancelNotificationForMessageID(_ messageID: UUID) {
         for note in messageNotifications.notifications where note is ZMLocalNotificationForMessage {
             if (note as! ZMLocalNotificationForMessage).isNotificationFor(messageID) {
-                note.uiNotifications.forEach{self.application.cancelLocalNotification($0)}
+                note.uiNotifications.forEach{ notification in
+                    userSession.performChanges {
+                        self.application.cancelLocalNotification(notification)
+                        }
+                    }
                 _ = messageNotifications.remove(note);
             }
         }
@@ -138,7 +142,7 @@ extension LocalNotificationDispatcher {
             return nil
         }
         
-        if let newNote = ZMLocalNotificationForSystemMessage(message: message, application:self.application) {
+        if let newNote = ZMLocalNotificationForSystemMessage(message: message, application:self.application, userSession: userSession) {
             messageNotifications.addObject(newNote)
             return newNote;
         }

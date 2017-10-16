@@ -87,10 +87,20 @@ import WireTransport
     
     /// Cancels all notifications
     public func cancelAllNotifications() {
-        notifications.forEach{ $0.uiNotifications.forEach{ application?.cancelLocalNotification($0) } }
+        notifications.forEach{
+            $0.uiNotifications.forEach{ notification in
+                userSession.performChanges {
+                    self.application?.cancelLocalNotification(notification)
+                }
+            }
+        }
         notifications = Set()
         
-        oldNotifications.forEach{application?.cancelLocalNotification($0)}
+        oldNotifications.forEach { notification in
+            userSession.performChanges {
+                self.application?.cancelLocalNotification(notification)
+            }
+        }
         oldNotifications = []
     }
     
@@ -162,7 +172,11 @@ public extension ZMLocalNotificationSet {
                   let note = $0 as? EventNotification , note.eventType == .callState
             else { return }
             toRemove.insert($0)
-            $0.uiNotifications.forEach{ application?.cancelLocalNotification($0) }
+            $0.uiNotifications.forEach{ notification in
+                userSession.performChanges {
+                    self.application?.cancelLocalNotification(notification)
+                }
+            }
         }
         self.notifications.subtract(toRemove)
     }

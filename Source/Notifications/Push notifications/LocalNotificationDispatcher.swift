@@ -111,7 +111,9 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
             else {
                 return
             }
-            self.application.scheduleLocalNotification(localNote)
+            userSession.performChanges {
+                self.application.scheduleLocalNotification(localNote)
+            }
         }
     }
     
@@ -146,7 +148,8 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
                                                                conversation: conversation,
                                                                managedObjectContext: self.syncMOC,
                                                                application: self.application,
-                                                               sessionTracker: self.sessionTracker) {
+                                                               sessionTracker: self.sessionTracker,
+                                                               userSession: self.userSession) {
             self.eventNotifications.addObject(newNote)
             return newNote
         }
@@ -163,14 +166,18 @@ extension LocalNotificationDispatcher {
             return
         }
         let note = ZMLocalNotificationForExpiredMessage(expiredMessage: message)
-        self.application.scheduleLocalNotification(note.uiNotification)
+        userSession.performChanges {
+            self.application.scheduleLocalNotification(note.uiNotification)
+        }
         self.failedMessageNotification.addObject(note)
     }
     
     /// Informs the user that a message in a conversation failed to send
     public func didFailToSendMessage(in conversation: ZMConversation) {
         let note = ZMLocalNotificationForExpiredMessage(conversation: conversation)
-        self.application.scheduleLocalNotification(note.uiNotification)
+        userSession.performChanges {
+            self.application.scheduleLocalNotification(note.uiNotification)
+        }
         self.failedMessageNotification.addObject(note)
     }
 }
