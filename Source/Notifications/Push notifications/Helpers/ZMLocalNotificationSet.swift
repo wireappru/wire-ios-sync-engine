@@ -36,16 +36,13 @@ import WireTransport
     var oldNotifications = [UILocalNotification]()
     
     weak var application: ZMApplication?
-    unowned let userSession: ZMUserSession
-    
     let archivingKey : String
     let keyValueStore : ZMSynchonizableKeyValueStore
     
-    public init(application: ZMApplication, archivingKey: String, keyValueStore: ZMSynchonizableKeyValueStore, userSession: ZMUserSession) {
+    public init(application: ZMApplication, archivingKey: String, keyValueStore: ZMSynchonizableKeyValueStore) {
         self.application = application
         self.archivingKey = archivingKey
         self.keyValueStore = keyValueStore
-        self.userSession = userSession
         super.init()
         
         unarchiveOldNotifications()
@@ -87,20 +84,10 @@ import WireTransport
     
     /// Cancels all notifications
     public func cancelAllNotifications() {
-        notifications.forEach{
-            $0.uiNotifications.forEach{ notification in
-                userSession.performChanges {
-                    self.application?.cancelLocalNotification(notification)
-                }
-            }
-        }
+        notifications.forEach{ $0.uiNotifications.forEach{ application?.cancelLocalNotification($0) } }
         notifications = Set()
         
-        oldNotifications.forEach { notification in
-            userSession.performChanges {
-                self.application?.cancelLocalNotification(notification)
-            }
-        }
+        oldNotifications.forEach{application?.cancelLocalNotification($0)}
         oldNotifications = []
     }
     
@@ -117,11 +104,7 @@ import WireTransport
         notifications.forEach{
             if($0.conversationID == conversation.remoteIdentifier) {
                 toRemove.insert($0)
-                $0.uiNotifications.forEach{ notification in
-                    userSession.performChanges {
-                        self.application?.cancelLocalNotification(notification)
-                    }
-                }
+                $0.uiNotifications.forEach{ application?.cancelLocalNotification($0) }
             }
         }
         notifications.subtract(toRemove)
@@ -131,11 +114,9 @@ import WireTransport
     internal func cancelOldNotifications(_ conversation: ZMConversation) {
         guard oldNotifications.count > 0 else { return }
 
-        oldNotifications = oldNotifications.filter{ notification in
-            if(notification.zm_conversationRemoteID == conversation.remoteIdentifier) {
-                userSession.performChanges {
-                    self.application?.cancelLocalNotification(notification)
-                }
+        oldNotifications = oldNotifications.filter{
+            if($0.zm_conversationRemoteID == conversation.remoteIdentifier) {
+                application?.cancelLocalNotification($0)
                 return false
             }
             return true
@@ -172,11 +153,7 @@ public extension ZMLocalNotificationSet {
                   let note = $0 as? EventNotification , note.eventType == .callState
             else { return }
             toRemove.insert($0)
-            $0.uiNotifications.forEach{ notification in
-                userSession.performChanges {
-                    self.application?.cancelLocalNotification(notification)
-                }
-            }
+            $0.uiNotifications.forEach{ application?.cancelLocalNotification($0) }
         }
         self.notifications.subtract(toRemove)
     }
