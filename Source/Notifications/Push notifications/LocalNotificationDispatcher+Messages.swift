@@ -47,7 +47,7 @@ extension LocalNotificationDispatcher: PushMessageHandler {
         if userSession.operationStatus.operationState == .foreground {
             localNotificationBuffer.append(note)
         } else {
-            userSession.performChanges {
+            userSession.managedObjectContext.zm_userInterface.performGroupedBlock {
                 self.application.scheduleLocalNotification(note)
             }
         }
@@ -121,7 +121,7 @@ extension LocalNotificationDispatcher {
         for note in messageNotifications.notifications where note is ZMLocalNotificationForMessage {
             if (note as! ZMLocalNotificationForMessage).isNotificationFor(messageID) {
                 note.uiNotifications.forEach{ notification in
-                    userSession.performChanges {
+                    userSession.managedObjectContext.zm_userInterface.performGroupedBlock {
                         self.application.cancelLocalNotification(notification)
                         }
                     }

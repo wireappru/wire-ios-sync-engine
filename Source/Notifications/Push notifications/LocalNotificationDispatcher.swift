@@ -111,7 +111,7 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
             else {
                 return
             }
-            userSession.performChanges {
+            self.syncMOC.zm_userInterface.performGroupedBlock{
                 self.application.scheduleLocalNotification(localNote)
             }
         }
@@ -148,8 +148,7 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
                                                                conversation: conversation,
                                                                managedObjectContext: self.syncMOC,
                                                                application: self.application,
-                                                               sessionTracker: self.sessionTracker,
-                                                               userSession: self.userSession) {
+                                                               sessionTracker: self.sessionTracker) {
             self.eventNotifications.addObject(newNote)
             return newNote
         }
@@ -166,7 +165,7 @@ extension LocalNotificationDispatcher {
             return
         }
         let note = ZMLocalNotificationForExpiredMessage(expiredMessage: message)
-        userSession.performChanges {
+        self.syncMOC.zm_userInterface.performGroupedBlock{
             self.application.scheduleLocalNotification(note.uiNotification)
         }
         self.failedMessageNotification.addObject(note)
@@ -175,7 +174,7 @@ extension LocalNotificationDispatcher {
     /// Informs the user that a message in a conversation failed to send
     public func didFailToSendMessage(in conversation: ZMConversation) {
         let note = ZMLocalNotificationForExpiredMessage(conversation: conversation)
-        userSession.performChanges {
+        self.syncMOC.zm_userInterface.performGroupedBlock{
             self.application.scheduleLocalNotification(note.uiNotification)
         }
         self.failedMessageNotification.addObject(note)

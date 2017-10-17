@@ -85,7 +85,9 @@ final public class ZMLocalNotificationForReaction : ZMLocalNotificationForEvent,
             otherMessage.reaction.emoji == "" &&
             event.senderUUID() == sender?.remoteIdentifier
         {
-            cancelNotifications()
+            self.managedObjectContext.zm_userInterface.performGroupedBlock {
+                self.cancelNotifications()
+            }
             shouldBeDiscarded = true
             return nil
         }
