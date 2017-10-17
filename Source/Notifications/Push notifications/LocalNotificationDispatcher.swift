@@ -36,7 +36,6 @@ public class LocalNotificationDispatcher: NSObject {
     let failedMessageNotification: ZMLocalNotificationSet
     
     let application: ZMApplication
-    unowned let userSession: ZMUserSession
     let sessionTracker: SessionTracker
     let syncMOC: NSManagedObjectContext
     private(set) var isTornDown: Bool
@@ -44,11 +43,10 @@ public class LocalNotificationDispatcher: NSObject {
     
     var localNotificationBuffer = [UILocalNotification]()
     
-    @objc(initWithManagedObjectContext:foregroundNotificationDelegate:application:userSession:)
+    @objc(initWithManagedObjectContext:foregroundNotificationDelegate:application:)
     public init(in managedObjectContext: NSManagedObjectContext,
                 foregroundNotificationDelegate: ForegroundNotificationsDelegate,
-                application: ZMApplication,
-                userSession: ZMUserSession) {
+                application: ZMApplication) {
         self.syncMOC = managedObjectContext
         self.foregroundNotificationDelegate = foregroundNotificationDelegate
         self.eventNotifications = ZMLocalNotificationSet(application: application, archivingKey: "ZMLocalNotificationDispatcherEventNotificationsKey", keyValueStore: managedObjectContext)
@@ -56,7 +54,6 @@ public class LocalNotificationDispatcher: NSObject {
         self.callingNotifications = ZMLocalNotificationSet(application: application, archivingKey: "ZMLocalNotificationDispatcherCallingNotificationsKey", keyValueStore: managedObjectContext)
         self.messageNotifications = ZMLocalNotificationSet(application: application, archivingKey: "ZMLocalNotificationDispatcherMessageNotificationsKey", keyValueStore: managedObjectContext)
         self.application = application
-        self.userSession = userSession
         self.sessionTracker = SessionTracker(managedObjectContext: managedObjectContext)
         self.isTornDown = false
         super.init()
@@ -84,7 +81,7 @@ public class LocalNotificationDispatcher: NSObject {
 extension LocalNotificationDispatcher: ZMEventConsumer {
     
     public func processEvents(_ events: [ZMUpdateEvent], liveEvents: Bool, prefetchResult: ZMFetchRequestBatchResult?) {
-        if userSession.operationStatus.operationState == .foreground {
+        if self.application.applicationState != .background {
             return
         }
         
@@ -111,9 +108,7 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
             else {
                 return
             }
-            self.syncMOC.zm_userInterface.performGroupedBlock{
-                self.application.scheduleLocalNotification(localNote)
-            }
+            self.application.scheduleLocalNotification(localNote)
         }
     }
     
@@ -165,18 +160,14 @@ extension LocalNotificationDispatcher {
             return
         }
         let note = ZMLocalNotificationForExpiredMessage(expiredMessage: message)
-        self.syncMOC.zm_userInterface.performGroupedBlock{
-            self.application.scheduleLocalNotification(note.uiNotification)
-        }
+        self.application.scheduleLocalNotification(note.uiNotification)
         self.failedMessageNotification.addObject(note)
     }
     
     /// Informs the user that a message in a conversation failed to send
     public func didFailToSendMessage(in conversation: ZMConversation) {
         let note = ZMLocalNotificationForExpiredMessage(conversation: conversation)
-        self.syncMOC.zm_userInterface.performGroupedBlock{
-            self.application.scheduleLocalNotification(note.uiNotification)
-        }
+        self.application.scheduleLocalNotification(note.uiNotification)
         self.failedMessageNotification.addObject(note)
     }
 }
@@ -193,12 +184,7 @@ extension LocalNotificationDispatcher {
     
     /// Can be used for cancelling all conversations if need
     public func cancelAllNotifications() {
-        self.allNotificationSets.forEach { notification in
-            self.syncMOC.performGroupedBlock {
-                notification.cancelAllNotifications()
-            }
-            
-        }
+        self.allNotificationSets.forEach { $0.cancelAllNotifications() }
     }
     
     /// Cancels all notifications for a specific conversation
@@ -206,11 +192,7 @@ extension LocalNotificationDispatcher {
     /// ZMConversationDidChangeVisibleWindowNotification is called
     public func cancelNotification(for conversation: ZMConversation) {
         self.sessionTracker.clearSessions(conversation)
-        self.allNotificationSets.forEach { notificationSet in
-            self.syncMOC.performGroupedBlock {
-                    notificationSet.cancelNotifications(conversation)
-                }
-            }
+        self.allNotificationSets.forEach { $0.cancelNotifications(conversation) }
     }
     
     /// Cancels all notification in the conversation that is speficied as object of the notification
