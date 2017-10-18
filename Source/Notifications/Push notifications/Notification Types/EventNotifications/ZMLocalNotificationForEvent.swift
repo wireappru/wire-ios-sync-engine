@@ -23,13 +23,17 @@ public protocol LocalNotification {
     var conversationID : UUID? { get }
     var application : ZMApplication {get}
     var notifications : [UILocalNotification] {get set}
-    func cancelNotifications()
+    
+    /// cancel notifications
+    ///
+    /// - Parameter userSession: userSession for cancelLocalNotification (in main thread)
+    func cancelNotifications(userSession: ZMUserSession)
 }
 
 public extension LocalNotification {
-    public func cancelNotifications() {
+    public func cancelNotifications(userSession: ZMUserSession) {
         notifications.forEach{
-            application.cancelLocalNotification($0)
+            userSession.cancelLocalNotification(notification:$0, application: application)
         }
     }
 }

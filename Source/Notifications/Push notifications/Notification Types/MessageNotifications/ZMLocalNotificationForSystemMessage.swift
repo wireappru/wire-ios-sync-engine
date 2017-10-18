@@ -101,7 +101,7 @@ final public class ZMLocalNotificationForSystemMessage : ZMLocalNotification, No
         
         switch (contentType, otherContentType){
         case (.system(let type), .system) where type == .participantsAdded || type == .participantsRemoved:
-            cancelNotifications()
+            cancelNotifications(userSession: userSession)
             let note = configureNotification(message)
             notifications.append(note)
             return self

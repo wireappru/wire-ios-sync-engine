@@ -43,13 +43,12 @@ extension LocalNotificationDispatcher: PushMessageHandler {
     /// state. If the app is active, then the notification is directed to the user
     /// session, otherwise it is directed to the system via UIApplication.
     ///
+    /// - Parameter note: notification to dispatch
     func scheduleUILocalNotification(_ note: UILocalNotification) {
         if userSession.operationStatus.operationState == .foreground {
             localNotificationBuffer.append(note)
         } else {
-            userSession.managedObjectContext.zm_userInterface.performGroupedBlock {
-                self.application.scheduleLocalNotification(note)
-            }
+            userSession.scheduleLocalNotification(notification: note, application: application)
         }
     }
     
@@ -121,9 +120,7 @@ extension LocalNotificationDispatcher {
         for note in messageNotifications.notifications where note is ZMLocalNotificationForMessage {
             if (note as! ZMLocalNotificationForMessage).isNotificationFor(messageID) {
                 note.uiNotifications.forEach{ notification in
-                    userSession.managedObjectContext.zm_userInterface.performGroupedBlock {
-                        self.application.cancelLocalNotification(notification)
-                        }
+                    userSession.cancelLocalNotification(notification:notification, application: application)
                     }
                 _ = messageNotifications.remove(note);
             }

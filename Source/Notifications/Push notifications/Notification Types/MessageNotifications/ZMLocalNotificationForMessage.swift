@@ -172,7 +172,7 @@ final public class ZMLocalNotificationForMessage : ZMLocalNotification, Notifica
         switch (otherContentType) {
         case (.knock):
             eventCount = eventCount+1
-            cancelNotifications()
+            cancelNotifications(userSession: userSession)
             let note = configureNotification(message)
             notifications.append(note)
             return self
