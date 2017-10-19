@@ -31,9 +31,14 @@ public protocol LocalNotification {
 }
 
 public extension LocalNotification {
+    
+    /// Cancel notifications with the userSession in main thread.
+    /// (Directly calling application.cancelLocalNotification() may produce run time warnings for "Main Thread Checker: UIApplication API called on a background thread")
+    ///
+    /// - Parameter userSession: userSession for cancelLocalNotification (in main thread)
     public func cancelNotifications(userSession: ZMUserSession) {
         notifications.forEach{
-            userSession.cancelLocalNotification(notification:$0, application: application)
+            userSession.cancelLocalNotificationInMainThread(notification:$0, application: application)
         }
     }
 }

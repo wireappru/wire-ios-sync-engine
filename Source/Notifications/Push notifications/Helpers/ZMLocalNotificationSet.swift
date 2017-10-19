@@ -87,12 +87,12 @@ import WireTransport
     /// - Parameter userSession: userSession for cancelLocalNotification (in main thread)
     public func cancelAllNotifications(userSession: ZMUserSession) {
         notifications.forEach{ $0.uiNotifications.forEach {
-            userSession.cancelLocalNotification(notification:$0, application: application)
+            userSession.cancelLocalNotificationInMainThread(notification:$0, application: application)
             } }
         notifications = Set()
         
         oldNotifications.forEach{
-            userSession.cancelLocalNotification(notification:$0, application: application)
+            userSession.cancelLocalNotificationInMainThread(notification:$0, application: application)
         }
         oldNotifications = []
     }
@@ -119,7 +119,7 @@ import WireTransport
             if($0.conversationID == conversation.remoteIdentifier) {
                 toRemove.insert($0)
                 $0.uiNotifications.forEach{
-                    userSession.cancelLocalNotification(notification:$0, application: application)
+                    userSession.cancelLocalNotificationInMainThread(notification:$0, application: application)
                 }
             }
         }
@@ -136,7 +136,7 @@ import WireTransport
 
         oldNotifications = oldNotifications.filter{
             if($0.zm_conversationRemoteID == conversation.remoteIdentifier) {
-                userSession.cancelLocalNotification(notification:$0, application: application)
+                userSession.cancelLocalNotificationInMainThread(notification:$0, application: application)
                 return false
             }
             return true
@@ -173,7 +173,7 @@ public extension ZMLocalNotificationSet {
         return nil
     }
     
-    /// 
+    ///
     ///
     /// - Parameters:
     ///   - conversation:
@@ -186,7 +186,7 @@ public extension ZMLocalNotificationSet {
             else { return }
             toRemove.insert($0)
             $0.uiNotifications.forEach{
-                userSession.cancelLocalNotification(notification:$0, application: application)
+                userSession.cancelLocalNotificationInMainThread(notification:$0, application: application)
             }
         }
         self.notifications.subtract(toRemove)

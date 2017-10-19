@@ -142,7 +142,7 @@ extension ZMUserSession: ForegroundNotificationsDelegate {
     /// - Parameters:
     ///   - notification: notification to cancel
     ///   - application: application which cancels the notification
-    func cancelLocalNotification(notification: UILocalNotification, application: ZMApplication) {
+    func cancelLocalNotificationInMainThread(notification: UILocalNotification, application: ZMApplication) {
         DispatchQueue.main.performAsync {
             application.cancelLocalNotification(notification)
         }
@@ -154,7 +154,7 @@ extension ZMUserSession: ForegroundNotificationsDelegate {
     /// - Parameters:
     ///   - notification: notification to cancel
     ///   - application: application which cancels the notification
-    public func scheduleLocalNotification(notification: UILocalNotification, application: ZMApplication) {
+    public func scheduleLocalNotificationInMainThread(notification: UILocalNotification, application: ZMApplication) {
         DispatchQueue.main.performAsync {
             application.scheduleLocalNotification(notification)
         }

@@ -48,7 +48,7 @@ extension LocalNotificationDispatcher: PushMessageHandler {
         if userSession.operationStatus.operationState == .foreground {
             localNotificationBuffer.append(note)
         } else {
-            userSession.scheduleLocalNotification(notification: note, application: application)
+            userSession.scheduleLocalNotificationInMainThread(notification: note, application: application)
         }
     }
     
@@ -120,7 +120,7 @@ extension LocalNotificationDispatcher {
         for note in messageNotifications.notifications where note is ZMLocalNotificationForMessage {
             if (note as! ZMLocalNotificationForMessage).isNotificationFor(messageID) {
                 note.uiNotifications.forEach{ notification in
-                    userSession.cancelLocalNotification(notification:notification, application: application)
+                    userSession.cancelLocalNotificationInMainThread(notification:notification, application: application)
                     }
                 _ = messageNotifications.remove(note);
             }

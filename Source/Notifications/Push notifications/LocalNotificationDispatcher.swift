@@ -123,7 +123,7 @@ extension LocalNotificationDispatcher: ZMEventConsumer {
                 return
             }
 
-            userSession.scheduleLocalNotification(notification:localNote, application: application)
+            userSession.scheduleLocalNotificationInMainThread(notification:localNote, application: application)
         }
     }
     
@@ -175,14 +175,14 @@ extension LocalNotificationDispatcher {
             return
         }
         let note = ZMLocalNotificationForExpiredMessage(expiredMessage: message)
-        userSession.scheduleLocalNotification(notification:note.uiNotification, application: application)
+        userSession.scheduleLocalNotificationInMainThread(notification:note.uiNotification, application: application)
         self.failedMessageNotification.addObject(note)
     }
     
     /// Informs the user that a message in a conversation failed to send
     public func didFailToSendMessage(in conversation: ZMConversation) {
         let note = ZMLocalNotificationForExpiredMessage(conversation: conversation)
-        userSession.scheduleLocalNotification(notification:note.uiNotification, application: application)
+        userSession.scheduleLocalNotificationInMainThread(notification:note.uiNotification, application: application)
         self.failedMessageNotification.addObject(note)
     }
 }
