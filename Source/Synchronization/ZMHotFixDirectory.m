@@ -120,11 +120,6 @@ static NSString* ZMLogTag ZM_UNUSED = @"HotFix";
                      patchWithVersion:@"97.2.0" patchCode:^(NSManagedObjectContext *moc) {
                          [ZMHotFixDirectory deleteDuplicatedClientsIn:moc];
                      }],
-                    
-                    [ZMHotFixPatch
-                     patchWithVersion:@"122.0.4" patchCode:^(NSManagedObjectContext *moc) {
-                         [ZMHotFixDirectory deleteDuplicatedClientsIn:moc];
-                     }],
                     ];
     });
     return patches;
