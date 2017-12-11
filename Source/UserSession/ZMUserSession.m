@@ -48,6 +48,7 @@ NSNotificationName const ZMRequestToOpenSyncConversationNotificationName = @"ZMR
 NSString * const ZMAppendAVSLogNotificationName = @"AVSLogMessageNotification";
 NSNotificationName const ZMUserSessionResetPushTokensNotificationName = @"ZMUserSessionResetPushTokensNotification";
 NSNotificationName const ZMTransportRequestLoopNotificationName = @"ZMTransportRequestLoopNotificationName";
+NSNotificationName const ZMPotentialErrorDetectedNotificationName = @"ZMPotentialErrorDetectedNotificationName";
 
 static NSString * const AppstoreURL = @"https://itunes.apple.com/us/app/zeta-client/id930944768?ls=1&mt=8";
 
@@ -199,7 +200,8 @@ ZM_EMPTY_ASSERTING_INIT()
             
             self.localNotificationDispatcher = [[LocalNotificationDispatcher alloc] initWithManagedObjectContext:self.syncManagedObjectContext
                                                                                   foregroundNotificationDelegate:self
-                                                                                                     application:application];
+                                                                                                     application:application
+                                                                                                 operationStatus:self.operationStatus];
 
             
             
