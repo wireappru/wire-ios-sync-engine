@@ -612,10 +612,6 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     }
     if (request == nil && [keys containsObject:ZMConversationUnsyncedActiveParticipantsKey]) {
         request = [self requestForUpdatingUnsyncedActiveParticipantsInConversation:updatedConversation];
-        // TODO
-//        if (request == nil) {
-//            request = [self requestForUpdatingUnsyncedActiveServicesInConversation:updatedConversation];
-//        }
     }
     if (request == nil && (   [keys containsObject:ZMConversationArchivedChangedTimeStampKey]
                            || [keys containsObject:ZMConversationSilencedChangedTimeStampKey])) {
@@ -661,14 +657,6 @@ static NSString *const ConversationTeamManagedKey = @"managed";
     NSDictionary *userInfo = @{ UserInfoTypeKey : UserInfoAddedValueKey, UserInfoUserKey : conversation.unsyncedActiveParticipants };
     return [[ZMUpstreamRequest alloc] initWithKeys:[NSSet setWithObject:ZMConversationUnsyncedActiveParticipantsKey] transportRequest:request userInfo:userInfo];
 }
-
-//- (ZMUpstreamRequest *)requestForUpdatingUnsyncedActiveServicesInConversation:(ZMConversation *)conversation
-//{
-//    //`/conversations/:cnv/bots`
-//
-//    return [[ZMUpstreamRequest alloc] initWithKeys:[NSSet setWithObject:ZMConversationUnsyncedActiveParticipantsKey]
-//                                  transportRequest:];
-//}
 
 - (ZMUpstreamRequest *)requestForUpdatingUnsyncedInactiveParticipantsInConversation:(ZMConversation *)conversation
 {
