@@ -33,7 +33,12 @@ public extension ServiceUser {
         return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
     }
     
-    public func startConversation(in userSession: ZMUserSession, completion: ((ZMConversation)->())?) {
+    public func startConversation(in userSession: ZMUserSession, completion: ((ZMConversation?)->())?) {
+        guard userSession.transportSession.reachability.mayBeReachable else {
+            completion?(nil)
+            return
+        }
+        
         let selfUser = ZMUser.selfUser(in: userSession.managedObjectContext)
         
         let conversation = ZMConversation.insertNewObject(in: userSession.managedObjectContext)
@@ -43,7 +48,7 @@ public extension ServiceUser {
         conversation.team = selfUser.team
         var onCreatedRemotelyToken: NSObjectProtocol? = nil
         
-        _ = onCreatedRemotelyToken; // remove warning
+        _ = onCreatedRemotelyToken // remove warning
         
         onCreatedRemotelyToken = conversation.onCreatedRemotely {
             
