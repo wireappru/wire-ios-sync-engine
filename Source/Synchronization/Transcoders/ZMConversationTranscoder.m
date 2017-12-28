@@ -643,7 +643,7 @@ static NSString *const ConversationTeamManagedKey = @"managed";
 
 - (ZMUpstreamRequest *)requestForUpdatingUnsyncedActiveParticipantsInConversation:(ZMConversation *)conversation
 {
-    NSOrderedSet *unsyncedUserIDs = [[conversation.unsyncedActiveParticipants filteredOrderedSetUsingPredicate:[NSPredicate predicateWithFormat:@"%K != YES", IsServiceKey]] mapWithBlock:^NSString*(ZMUser *unsyncedUser) {
+    NSOrderedSet *unsyncedUserIDs = [conversation.unsyncedActiveParticipants  mapWithBlock:^NSString*(ZMUser *unsyncedUser) {
         return unsyncedUser.remoteIdentifier.transportString;
     }];
     

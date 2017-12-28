@@ -231,8 +231,7 @@ NSUInteger const ZMUserTranscoderNumberOfUUIDsPerRequest = 1600 / 25; // UUID as
     
     NSPredicate *noRemoteIdPredicate = [NSPredicate predicateWithFormat:@"remoteIdentifier_data != nil"];
     NSPredicate *excludePredicate = [NSPredicate predicateWithFormat:@"NOT remoteIdentifier_data IN %@", remoteIDsInProgressData];
-    NSPredicate *excludeServicesPredicate = [NSPredicate predicateWithFormat:@"%K != YES", IsServiceKey];
-    NSPredicate *p1 = [NSCompoundPredicate andPredicateWithSubpredicates:@[isIncompletePredicate, excludePredicate, excludeServicesPredicate, noRemoteIdPredicate]];
+    NSPredicate *p1 = [NSCompoundPredicate andPredicateWithSubpredicates:@[isIncompletePredicate, excludePredicate, noRemoteIdPredicate]];
     return p1;
 }
 

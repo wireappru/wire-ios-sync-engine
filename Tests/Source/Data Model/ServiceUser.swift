@@ -18,59 +18,48 @@
 
 import Foundation
 
-fileprivate extension ZMUser {
-    func update(with serviceUser: ServiceUser) {
-        self.update(withProviderIdentifier: serviceUser.providerIdentifier)
-        self.name = serviceUser.name
-        self.accentColorValue = serviceUser.accentColorValue
-        self.previewProfileAssetIdentifier = serviceUser.imageSmallProfileIdentifier
-        self.completeProfileAssetIdentifier = serviceUser.imageMediumIdentifier
-    }
-}
-
 public extension ServiceUser {
+    fileprivate func requestToAddService(to conversation: ZMConversation) -> ZMTransportRequest {
+        guard let remoteIdentifier = conversation.remoteIdentifier else {
+            fatal("conversation is not synced with the backend")
+        }
+        
+        let path = "/conversations/\(remoteIdentifier.transportString())/bots"
+        
+        let payload: NSDictionary = ["provider": self.providerIdentifier,
+                                     "service": self.serviceIdentifier,
+                                     "locale": NSLocale.formattedLocaleIdentifier()]
+        
+        return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
+    }
+    
     public func startConversation(in userSession: ZMUserSession, completion: ((ZMConversation)->())?) {
-        guard let syncContext = userSession.syncManagedObjectContext else {
-            fatal("sync context is not available")
-        }
+        let selfUser = ZMUser.selfUser(in: userSession.managedObjectContext)
         
-        guard let serviceId = UUID(uuidString: self.serviceIdentifier) else {
-            fatal("serviceId is not available")
-        }
+        let conversation = ZMConversation.insertNewObject(in: userSession.managedObjectContext)
+        conversation.lastModifiedDate = Date()
+        conversation.conversationType = .group
+        conversation.creator = selfUser
+        conversation.team = selfUser.team
+        var onCreatedRemotelyToken: NSObjectProtocol? = nil
         
-        syncContext.performGroupedBlock {
+        _ = onCreatedRemotelyToken; // remove warning
+        
+        onCreatedRemotelyToken = conversation.onCreatedRemotely {
             
-            let syncSelfUser = ZMUser.selfUser(in: syncContext)
-            let syncBotUser = ZMUser(remoteID: serviceId,
-                                     isService: true,
-                                     createIfNeeded: true,
-                                     in: syncContext)!
+            let request = self.requestToAddService(to: conversation)
             
-            syncBotUser.update(with: self)
+            request.add(ZMCompletionHandler(on: userSession.managedObjectContext, block: { (response) in
+                print(response)
+                completion?(conversation)
+            }))
+            
+            // TODO: abusing search requests here
+            userSession.transportSession.enqueueSearch(request)
+            
+            onCreatedRemotelyToken = nil
+        }
 
-            let syncConversation = ZMConversation.insertNewObject(in: syncContext)
-            syncConversation.lastModifiedDate = Date()
-            syncConversation.conversationType = .group
-            syncConversation.creator = syncSelfUser
-            syncConversation.team = syncSelfUser.team
-            
-            syncConversation.internalAddParticipants(Set(arrayLiteral: syncBotUser), isAuthoritative: false)
-            
-            syncConversation.appendNewConversationSystemMessageIfNeeded()
-            
-            syncContext.saveOrRollback()
-            let syncConversationID = syncConversation.objectID
-            guard !syncConversationID.isTemporaryID else {
-                fatal("conversation failed to save")
-            }
-            
-            userSession.managedObjectContext.performGroupedBlock {
-                guard let object = try? userSession.managedObjectContext.existingObject(with: syncConversationID),
-                        let uiConversation = object as? ZMConversation else {
-                    fatal("cannot fetch conversation")
-                }
-                completion?(uiConversation)
-            }
-        }
+        userSession.managedObjectContext.saveOrRollback()
     }
 }
