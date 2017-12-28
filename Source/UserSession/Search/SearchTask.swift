@@ -169,7 +169,7 @@ extension SearchTask {
                     return
                 }
                 
-                if let updatedResult = self?.result.union(withRemoteResult: result) {
+                if let updatedResult = self?.result.union(withRemoteResult: result, serviceUsers: false) {
                     self?.result = updatedResult
                 }
             }))
@@ -305,7 +305,7 @@ extension SearchTask {
                         return
                 }
                 
-                if let updatedResult = self?.result.union(withRemoteResult: result) {
+                if let updatedResult = self?.result.union(withRemoteResult: result, serviceUsers: true) {
                     self?.result = updatedResult
                 }
             }))

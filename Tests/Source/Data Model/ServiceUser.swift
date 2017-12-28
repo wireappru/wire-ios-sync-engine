@@ -27,21 +27,37 @@ public extension ServiceUser {
         let path = "/conversations/\(remoteIdentifier.transportString())/bots"
         
         let payload: NSDictionary = ["provider": self.providerIdentifier,
-                                     "service": self.serviceIdentifier,
-                                     "locale": NSLocale.formattedLocaleIdentifier()]
+                                     "service": self.serviceIdentifier/*, // TODO verify locale sending
+                                     "locale": "en_US"NSLocale.formattedLocaleIdentifier()*/]
         
         return ZMTransportRequest(path: path, method: .methodPOST, payload: payload as ZMTransportData)
     }
     
-    public func startConversation(in userSession: ZMUserSession, completion: ((ZMConversation?)->())?) {
-        guard userSession.transportSession.reachability.mayBeReachable else {
+}
+
+public extension ZMConversation {
+    public func add(serviceUser: ServiceUser, in userSession: ZMUserSession, completion: (()->())?) {
+        let request = serviceUser.requestToAddService(to: self)
+        
+        request.add(ZMCompletionHandler(on: userSession.managedObjectContext, block: { (response) in
+            completion?()
+        }))
+        
+        // TODO: abusing search requests here
+        userSession.transportSession.enqueueSearch(request)
+    }
+}
+
+public extension ZMUserSession {
+    public func startConversation(with serviceUser: ServiceUser, completion: ((ZMConversation?)->())?) {
+        guard self.transportSession.reachability.mayBeReachable else {
             completion?(nil)
             return
         }
         
-        let selfUser = ZMUser.selfUser(in: userSession.managedObjectContext)
+        let selfUser = ZMUser.selfUser(in: self.managedObjectContext)
         
-        let conversation = ZMConversation.insertNewObject(in: userSession.managedObjectContext)
+        let conversation = ZMConversation.insertNewObject(in: self.managedObjectContext)
         conversation.lastModifiedDate = Date()
         conversation.conversationType = .group
         conversation.creator = selfUser
@@ -51,20 +67,12 @@ public extension ServiceUser {
         _ = onCreatedRemotelyToken // remove warning
         
         onCreatedRemotelyToken = conversation.onCreatedRemotely {
-            
-            let request = self.requestToAddService(to: conversation)
-            
-            request.add(ZMCompletionHandler(on: userSession.managedObjectContext, block: { (response) in
-                print(response)
+            conversation.add(serviceUser: serviceUser, in: self) {
                 completion?(conversation)
-            }))
-            
-            // TODO: abusing search requests here
-            userSession.transportSession.enqueueSearch(request)
-            
-            onCreatedRemotelyToken = nil
+                onCreatedRemotelyToken = nil
+            }
         }
 
-        userSession.managedObjectContext.saveOrRollback()
+        self.managedObjectContext.saveOrRollback()
     }
 }
