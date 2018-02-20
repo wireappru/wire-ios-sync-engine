@@ -18,8 +18,9 @@
 
 import Foundation
 
-private let zmLog = ZMSLog(tag: "Wireless")
+private let zmLog = ZMSLog(tag: "ConversationLink")
 
+// TODO: Move to wire-ios-utilities
 enum Result<T> {
     case success(T)
     case failure(Error)
@@ -31,7 +32,7 @@ enum VoidResult {
 }
 
 fileprivate extension ZMConversation {
-    struct WirelessKey {
+    struct TransportKey {
         static let data = "data"
         static let uri = "uri"
     }
@@ -56,7 +57,7 @@ extension ZMConversation {
     func fetchWirelessLink(in userSession: ZMUserSession, _ completion: @escaping (Result<String>) -> Void) {
         let request = WirelessRequestFactory.fetchLinkRequest(for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { [weak self] response in
-            if response.httpStatus == 200, let uri = response.payload?.asDictionary()?[ZMConversation.WirelessKey.uri] as? String {
+            if response.httpStatus == 200, let uri = response.payload?.asDictionary()?[ZMConversation.TransportKey.uri] as? String {
                 self?.conversationLink = uri
                 zmLog.error("Did fetch existing wireless link: \(uri)")
                 completion(.success(uri))
@@ -75,8 +76,8 @@ extension ZMConversation {
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if response.httpStatus == 200, let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil),
-                let data = payload.asDictionary()?[ZMConversation.WirelessKey.data] as? [String: Any],
-                let uri = data[ZMConversation.WirelessKey.uri] as? String {
+                let data = payload.asDictionary()?[ZMConversation.TransportKey.data] as? [String: Any],
+                let uri = data[ZMConversation.TransportKey.uri] as? String {
                 zmLog.error("Did create wireless link: \(uri)")
                 completion(.success(uri))
 
@@ -94,8 +95,11 @@ extension ZMConversation {
         userSession.transportSession.enqueueOneTime(request)
     }
     
+    // TODO: The access level should also be possible to change by setting it on a conversation,
+    // the ZMConversationTranscoder should be adjusted to synchronize it when updating the properties of a conversation.
+    
     func upgradeAccessLevel(in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
-        guard !mode.contains(.code) else { return completion(.success) }
+        guard !accessLevel.contains(.code) else { return completion(.success) }
         let request = WirelessRequestFactory.setMode(for: self, mode: [.code, .invite])
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
@@ -131,7 +135,7 @@ fileprivate struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil)
     }
     
-    static func setMode(for conversation: ZMConversation, mode: [ConversationMode]) -> ZMTransportRequest {
+    static func setMode(for conversation: ZMConversation, mode: [ConversationAccessLevel]) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
