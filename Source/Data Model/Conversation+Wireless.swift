@@ -99,7 +99,7 @@ extension ZMConversation {
     // the ZMConversationTranscoder should be adjusted to synchronize it when updating the properties of a conversation.
     
     func upgradeAccessLevel(in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
-        guard !accessLevel.contains(.code) else { return completion(.success) }
+        guard !accessMode.contains(.code) else { return completion(.success) }
         let request = WirelessRequestFactory.setMode(for: self, mode: [.code, .invite])
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
@@ -135,7 +135,7 @@ fileprivate struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil)
     }
     
-    static func setMode(for conversation: ZMConversation, mode: [ConversationAccessLevel]) -> ZMTransportRequest {
+    static func setMode(for conversation: ZMConversation, mode: [ConversationAccessMode]) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
