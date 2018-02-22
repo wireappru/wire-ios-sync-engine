@@ -58,7 +58,7 @@ extension ZMConversation {
         let request = WirelessRequestFactory.fetchLinkRequest(for: self)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { [weak self] response in
             if response.httpStatus == 200, let uri = response.payload?.asDictionary()?[ZMConversation.TransportKey.uri] as? String {
-                self?.conversationLink = uri
+//                self?.conversationLink = uri
                 zmLog.error("Did fetch existing wireless link: \(uri)")
                 completion(.success(uri))
             } else {
@@ -98,9 +98,9 @@ extension ZMConversation {
     // TODO: The access level should also be possible to change by setting it on a conversation,
     // the ZMConversationTranscoder should be adjusted to synchronize it when updating the properties of a conversation.
     
-    func upgradeAccessLevel(in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
-        guard !accessMode.contains(.code) else { return completion(.success) }
-        let request = WirelessRequestFactory.setMode(for: self, mode: [.code, .invite])
+    func setMode(_ mode: ConversationAccessMode, in userSession: ZMUserSession, _ completion: @escaping (VoidResult) -> Void) {
+        guard accessMode != mode else { return completion(.success) }
+        let request = WirelessRequestFactory.setMode(for: self, mode: mode)
         request.add(ZMCompletionHandler(on: managedObjectContext!) { response in
             if let payload = response.payload,
                 let event = ZMUpdateEvent(fromEventStreamPayload: payload, uuid: nil) {
@@ -135,11 +135,11 @@ fileprivate struct WirelessRequestFactory {
         return .init(path: "/conversations/\(identifier)/code", method: .methodPOST, payload: nil)
     }
     
-    static func setMode(for conversation: ZMConversation, mode: [ConversationAccessMode]) -> ZMTransportRequest {
+    static func setMode(for conversation: ZMConversation, mode: ConversationAccessMode) -> ZMTransportRequest {
         guard let identifier = conversation.remoteIdentifier?.transportString() else {
             fatal("conversation is not yet inserted on the backend")
         }
-        let payload = [ "access": mode.map { $0.rawValue } ]
+        let payload = [ "access": mode.stringValue ]
         return .init(path: "/conversations/\(identifier)/access", method: .methodPUT, payload: payload as ZMTransportData)
     }
 }
