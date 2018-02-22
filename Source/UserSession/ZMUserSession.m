@@ -44,10 +44,7 @@
 NSString * const ZMPhoneVerificationCodeKey = @"code";
 NSNotificationName const ZMLaunchedWithPhoneVerificationCodeNotificationName = @"ZMLaunchedWithPhoneVerificationCode";
 NSNotificationName const ZMRequestToOpenSyncConversationNotificationName = @"ZMRequestToOpenSyncConversation";
-NSString * const ZMAppendAVSLogNotificationName = @"AVSLogMessageNotification";
 NSNotificationName const ZMUserSessionResetPushTokensNotificationName = @"ZMUserSessionResetPushTokensNotification";
-NSNotificationName const ZMTransportRequestLoopNotificationName = @"ZMTransportRequestLoopNotificationName";
-NSNotificationName const ZMPotentialErrorDetectedNotificationName = @"ZMPotentialErrorDetectedNotificationName";
 
 static NSString * const AppstoreURL = @"https://itunes.apple.com/us/app/zeta-client/id930944768?ls=1&mt=8";
 
@@ -123,7 +120,7 @@ ZM_EMPTY_ASSERTING_INIT()
             }
             ZMLogWarn(@"Request loop happening at path: %@", path);
             dispatch_async(dispatch_get_main_queue(), ^{
-                [[NSNotificationCenter defaultCenter] postNotificationName:ZMTransportRequestLoopNotificationName object:nil userInfo:@{@"path" : path}];
+                [[NSNotificationCenter defaultCenter] postNotificationName:ZMLoggingRequestLoopNotificationName object:nil userInfo:@{@"path" : path}];
             });
         };
     }
@@ -186,9 +183,6 @@ ZM_EMPTY_ASSERTING_INIT()
         UserImageLocalCache *userImageCache = [[UserImageLocalCache alloc] initWithLocation:cacheLocation];
         self.managedObjectContext.zm_userImageCache = userImageCache;
         
-        ImageAssetCache *imageAssetCache = [[ImageAssetCache alloc] initWithMBLimit:500 location:cacheLocation];
-        self.managedObjectContext.zm_imageAssetCache = imageAssetCache;
-        
         FileAssetCache *fileAssetCache = [[FileAssetCache alloc] initWithLocation:cacheLocation];
         self.managedObjectContext.zm_fileAssetCache = fileAssetCache;
         
@@ -203,7 +197,6 @@ ZM_EMPTY_ASSERTING_INIT()
                                                                                                syncStateDelegate:self
                                                                                                        analytics:analytics];
             
-            self.syncManagedObjectContext.zm_imageAssetCache = imageAssetCache;
             self.syncManagedObjectContext.zm_userImageCache = userImageCache;
             self.syncManagedObjectContext.zm_fileAssetCache = fileAssetCache;
             
@@ -735,39 +728,6 @@ static NSString * const IsOfflineKey = @"IsOfflineKey";
 @end
 
 
-
-@implementation ZMUserSession (AVSLogging)
-
-+ (id<ZMAVSLogObserverToken>)addAVSLogObserver:(id<ZMAVSLogObserver>)observer;
-{
-    ZM_WEAK(observer);
-    return (id<ZMAVSLogObserverToken>)[[NSNotificationCenter defaultCenter] addObserverForName:ZMAppendAVSLogNotificationName
-                                                                                        object:nil
-                                                                                         queue:nil
-                                                                                    usingBlock:^(NSNotification * _Nonnull note) {
-                                                                                        ZM_STRONG(observer);
-                                                                                        [observer logMessage:note.userInfo[@"message"]];
-                                                                                    }];
-}
-
-+ (void)removeAVSLogObserver:(id<ZMAVSLogObserverToken>)token;
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:token];
-}
-
-+ (void)appendAVSLogMessageForConversation:(ZMConversation *)conversation withMessage:(NSString *)message;
-{
-    NSDictionary *userInfo = @{@"message" :message};
-    if (conversation.managedObjectContext == nil) {
-        return;
-    }
-    [[[NotificationInContext alloc] initWithName:ZMAppendAVSLogNotificationName
-                                        context:conversation.managedObjectContext.notificationContext
-                                         object:conversation
-                                       userInfo:userInfo] post];
-}
-
-@end
 
 @implementation ZMUserSession (Calling)
 
