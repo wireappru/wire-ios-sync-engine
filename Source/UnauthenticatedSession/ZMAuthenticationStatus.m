@@ -1,4 +1,4 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 // 
@@ -333,18 +333,11 @@ static NSString* ZMLogTag ZM_UNUSED = @"Authentication";
 - (void)didFailLoginWithPhone:(BOOL)invalidCredentials
 {
     ZMLogDebug(@"%@ invalid credentials: %d", NSStringFromSelector(_cmd), invalidCredentials);
-    BOOL isDuplicated = self.duplicateRegistrationPhoneNumber;
     [self resetLoginAndRegistrationStatus];
-    
-    if(isDuplicated) {
-        NSError *error = [NSError userSessionErrorWithErrorCode:ZMUserSessionPhoneNumberIsAlreadyRegistered userInfo:nil];
-        
-        [ZMUserSessionRegistrationNotification notifyRegistrationDidFail:error context:self];
-    }
-    else {
-        NSError *error = [NSError userSessionErrorWithErrorCode:(invalidCredentials ? ZMUserSessionInvalidCredentials : ZMUserSessionUnknownError) userInfo:nil];
-        [self notifyAuthenticationDidFail:error];
-    }
+
+    NSError *error = [NSError userSessionErrorWithErrorCode:(invalidCredentials ? ZMUserSessionInvalidCredentials : ZMUserSessionUnknownError) userInfo:nil];
+    [self notifyAuthenticationDidFail:error];
+
     ZMLogDebug(@"current phase: %lu", (unsigned long)self.currentPhase);
 }
 
