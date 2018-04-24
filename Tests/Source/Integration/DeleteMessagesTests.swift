@@ -110,7 +110,7 @@ class DeleteMessagesTests: ConversationTestsBase {
         XCTAssertEqual(messages.count, 2) // system message & inserted message
         guard let message = messages.lastObject as? ZMClientMessage , message.textMessageData?.messageText == "Hello" else { return XCTFail() }
         
-        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce!.transportString(), nonce: UUID.create())
+        let genericMessage = ZMGenericMessage(deleteMessage: message.nonce!, nonce: UUID.create())
         
         // when
         mockTransportSession.performRemoteChanges { session in
