@@ -1,5 +1,5 @@
 variables:
-  DEPENDENCIES_BASE_URL: "https://raw.githubusercontent.com/wireapp/wire-ios-shared-resources/master"
+  DEPENDENCIES_BASE_URL: "https://raw.githubusercontent.com/wireapp/wire-ios-shared-resources/fix/gitlabci"
   BASH_ENV: variables.sh
 stages:
   - prepare
@@ -14,6 +14,7 @@ before_script:
     - curl -O "${DEPENDENCIES_BASE_URL}/environment.sh"
     - bash environment.sh
     - ./variables.sh
+    - rbenv install 2.3.3 -s
 
 fetch_dependencies:
   stage: prepare
