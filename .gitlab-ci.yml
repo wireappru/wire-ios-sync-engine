@@ -33,12 +33,18 @@ build_project:
     - ./dependencies.sh
     - chmod +x build.sh
     - ./build.sh
+  artifacts:
+    paths:
+      - DerivedData
+      - build
   tags:
     - xcode9.3
 
 
 test_project:
   stage: test
+  dependencies:
+    - build_project
   script:
     - chmod +x test.sh
     - ./test.sh
