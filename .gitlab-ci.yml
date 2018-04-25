@@ -1,0 +1,39 @@
+variables:
+  DEPENDENCIES_BASE_URL: "https://raw.githubusercontent.com/wireapp/wire-ios-shared-resources/master"
+  BASH_ENV: variables.sh
+stages:
+  - prepare
+  - build
+  - test
+
+before_script:
+    - echo "#!/bin/bash" > variables.sh
+    - chmod +x variables.sh
+    - mkdir -p build
+    - curl -O "${DEPENDENCIES_BASE_URL}/environment.sh"
+    - bash environment.sh
+    - ./variables.sh
+
+fetch_dependencies:
+  stage: prepare
+  script:
+    - mkdir -p build
+    - curl -O "${DEPENDENCIES_BASE_URL}/environment.sh"
+    - chmod +x environment.sh
+    - ./environment.sh
+
+build_project:
+  stage: build
+  script:
+    - chmod +x dependencies.sh
+    - ./dependencies.sh
+    - chmod +x build.sh
+    - ./build.sh
+
+test_project:
+  stage: test
+  script:
+    - chmod +x test.sh
+    - ./test.sh
+    - chmod +x post_test.sh
+    - ./post_test.sh
