@@ -7,7 +7,6 @@ stages:
   - test
 
 
-
 before_script:
     - echo "#!/bin/bash" > variables.sh
     - chmod +x variables.sh
