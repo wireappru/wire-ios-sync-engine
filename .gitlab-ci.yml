@@ -13,7 +13,7 @@ before_script:
     - mkdir -p build
     - curl -O "${DEPENDENCIES_BASE_URL}/environment.sh"
     - bash environment.sh
-    - ./variables.sh
+    - source variables.sh
     - rbenv install 2.3.3 -s
 
 fetch_dependencies:
