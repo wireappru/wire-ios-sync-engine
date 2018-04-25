@@ -6,6 +6,8 @@ stages:
   - build
   - test
 
+
+
 before_script:
     - echo "#!/bin/bash" > variables.sh
     - chmod +x variables.sh
@@ -21,6 +23,8 @@ fetch_dependencies:
     - curl -O "${DEPENDENCIES_BASE_URL}/environment.sh"
     - chmod +x environment.sh
     - ./environment.sh
+  tags:
+    - xcode9.3
 
 build_project:
   stage: build
@@ -29,6 +33,9 @@ build_project:
     - ./dependencies.sh
     - chmod +x build.sh
     - ./build.sh
+  tags:
+    - xcode9.3
+
 
 test_project:
   stage: test
@@ -37,3 +44,6 @@ test_project:
     - ./test.sh
     - chmod +x post_test.sh
     - ./post_test.sh
+  tags:
+    - xcode9.3
+
