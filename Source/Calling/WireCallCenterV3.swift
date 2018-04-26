@@ -297,7 +297,7 @@ internal func incomingCallHandler(conversationId: UnsafePointer<Int8>?, messageT
     let callCenter = Unmanaged<WireCallCenterV3>.fromOpaque(contextRef).takeUnretainedValue()
     
     callCenter.uiMOC?.performGroupedBlock {
-        let callState : CallState = .incoming(video: isVideoCall != 0, shouldRing: shouldRing != 0, degraded: callCenter.isDegraded(conversationId: convID))
+        let callState : CallState = .incoming(video: true, shouldRing: shouldRing != 0, degraded: callCenter.isDegraded(conversationId: convID))
         callCenter.handleCallState(callState: callState, conversationId: convID, userId: userID, messageTime: Date(timeIntervalSince1970: TimeInterval(messageTime)))
     }
 }
