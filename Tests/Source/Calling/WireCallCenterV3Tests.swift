@@ -43,6 +43,8 @@ class WireCallCenterV3Tests: MessagingTest {
     var sut : WireCallCenterV3!
     let otherUserID : UUID = UUID()
     var selfUserID : UUID!
+    var oneOnOneConversation: ZMConversation!
+    var groupConversation: ZMConversation!
     var oneOnOneConversationID : UUID!
     var groupConversationID : UUID!
     var clientID: String!
@@ -63,11 +65,13 @@ class WireCallCenterV3Tests: MessagingTest {
         oneOnOneConversation.remoteIdentifier = UUID.create()
         oneOnOneConversation.conversationType = .oneOnOne
         oneOnOneConversationID = oneOnOneConversation.remoteIdentifier!
+        self.oneOnOneConversation = oneOnOneConversation
         
         let groupConversation = ZMConversation.insertNewObject(in: self.uiMOC)
         groupConversation.remoteIdentifier = UUID.create()
         groupConversation.conversationType = .group
         groupConversationID = groupConversation.remoteIdentifier!
+        self.groupConversation = groupConversation
         
         clientID = "foo"
         flowManager = FlowManagerMock()
@@ -85,10 +89,14 @@ class WireCallCenterV3Tests: MessagingTest {
         flowManager = nil
         clientID = nil
         selfUserID = nil
+        oneOnOneConversation = nil
         oneOnOneConversationID = nil
+        oneOnOneConversationIDRef = nil
+        groupConversation = nil
+        groupConversationID = nil
+        groupConversationIDRef = nil
         mockTransport = nil
         mockAVSWrapper = nil
-        oneOnOneConversationIDRef = nil
         otherUserIDRef = nil
         context = nil
         
@@ -260,7 +268,7 @@ class WireCallCenterV3Tests: MessagingTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // when
-        XCTAssertTrue(sut.answerCall(conversationId: oneOnOneConversationID))
+        XCTAssertTrue(sut.answerCall(conversation: oneOnOneConversation))
         
         // then
         XCTAssertTrue(mockAVSWrapper.didCallRejectCall)
@@ -268,12 +276,12 @@ class WireCallCenterV3Tests: MessagingTest {
     
     func testThatOtherOutgoingCallsAreCanceledWhenWeAnswerCall() {
         // given
-        XCTAssertTrue(sut.startCall(conversationId: groupConversationID, video: false))
+        XCTAssertTrue(sut.startCall(conversation: groupConversation, video: false))
         WireSyncEngine.incomingCallHandler(conversationId: oneOnOneConversationIDRef, messageTime: 0, userId: otherUserIDRef, isVideoCall: 0, shouldRing: 1, contextRef: context)
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // when
-        XCTAssertTrue(sut.answerCall(conversationId: oneOnOneConversationID))
+        XCTAssertTrue(sut.answerCall(conversation: oneOnOneConversation))
         
         // then
         XCTAssertTrue(mockAVSWrapper.didCallEndCall)
@@ -285,7 +293,7 @@ class WireCallCenterV3Tests: MessagingTest {
         XCTAssert(waitForAllGroupsToBeEmpty(withTimeout: 0.5))
         
         // when
-        XCTAssertTrue(sut.startCall(conversationId: groupConversationID, video: false))
+        XCTAssertTrue(sut.startCall(conversation: groupConversation, video: false))
         
         // then
         XCTAssertTrue(mockAVSWrapper.didCallRejectCall)
@@ -344,7 +352,7 @@ class WireCallCenterV3Tests: MessagingTest {
         
         checkThatItPostsNotification(expectedCallState: .answered(degraded: false), expectedCallerId: otherUserID, expectedConversationId: oneOnOneConversationID) {
             // when
-            _ = sut.answerCall(conversationId: oneOnOneConversationID)
+            _ = sut.answerCall(conversation: oneOnOneConversation)
             
             // then
             XCTAssertTrue(mockAVSWrapper.didCallAnswerCall)
@@ -354,7 +362,7 @@ class WireCallCenterV3Tests: MessagingTest {
     func testThatItStartsACall(){
         checkThatItPostsNotification(expectedCallState: .outgoing(degraded: false), expectedCallerId: selfUserID, expectedConversationId: groupConversationID) {
             // when
-            _ = sut.startCall(conversationId: groupConversationID, video: false)
+            _ = sut.startCall(conversation: groupConversation, video: false)
             
             // then
             XCTAssertTrue(mockAVSWrapper.didCallStartCall)

@@ -44,12 +44,12 @@ public class MockAVSWrapper : AVSWrapperType {
         // do nothing
     }
     
-    public func startCall(conversationId: UUID, video: Bool, isGroup: Bool, useCBR: Bool) -> Bool {
+    public func startCall(conversationId: UUID, callType: AVSCallType, conversationType: AVSConversationType, useCBR: Bool) -> Bool {
         didCallStartCall = true
         return !startCallShouldFail
     }
     
-    public func answerCall(conversationId: UUID, useCBR: Bool) -> Bool {
+    public func answerCall(conversationId: UUID, callType: AVSCallType, useCBR: Bool) -> Bool {
         didCallAnswerCall = true
         return !answerCallShouldFail
     }
