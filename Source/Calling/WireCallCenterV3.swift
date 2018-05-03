@@ -574,6 +574,7 @@ public struct CallEvent {
     weak var uiMOC : NSManagedObjectContext?
     let analytics: AnalyticsType?
     let flowManager : FlowManagerType
+    let audioOnlyParticipantLimit = 4
     
     deinit {
         avsWrapper.close()
@@ -681,7 +682,7 @@ public struct CallEvent {
         
         endAllCalls(exluding: conversationId)
         
-        let callType: AVSCallType = conversation.activeParticipants.count > 5 ? .audioOnly : .normal
+        let callType: AVSCallType = conversation.activeParticipants.count > audioOnlyParticipantLimit ? .audioOnly : .normal
         let answered = avsWrapper.answerCall(conversationId: conversationId, callType: callType, useCBR: useConstantBitRateAudio)
         if answered {
             let callState : CallState = .answered(degraded: isDegraded(conversationId: conversationId))
@@ -705,7 +706,7 @@ public struct CallEvent {
         
         let conversationType: AVSConversationType = conversation.conversationType == .group ? .group : .oneToOne
         let callType: AVSCallType
-        if conversation.activeParticipants.count > 5 {
+        if conversation.activeParticipants.count > audioOnlyParticipantLimit {
             callType = .audioOnly
         } else {
             callType = video ? .video : .normal
